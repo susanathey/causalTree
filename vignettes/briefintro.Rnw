@@ -1,0 +1,124 @@
+\documentclass[11pt]{article}
+\usepackage[pdftex]{graphicx}
+\usepackage{Sweave}
+\usepackage{amsmath}
+\addtolength{\textwidth}{1in}
+\addtolength{\oddsidemargin}{-.5in}
+\setlength{\evensidemargin}{\oddsidemargin}
+
+\SweaveOpts{keep.source=TRUE, fig=FALSE}
+%\VignetteIndexEntry{Introduction to Rpart}
+%\VignetteDepends{causalTree}
+%\VignetteDepends{survival}
+% Ross Ihaka suggestions
+\DefineVerbatimEnvironment{Sinput}{Verbatim} {xleftmargin=2em}
+\DefineVerbatimEnvironment{Soutput}{Verbatim}{xleftmargin=2em}
+\DefineVerbatimEnvironment{Scode}{Verbatim}{xleftmargin=2em}
+\fvset{listparameters={\setlength{\topsep}{0pt}}}
+\renewenvironment{Schunk}{\vspace{\topsep}}{\vspace{\topsep}}
+
+\SweaveOpts{engine=R,eps=FALSE,pdf=TRUE, width=7, height=4.5}
+\newcommand{\myfig}[1]{\resizebox{\textwidth}{!}
+                        {\includegraphics{#1.pdf}}}
+\def\tree{\texttt{tree}}
+\def\causalTree{\texttt{causalTree}}
+\def\splus{S-Plus}
+\newcommand{\Co}[1]{\texttt{#1}}
+
+\title {An Introduction to Recursive Partitioning for Heterogeneous Causal Effects Estimation Using \texttt{causalTree} package}
+\author{Susan Athey \\
+        Guido Imbens\\
+        Yanyang Kong}
+\date{\today}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+This document is a brief introduction of \texttt{causalTree} package, which is indended to give a short overview of rules and methods in \texttt{causalTree} function, as complementary material for Athey and Imbens's paper \textit{Recursive Partitioning for Heterogeneous Causal Effects} \cite{athey2015machine}. \par 
+The \texttt{causalTree} function builds a regression model using the \texttt{rpart} object, which is the object derived from \texttt{rpart} package, implemneting many ideas in the CART (Classification and Regression Trees), written by Breiman, Friedman, Olshen and Stone \cite{Breiman83}. Like \texttt{rpart}, \texttt{causalTree} builds a binary regression tree model in two stages, but focuses on estimating heterogeneous causal effect.\par
+As same as \texttt{rpart}, in the first stage, the tree is growing from root node based on specific splitting rule. In each node, data will be splitted into two groups to best minimize the risk function, then in left sub-node and right sub-node, the splitting routine will be applied seperately and so on recursively till no improvements can made or reach some limiting rules (eg. at least \texttt{minsize} of treated observations and controlled observations in terminal nodes.) \par
+In the second stage, the tree will be pruned using some cross validation method to trim off some branches from the full tree in order to minize the cross validation error. \par
+Something differs from \texttt{rpart}, in \texttt{causalTree} package, we offer honest re-estimation \texttt{honest.causalTree} on causal effects. Honest here means that we estimate causal effects on observed samples itself rather than the data used to build model and do cross validation.
+
+\section{Notations}
+\begin{quote}
+\begin{tabbing}
+$X_i$ \qquad\qquad \= $i = 1, 2,..., n$ \qquad observed variables or feature matrix for observation $i$.\\
+\\
+$Y_i$ \> $i = 1, 2, ..., n$ \qquad observed outcome of observation $i$.\\
+\\
+$W_i$ \>$i = 1, 2, ..., n$ \qquad binary indicator for the treatment,\\
+\>with $W_i = 0$ indicating that observation $i$ received the control treatment, \\
+\>and $W_i = 1$ indicating that observation $i$ received the active treatment.\\
+\\
+$\Pi$ \> partitioning tree as $\Pi = \bigcup L_l$, with $L_l$ represents the $l-$th leaf.\\
+\\
+$\tau(l)$ \> $l = 1, 2, ..., k$ \qquad causal effect or treatment effect in $l-$th leaf. \\
+\\
+$p$ \> propensity score to indicate the treatment probability.
+
+\end{tabbing}
+\end{quote}
+
+\section{Building Causal Trees}
+\subsection{Splitting rules}
+\texttt{causalTree} function offers four different splitting rules for user to choose. Each splitting rule corresponds to a specific risk function, and each split at a node aims to minimize the risk function. 
+\par
+For each observation $i$, its treatment effect or causal effect is estimated as the difference of treated mean and controlled mean in the leaf $l$ where it belongs.
+\[\hat{\tau}(i) = \hat{\tau}(l) = \frac{\sum_{W_i = 1}Y_i }{n_1} - \frac{\sum_{W_i = 0}Y_i }{n_0}\]
+\subsubsection{TOT}
+We first define the transformed outcome as 
+\[Y_i^* = Y_i \cdot \frac{W_i - e(X_i)}{e(X_i)\cdot(1 - e(X_i))}\]
+where $e(x) = P(W_i = 1|X_i = x)$ is the conditional treatment probability. In complete randomization, we can set $e(x) = p$ and the transformed outcome becomes
+\[ Y^*_i = \begin{cases} 
+     Y_i/p & W_i = 1 \\
+      -Y_i/(1 - p) & W_i = 0
+   \end{cases}
+\]
+In TOT splitting rule, the risk function is given by
+\[E(\Pi; Y, W, X) = \frac{1}{n}\sum(Y^*_i - \hat{\tau}_i)^2\]
+
+\subsubsection{CT}
+In causal trees splitting rule, we have two versions, adaptive verison, denoted as CT-A, and honest version, CT-H.
+\subsubsection{fit}
+\subsubsection{tstats}
+\subsection{Discrete splitting}
+\subsection{Example}
+The data we use in this example is the simulated data called \texttt{simulation.1} built in \texttt{causalTree} package. 
+
+<<example1, fig=TRUE, include=TRUE>>=
+library(causalTree)
+fit <- causalTree(y~x1 + x2 + x3 + x4, data = simulation.1, 
+                  treatment = simulation.1$treatment, split.Rule = "TOT",
+                  cv.option = "fit", cv.Honest = F, split.Bucket = F, 
+                  xval = 10, cv.alpha = 0.5, propensity = 0.5)
+
+rpart.plot(fit)
+@
+\section{Cross Validation and Pruning}
+\subsection{Cross validation options}
+\subsubsection{TOT}
+\subsubsection{CT}
+\subsubsection{fit}
+\subsubsection{matching}
+\subsection{Example}
+<<example2, fig = TRUE, include = TRUE>>=
+fit <- causalTree(y~x1 + x2 + x3 + x4, data = simulation.1, 
+                  treatment = simulation.1$treatment, split.Rule = "CT",
+                  cv.option = "CT", cv.Honest = F, split.Bucket = F, 
+                  xval = 10, cv.alpha = 0.5, propensity = 0.5, cp = 0)
+rpart.plot(fit)
+@
+
+Then we do prunning to minize the cross validaiton error in \texttt{cptable}.
+<<prune, fig = TRUE, include = TRUE>>=
+opcp <- fit$cptable[, 1][which.min(fit$cptable[,4])]
+opfit <- prune(fit, cp = opcp)
+rpart.plot(opfit)
+@
+\bibliographystyle{plain}
+\bibliography{refer}
+\end{document}
