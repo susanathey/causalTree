@@ -2,9 +2,84 @@
 \usepackage[pdftex]{graphicx}
 \usepackage{Sweave}
 \usepackage{amsmath}
+\usepackage{amsfonts}
 \addtolength{\textwidth}{1in}
 \addtolength{\oddsidemargin}{-.5in}
 \setlength{\evensidemargin}{\oddsidemargin}
+
+\newcommand{\spp}{{\rm p}}
+\newcommand{\match}{{\rm match}}
+\newcommand{\st}{{\rm ST}}
+\newcommand{\tttt}{{\rm TT}}
+\newcommand{\tot}{{\rm TOT}}
+\newcommand{\cat}{{\rm CT}}
+\newcommand{\mcat}{{\rm MCT}}
+\newcommand{\alter}{{\rm alter}}
+\newcommand{\emse}{{\rm EMSE}}
+\newcommand{\calt}{{\cal T}}
+\newcommand{\est}{{\rm est}}
+\newcommand{\calp}{{\Pi}}
+\newcommand{\cals}{{\cal S}}
+
+\newcommand{\mse}{{\rm MSE}}
+
+
+\newcommand{\emset}{{\rm EMSE}_\tau}
+\newcommand{\mset}{{\rm MSE}_\tau}
+\newcommand{\emsem}{{\rm EMSE}_\mu}
+\newcommand{\msem}{{\rm MSE}_\mu}
+ 
+\newcommand{\msemw}{{\rm MSE}_{\mu,W}}
+\newcommand{\control}{{\rm control}}
+\newcommand{\treat}{{\rm treat}}
+\newcommand{\alg}{{\rm alg}}
+%\newcommand{\tree}{{\rm tree}}
+\newcommand{\hemse}{\widehat{\rm EMSE}}
+\newcommand{\oy}{\overline{Y}}
+\newcommand{\ttt}{{\rm t}}
+\newcommand{\cc}{{\rm c}}
+\newcommand{\insample}{{\rm is}}
+\newcommand{\outofsample}{{\rm os}}
+\newcommand{\os}{{\rm os}}
+\newcommand{\crit}{{\rm CRIT}}
+\newcommand{\imgof}{{\rm imgof}}
+\newcommand{\omgof}{{\rm omgof}}
+\newcommand{\mgof}{{\rm mgof}}
+\newcommand{\gof}{{\rm gof}}
+\newcommand{\mx}{{\mathbb{X}}}
+\newcommand{\train}{{\rm tr}}
+\newcommand{\test}{{\rm te}}
+\newcommand{\bx}{{\bf X}}
+\newcommand{\ob}{\overline{b}}
+\newcommand{\by}{{\bf Y}}
+\newcommand{\bw}{{\bf W}}
+
+\newcommand{\dif}{{\rm dif}}
+\newcommand{\obs}{{\rm obs}}
+\newcommand{\tree}{{\rm tree}}
+\newcommand{\level}{{\rm level}}
+\newcommand{\lasso}{{\rm lasso}}
+%\newcommand{\match}{{\rm match}}
+\newcommand{\transf}{{\rm transf}}
+\newcommand{\ttrain}{{\rm train}}
+\newcommand{\ttest}{{\rm test}}
+\newcommand{\tcv}{{\rm cv}}
+%\newcommand{\obs}{{\rm obs}}
+\newcommand{\yin}{Y_i(0)}
+\newcommand{\yie}{Y_i(1)}
+\newcommand{\yio}{Y_i^\obs}
+\newcommand{\mme}{\mathbb{E}}
+\newcommand{\mmc}{\mathbb{C}}
+\newcommand{\mmr}{\mathbb{R}}
+\newcommand{\causal}{{\rm causal}}
+\newcommand{\desc}{{\rm descr}}
+\newcommand{\pop}{{\rm pop}}
+\newcommand{\indep}{\perp\!\!\!\perp}
+
+
+
+
+
 
 \SweaveOpts{keep.source=TRUE, fig=FALSE}
 %\VignetteIndexEntry{Introduction to Rpart}
@@ -37,57 +112,133 @@
 \tableofcontents
 
 \section{Introduction}
-This document is a brief introduction of \texttt{causalTree} package, which is indended to give a short overview of rules and methods in \texttt{causalTree} function, as complementary material for Athey and Imbens's paper \textit{Recursive Partitioning for Heterogeneous Causal Effects} \cite{athey2015machine}. \par 
-The \texttt{causalTree} function builds a regression model using the \texttt{rpart} object, which is the object derived from \texttt{rpart} package, implemneting many ideas in the CART (Classification and Regression Trees), written by Breiman, Friedman, Olshen and Stone \cite{Breiman83}. Like \texttt{rpart}, \texttt{causalTree} builds a binary regression tree model in two stages, but focuses on estimating heterogeneous causal effect.\par
-As same as \texttt{rpart}, in the first stage, the tree is growing from root node based on specific splitting rule. In each node, data will be splitted into two groups to best minimize the risk function, then in left sub-node and right sub-node, the splitting routine will be applied seperately and so on recursively till no improvements can made or reach some limiting rules (eg. at least \texttt{minsize} of treated observations and controlled observations in terminal nodes.) \par
-In the second stage, the tree will be pruned using some cross validation method to trim off some branches from the full tree in order to minize the cross validation error. \par
-Something differs from \texttt{rpart}, in \texttt{causalTree} package, we offer honest re-estimation \texttt{honest.causalTree} on causal effects. Honest here means that we estimate causal effects on observed samples itself rather than the data used to build model and do cross validation.
+This document is a brief introduction of \texttt{causalTree} package, which is indended to give a short overview of the \texttt{causalTree} function and the \texttt{honest.causalTree} function, which implement the methods from \textit{Recursive Partitioning for Heterogeneous Causal Effects} \cite{athey2015machine}. \par 
+The \texttt{causalTree} function builds a regression model and returns an \texttt{rpart} object, which is the object derived from \texttt{rpart} package, implemneting many ideas in the CART (Classification and Regression Trees), written by Breiman, Friedman, Olshen and Stone \cite{Breiman83}. Like \texttt{rpart}, \texttt{causalTree} builds a binary regression tree model in two stages, but focuses on estimating heterogeneous causal effect.\par
+Following \texttt{rpart}, in the first stage, the tree is grown from the root node based on a specified splitting rule. In each node, the data in a leaf will be split into two groups to best minimize the risk function. Next, in the left sub-node and right sub-node, the splitting routine will be applied separately and so on recursively until no improvements can made, or until some limits are reached (e.g. the routine will stop if it cannot make splits that have at least \texttt{minsize} of treated observations and \texttt{minsize} control observations in each terminal node.) \par
+In the second stage, the tree will be pruned using a specified cross-validation method, where the cross-validation penalty parameter
+penalizes the number of nodes in the tree.  The leaves to be pruned are selected according to the risk function calculated while
+the tree is built. \par
+The \texttt{causalTree} package incorporates an additional function not included in \texttt{rpart}, which is honest re-estimation \texttt{honest.causalTree} of causal effects. Honest here means that we estimate causal effects in the leaves of a given tree on an independent estimation sample rather than the data used to build and cross-validate the tree.  The user first builds the tree
+with \texttt{causalTree}, specifying the training data for building the tree, and then passes the tree object as well as the estimation sample data
+into \texttt{honest.causalTree}, which replaces the leaf estimates from the input tree with new estimates in each leaf, calculated on the estimation sample.
 
-\section{Notations}
+
+\section{Notation}
 \begin{quote}
 \begin{tabbing}
-$X_i$ \qquad\qquad \= $i = 1, 2,..., n$ \qquad observed variables or feature matrix for observation $i$.\\
+$X_i$ \qquad\qquad \= $i = 1, 2,..., N$ \qquad observed variables or feature matrix for observation $i$.\\
 \\
-$Y_i$ \> $i = 1, 2, ..., n$ \qquad observed outcome of observation $i$.\\
+$Y_i$ \> $i = 1, 2, ..., N$ \qquad observed outcome of observation $i$.\\
 \\
-$W_i$ \>$i = 1, 2, ..., n$ \qquad binary indicator for the treatment,\\
+$W_i$ \>$i = 1, 2, ..., N$ \qquad binary indicator for the treatment,\\
 \>with $W_i = 0$ indicating that observation $i$ received the control treatment, \\
 \>and $W_i = 1$ indicating that observation $i$ received the active treatment.\\
 \\
-$\Pi$ \> partitioning tree as $\Pi = \bigcup L_l$, with $L_l$ represents the $l-$th leaf.\\
+$\cals$ \> a data sample drawn from data sample population, \\
+\> $\cals^{\text{tr}}$ denotes a training sample,\\
+\> $\cals^{\text{te}}$ denotes a test sample, \\
+\> $\cals^{\text{est}}$ denotes an estimation sample.\\
+\> $\cals_{\text{treat}}$ and $\cals_{\text{control}}$ denote the subsamples of treated and control units.\\
 \\
-$\tau(l)$ \> $l = 1, 2, ..., k$ \qquad causal effect or treatment effect in $l-$th leaf. \\
+$\Pi$ \>  a partitioning tree $\calp=\{\ell_1,\ldots,\ell_{\#(\Pi)}\}$ with $\cup_{j=1}^{\#(\calp)} \ell_j=\mathbb{X}$ \\ 
+\> corresponds to a partitioning of the feature space the feature sapce $\mathbb{X}$, with\\
+\> $\#(\calp)$ the number of elements in the partition.\\
 \\
-$p$ \> propensity score to indicate the treatment probability.
+$\ell(x; \calp)$ \> the leaf $\ell \in \calp$ such that $x \in \ell$.\\
+\\
+
+$\tau(\ell)$ \> $l = 1, 2, ..., k$ \qquad causal effect or treatment effect in leaf $\ell$. \\
+\\
+$p$ \> marginal treatment probability, $p = \text{pr}(W_i = 1)$. 
 
 \end{tabbing}
 \end{quote}
 
+
+
 \section{Building Causal Trees}
 \subsection{Splitting rules}
-\texttt{causalTree} function offers four different splitting rules for user to choose. Each splitting rule corresponds to a specific risk function, and each split at a node aims to minimize the risk function. 
-\par
-For each observation $i$, its treatment effect or causal effect is estimated as the difference of treated mean and controlled mean in the leaf $l$ where it belongs.
-\[\hat{\tau}(i) = \hat{\tau}(l) = \frac{\sum_{W_i = 1}Y_i }{n_1} - \frac{\sum_{W_i = 0}Y_i }{n_0}\]
-\subsubsection{TOT}
+\texttt{causalTree} function offers four different splitting rules for user to choose. Each splitting rule corresponds to a specific risk function, and each split at a node aims to minimize the risk function. For each observation $(Y_i^{\text{obs}}, X_i, W_i)$, given a tree $\calp$, the population average outcome is 
+\[\mu(w,x;\calp) \equiv \mme\left[\left. Y_i(w) \right| X_i\in\ell(x;\calp) \right], \]
+and its average causal effect is 
+\[\tau(x;\Pi) \equiv \mme\left[\left. Y_i(1)-Y_i(0) \right| X_i\in\ell(x;\calp) \right]. \]
+the estimated outcome is
+\[ \hat\mu(w,x;\cals,\calp) \equiv
+\frac{1}{\#(\{i\in\cals_w:X_i\in\ell(x;\calp)\})}\sum_{i\in\cals_w:X_i\in\ell(x;\calp)} Y_i^\obs,\]
+the estimated causal effect is the difference of treated mean and control mean in the leaf $l$ where it belongs,
+\[ \hat\tau(x;\cals,\calp) \equiv \tau(\ell) =  \hat\mu(1,x;\cals,\calp)- \hat\mu(0,x;\cals,\calp).\]
+
+\subsubsection{Transformed Outcome Trees (\textbf{TOT})}
 We first define the transformed outcome as 
-\[Y_i^* = Y_i \cdot \frac{W_i - e(X_i)}{e(X_i)\cdot(1 - e(X_i))}\]
-where $e(x) = P(W_i = 1|X_i = x)$ is the conditional treatment probability. In complete randomization, we can set $e(x) = p$ and the transformed outcome becomes
+\[ Y_i^* = Y_i \cdot \frac{W_i - p}{p\cdot(1 - p)}\]
+where $p = N_{\text{treat}} / N$ is the reatment probability, and
 \[ Y^*_i = \begin{cases} 
      Y_i/p & W_i = 1 \\
       -Y_i/(1 - p) & W_i = 0
    \end{cases}
 \]
-In TOT splitting rule, the risk function is given by
-\[E(\Pi; Y, W, X) = \frac{1}{n}\sum(Y^*_i - \hat{\tau}_i)^2\]
+In \textbf{TOT} splitting rule, the risk function is given by
+\[\widehat{\mse}(\cals^\train, \cals^\train, \Pi) = \frac{1}{N^\train}\sum_{i\in\cals^\train}\left\{(Y^*_i - \hat{\tau}(X_i; \cals^\train, \calp))^2  - Y^{*2}_i\right\}\]
 
-\subsubsection{CT}
-In causal trees splitting rule, we have two versions, adaptive verison, denoted as CT-A, and honest version, CT-H.
-\subsubsection{fit}
-\subsubsection{tstats}
+Note that the paper \cite{athey2015machine} envisions that treatment effects would be estimated by taking the mean of 
+$Y_i^*$ within a leaf, but points out that this is inefficient because the treated fraction in a leaf may differ from the population
+proportion due to sampling variation.  Thus, our package uses $\hat\tau$ instead.  The \texttt{rpart} package can be
+used off-the-shelf (applied with $Y^*_i$ as the outcome) to implement the method precisely as described in \cite{athey2015machine}.
+
+\subsubsection{Causal Trees (\textbf{CT})}
+In causal trees splitting rule, we have two versions, adaptive verison, denoted as \textbf{CT-A}, and honest version, \textbf{CT-H}. \\
+For \textbf{CT-A}, we use $\widehat{\mse}_\tau(\cals^\train,\cals^\train,\calp)$ as the objective risk function, and
+\[-\widehat{\mse}_\tau(\cals^\train,\cals^\train,\calp) = \frac{1}{N^\train}\sum_{i\in\cals^\train} \hat\tau^2(X_i;\cals^\train,\calp).\]
+For \textbf{CT-H}, the honest version, the splitting objective risk function is $\widehat{\emse}_\tau(\cals^\train,\calp)$, and
+\begin{align*}
+-\widehat{\emse}_\tau(\cals^\train,\calp) & = 
+\frac{1}{N^\train}\sum_{i\in\cals^\train} \hat\tau^2(X_i;\cals^\train,\calp) \\
+& -
+\Bigl(\frac{1}{N^\train} + \frac{1}{N^\est}\Bigr)\cdot \sum_{\ell\in\calp}
+\left( \frac{S^2_{\cals^\train_\treat}(\ell)}{p}+ \frac{S^2_{\cals^\train_\control}(\ell)}{1-p}\right).
+\end{align*}
+where $S^2_{\cals^\train_\control}(\ell)$ is the within-leaf variance on outcome $Y$ for $\cals^\train_\control$ in leaf $\ell$, and $S^2_{\cals^\train_\treat}(\ell)$ is the counter part for $\cals^\train_\treat$.\\
+In our package we incorporate an additional parameter \texttt{split.alpha} = $\alpha \in (0, 1)$ as a parameter to adjust the proportion of $\widehat{\mse}$ and the varaince term in $\widehat{\emse}$.
+\begin{align*}
+-\widehat{\emse}_\tau(\cals^\train,\calp, \alpha) &= 
+\alpha \cdot \frac{1}{N^\train}\sum_{i\in\cals^\train} \hat\tau^2(X_i;\cals^\train,\calp) \\
+& - (1 - \alpha) \cdot
+\Bigl(\frac{1}{N^\train} + \frac{1}{N^\est}\Bigr) \cdot \sum_{\ell\in\calp}
+\left( \frac{S^2_{\cals^\train_\treat}(\ell)}{p}+ \frac{S^2_{\cals^\train_\control}(\ell)}{1-p}\right)
+\end{align*}
+
+\subsubsection{Fit-based Trees (\textbf{fit})}
+In fit-based splitting rule, we decide at what value of the feature to split based on the goodness-of-fit of the outcome rather than the treatment effect. As \textbf{CT}, there are two versions of \textbf{fit}, namely adaptive version \textbf{fit-A} and honest version \textbf{fit-H}.\\
+For \textbf{fit-A}, the objective risk function in splitting is 
+\[\widehat{\mse}_{\mu, W}(\cals^\train,\cals^\train,\calp) =  \sum_{i\in\cals^\train} \left\{(Y_i-\hat\mu_w(W_i,X_i;\cals^\train,\calp))^2-Y^2_i\right\}\]
+For \textbf{fit-H}, the honest version, the risk function is $\widehat{\emse}_{\mu, W}(\cals^\train, \calp)$,
+\begin{align*}
+-\widehat{\emse}_{\mu, W}(\cals^\train,\calp) & = 
+\frac{1}{N^\train}\sum_{i\in\cals^\train} \hat\mu_w^2(W_i,X_i;\cals^\train,\calp) \\
+& -
+\Bigl(\frac{1}{N^\train} + \frac{1}{N^\est}\Bigr)\cdot \sum_{\ell\in\calp}
+\left( S^2_{\cals^\train_\treat}(\ell)+ S^2_{\cals^\train_\control}(\ell)\right),
+\end{align*}
+where $S^2_{\cals^\train_\control}(\ell)$ is the within-leaf variance on outcome $Y$ for $\cals^\train_\control$ in leaf $\ell$, and $S^2_{\cals^\train_\treat}(\ell)$ is the counter part for $\cals^\train_\treat$.\\
+Also like \textbf{CT}, we have adjusted honest verison for $\widehat{\emse}_{\mu, W}$ using \texttt{split.alpha},
+\begin{align*}
+-\widehat{\emse}_{\mu, W}(\cals^\train,\calp, \alpha) & = 
+\alpha \cdot \frac{1}{N^\train}\sum_{i\in\cals^\train} \hat\mu_w^2(W_i,X_i;\cals^\train,\calp) \\
+& - (1 - \alpha) \cdot
+\Bigl(\frac{1}{N^\train} + \frac{1}{N^\est}\Bigr)\cdot \sum_{\ell\in\calp}
+\left( S^2_{\cals^\train_\treat}(\ell)+ S^2_{\cals^\train_\control}(\ell)\right),
+\end{align*}
+
+\subsubsection{Squared T-statistic Trees (\textbf{tstats})}
+In sqaured t-statistic trees, we consider the splits with the largest value for square of the t-statistic for testing the null hypothesis that the average treatment effect is the same in the two potential leaves. Denote the left leaf as L and right leaf as R, the square of the t-statistic is 
+\[ T^2 \equiv \frac{((\oy_{L1}-\oy_{L0})-
+(\oy_{R1}-\oy_{R0})
+)^2}{S_{L1}^2/N_{L1}+ S_{L0}^2/N_{L0}+S_{R1}^2/N_{R1}+S_{R0}^2/N_{R0}},\]
+where $S_{\ell,w}^2$ is the conditional within treatment group sample variance given the split.
 \subsection{Discrete splitting}
 \subsection{Example}
 The data we use in this example is the simulated data called \texttt{simulation.1} built in \texttt{causalTree} package. 
+
 
 <<example1, fig=TRUE, include=TRUE>>=
 library(causalTree)
@@ -119,6 +270,8 @@ opcp <- fit$cptable[, 1][which.min(fit$cptable[,4])]
 opfit <- prune(fit, cp = opcp)
 rpart.plot(opfit)
 @
+
+\section{Honest Estimation}
 \bibliographystyle{plain}
 \bibliography{refer}
 \end{document}
