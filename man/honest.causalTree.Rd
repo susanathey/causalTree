@@ -9,11 +9,13 @@
 }
 \usage{
 honest.causalTree(formula, data, weights, treatment, subset, 
-	est_data, est_weights, est_treatment, est_subset,
-	na.action = na.causalTree,
-           split.Rule, split.Honest, HonestSampleSize, split.Bucket, bucketNum = 5, 
-           bucketMax = 100, cv.option, cv.Honest, minsize = 2L, model = FALSE, x = FALSE,
-           y = TRUE, propensity, control, split.alpha = 0.5, cv.alpha = 0.5, cost, \dots)
+                  est_data, est_weights, est_treatment, est_subset,
+                  na.action = na.causalTree, split.Rule, split.Honest, 
+                  HonestSampleSize, split.Bucket, bucketNum = 5,
+                  bucketMax = 100, cv.option, cv.Honest, minsize = 2L, 
+                  model = FALSE, x = FALSE, y = TRUE, 
+                  propensity, control, split.alpha = 0.5, cv.alpha = 0.5, 
+                  cost, \dots)
 }
 
     
@@ -49,7 +51,7 @@ honest.causalTree(formula, data, weights, treatment, subset,
 }
 
 \seealso{
-  \code{\link{causal.Tree}},
+  \code{\link{causalTree}},
   \code{\link{rpart.control}}, \code{\link{rpart.object}},
   \code{\link{summary.rpart}}, \code{\link{rpart.plot}}
 }
@@ -59,7 +61,7 @@ tree <- causalTree(y~ x1 + x2 + x3 + x4, data = simulation.1, treatment = simula
                   split.Rule = "CT", cv.option = "CT", split.Honest = T, cv.Honest = T, split.Bucket = F, xval = 5, 
                   cp = 0, minsize = 20, propensity = 0.5)
                   
-opcp <- fit$cptable[,1][which.min(tree$cptable[,4])]
+opcp <- tree$cptable[,1][which.min(tree$cptable[,4])]
 
 opfit <- prune(tree, opcp)
 
