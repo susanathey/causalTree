@@ -96,11 +96,12 @@ causalTree <- function(formula, data, weights, treatment, subset,
         if (!missing(split.Honest)) {
             warning("split.Honest is not used in your chosen splitting rule.")
             #warning("The default split.Honest = TRUE.")
-            split.Honest <- FALSE
+            #split.Honest <- FALSE
         }
         if (!missing(split.alpha)) {
             warning("split.alpha is not used in your chosen splitting rule. split.Honest set to FALSE")
         }
+        split.Honest <- FALSE
     } else {
         if (missing(split.Honest)) {
             split.Honest <- TRUE
@@ -136,7 +137,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
                 stop("Invalid input for split.alpha. split.alpha should between 0 and 1.")
             }
         }
-    } else {
+    } else if (split.Rule.int %in% c(2, 3, 4, 6, 7, 8)){
         # split.Honest = False
         if (split.alpha != 1) 
             warning("For dishonest(adaptive) splitting, split.alpha =  1.");
@@ -232,6 +233,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
     # controls: maxcompete, maxdepth <= 30, minsplit, minbucket, usesurrogate, surrogatestyle, cp
     #print ("I am OK.")
     extraArgs <- list(...)
+        
     if (length(extraArgs)) {
         controlargs <- names(formals(rpart.control)) # legal arg names
         indx <- match(names(extraArgs), controlargs, nomatch = 0L)
@@ -241,10 +243,9 @@ causalTree <- function(formula, data, weights, treatment, subset,
                 domain = NA)
     }
     
-    controls <- rpart.control(...)
+    controls <- causalTree.control(...)
     if (!missing(control)) controls[names(control)] <- control
     
-    #print ("I am fine.")
     xval <- controls$xval
     if (is.null(xval) || (length(xval) == 1L && xval == 0L) || method=="user") {
         xgroups <- 0L
@@ -305,10 +306,8 @@ causalTree <- function(formula, data, weights, treatment, subset,
     storage.mode(X) <- "double"
     storage.mode(wt) <- "double"
     storage.mode(treatment) <- "double"
-    #temp <- as.double(unlist(init$parms)) # which we don't use for now.
     minsize <- as.integer(minsize) # minimum number of obs for treated and control cases in one leaf node
-    #if (!length(temp)) temp <- 0  # if parms is NULL pass a dummy
-
+    
     ctfit <- .Call(C_causalTree,
                     ncat = as.integer(cats * !isord),
                     split_Rule = as.integer(split.Rule.int), # tot, ct, fit, tstats, totD, ctD, fitD, tstatsD
@@ -452,8 +451,5 @@ causalTree <- function(formula, data, weights, treatment, subset,
     if (method == "class") attr(ans, "ylevels") <- init$ylevels
     class(ans) <- "rpart"
 
-    #if (split.Honest == T) {
-    #    ans <- honest.causalTree(ans, est_X, est_Y, est_nobs, est_wts, est_treatment)
-    #}
     ans
 }

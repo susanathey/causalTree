@@ -3,8 +3,10 @@
 honest.est.causalTree <- function(fit, x, wt, treatment, y)
 {
     frame <- fit$frame
-    if (nrow(frame) == 1L)                # root only tree
-        return(structure(rep(1, nrow(x), names = rownames(x))))
+    if (nrow(frame) == 1L) {              # root only tree
+        #print ("here end?")
+        #return(structure(rep(1, nrow(x), names = rownames(x))))
+    }
     
     nc <- frame[, c("ncompete", "nsurrogate")]
     frame$index <- 1L + c(0L, cumsum((frame$var != "<leaf>") +

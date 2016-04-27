@@ -49,9 +49,9 @@ honest.causalTree(formula, data, weights, treatment, subset,
 }
 
 \seealso{
-  \code{\link{causal.Tree} documentation},
+  \code{\link{causal.Tree}},
   \code{\link{rpart.control}}, \code{\link{rpart.object}},
-  \code{\link{summary.rpart}}, \code{\link{print.rpart}}
+  \code{\link{summary.rpart}}, \code{\link{rpart.plot}}
 }
 
 \examples{

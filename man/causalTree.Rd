@@ -113,8 +113,9 @@ Effects} (2016) for more detials.
 }
 
 \seealso{
+  \code{\link{honest.causalTree}},
   \code{\link{rpart.control}}, \code{\link{rpart.object}},
-  \code{\link{summary.rpart}}, \code{\link{print.rpart}}
+  \code{\link{summary.rpart}}, \code{\link{rpart.plot}}
 }
 
 \examples{
