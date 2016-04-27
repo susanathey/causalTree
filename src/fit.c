@@ -42,7 +42,7 @@ fitss(int n, double *y[], double *value, double *con_mean,double *tr_mean, doubl
       double *treatment, double max_y, double alpha, double train_to_est_ratio)
 {
     int i;
-    double temp = 0., temp0 = 0., temp1 = 0., twt = 0.; /* sum of the weights */ 
+    double temp0 = 0., temp1 = 0., twt = 0.; /* sum of the weights */ 
     double ttreat = 0.;
     double effect;
     double tr_var, con_var;

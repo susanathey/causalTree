@@ -70,7 +70,7 @@ CTDss(int n, double *y[], double *value, double *con_mean, double *tr_mean, doub
 {
     //Rprintf("evaluating\n");
     int i;
-    double temp = 0., temp0 = 0., temp1 = 0., twt = 0.; /* sum of the weights */ 
+    double temp0 = 0., temp1 = 0., twt = 0.; /* sum of the weights */ 
 	double ttreat = 0.;
 	double effect;
 	double tr_var, con_var;
@@ -110,7 +110,7 @@ CTD(int n, double *y[], double *x, int nclass,
 	   double alpha, int bucketnum, int bucketMax, double train_to_est_ratio)
 {
 	int i, j;
-    int j1, j2;
+    //int j1, j2;
 	double temp;
 	double left_sum, right_sum;
 	double left_tr_sum, right_tr_sum;

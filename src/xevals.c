@@ -5,7 +5,7 @@
 #include "causalTree.h"
 #include "causalTreeproto.h"
 
-static double INF = 9999;
+//static double INF = 9999;
 
 double
 tot_xpred(double *y, double wt, double treatment, double *yhat, double propensity) 
@@ -33,7 +33,7 @@ double fitH_xpred(double *y, double wt, double treatment, double tr_mean,
     double tr_var;
     double con_var;
     double tmp;
-    double scale = ct.NumHonest * 1.0 / ct.n;
+    //double scale = ct.NumHonest * 1.0 / ct.n;
     double tmp_val;
 
     //Rprintf("scale = %f\n", scale);
@@ -73,7 +73,7 @@ double CTH_xpred(double *y, double wt, double treatment, double tr_mean,
    double tr_var;
    double con_var;
    double tmp;
-   double scale = ct.NumHonest * 1.0 / ct.n;
+   //double scale = ct.NumHonest * 1.0 / ct.n;
    //Rprintf("scale = %f\n", scale);
    
    if (treatment == 0) {
