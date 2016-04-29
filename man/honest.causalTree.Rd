@@ -75,7 +75,7 @@ honestTree <- honest.causalTree(y ~ x1 + x2 + x3 + x4, data = train_data,
                                 est_treatment = est_data$treatment, 
                                 split.Rule = "CT", split.Honest = T, 
                                 HonestSampleSize = nrow(est_data), 
-                                split.Bucket = F, cv.option = "CT")
+                                split.Bucket = T, cv.option = "CT")
                                 
 opcp <-  honestTree$cptable[,1][which.min(honestTree$cptable[,4])]
 
