@@ -32,7 +32,7 @@ honest.causalTree(formula, data, weights, treatment, subset,
   \item{est_subset}{optional expression saying that only a subset of the
     rows of the estimation data should be used in the fit of the re-estimated tree.}
   
-  \item{...}{All other arguments follow \code{\link{causal.Tree} documentation}}
+  \item{...}{All other arguments follow \code{\link{causalTree} documentation}}
   
 }    
    
@@ -52,29 +52,35 @@ honest.causalTree(formula, data, weights, treatment, subset,
 
 \seealso{
   \code{\link{causalTree}},
-  \code{\link{rpart.control}}, \code{\link{rpart.object}},
+  \code{\link{estimate.causalTree}}, \code{\link{rpart.object}},
   \code{\link{summary.rpart}}, \code{\link{rpart.plot}}
 }
 
 \examples{
-tree <- causalTree(y~ x1 + x2 + x3 + x4, data = simulation.1, treatment = simulation.1$treatment,
-                  split.Rule = "CT", cv.option = "CT", split.Honest = T, cv.Honest = T, split.Bucket = F, xval = 5, 
-                  cp = 0, minsize = 20, propensity = 0.5)
-                  
-opcp <- tree$cptable[,1][which.min(tree$cptable[,4])]
+n <- nrow(simulation.1)
 
-opfit <- prune(tree, opcp)
+trIdx <- which(simulation.1$treatment == 1)
 
-rpart.plot(opfit)
+conIdx <- which(simulation.1$treatment == 0)
 
-fittree <- causalTree(y~ x1 + x2 + x3 + x4, data = simulation.1, treatment = simulation.1$treatment,
-                  split.Rule = "fit", cv.option = "fit", split.Honest = T, cv.Honest = T, split.Bucket = T, bucketNum = 5,
-		  bucketMax = 200, xval = 10, 
-                  cp = 0, minsize = 20, propensity = 0.5)
+train_idx <- c(sample(trIdx, length(trIdx) / 2), sample(conIdx, length(conIdx) / 2))
 
-tstatstree <- causalTree(y~ x1 + x2 + x3 + x4, data = simulation.1, treatment = simulation.1$treatment,
-                  split.Rule = "tstats", cv.option = "CT", cv.Honest = T, split.Bucket = T, bucketNum = 10,
-		  bucketMax = 200, xval = 5, 
-                  cp = 0, minsize = 20, propensity = 0.5)
+train_data <- simulation.1[train_idx, ]
+
+est_data <- simulation.1[-train_idx, ]
+
+honestTree <- honest.causalTree(y ~ x1 + x2 + x3 + x4, data = train_data,
+                                treatment = train_data$treatment, 
+                                est_data = est_data, 
+                                est_treatment = est_data$treatment, 
+                                split.Rule = "CT", split.Honest = T, 
+                                HonestSampleSize = nrow(est_data), 
+                                split.Bucket = F, cv.option = "CT")
+                                
+opcp <-  honestTree$cptable[,1][which.min(honestTree$cptable[,4])]
+
+opTree <- prune(honestTree, opcp)
+
+rpart.plot(opTree)
 }
 \keyword{tree, causal effects}

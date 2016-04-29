@@ -214,7 +214,12 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
     
     if (missing(HonestSampleSize)) {
         # default should be the # of samples in training 
-        HonestSampleSize <- nobs
+        HonestSampleSize <- est_nobs
+    }
+    
+    if(HonestSampleSize != est_nobs) {
+        warning("HonestSampleSize shoud be the number of observations in estimation sample.")
+        HonestSampleSize <- est_nobs
     }
     
     HonestSampleSize <- as.integer(HonestSampleSize)
@@ -261,7 +266,7 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
                  domain = NA)
     }
     
-    controls <- rpart.control(...)
+    controls <- causalTree.control(...)
     if (!missing(control)) controls[names(control)] <- control
     
     #print ("I am fine.")
