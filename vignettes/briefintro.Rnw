@@ -192,10 +192,10 @@ proportion due to sampling variation.  Thus, our package uses $\hat\tau$ instead
 used off-the-shelf (applied with $Y^*_i$ as the outcome) to implement the method precisely as described in \cite{athey2015machine}.
 
 \subsubsection{Causal Trees (\textbf{CT})}
-In causal trees splitting rule, we have two versions, adaptive verison, denoted as \textbf{CT-A}, and honest version, \textbf{CT-H}. \\
+In causal trees splitting rule, we have two versions, adaptive verison, denoted as \textbf{CT-A}, and honest version, \textbf{CT-H}. You can switch honest version by setting \texttt{split.Honest = TRUE} in \texttt{causalTree} function. \\
 For \textbf{CT-A}, we use $\widehat{\mse}_\tau(\cals^\train,\cals^\train,\calp)$ as the objective risk function, and
 \[-\widehat{\mse}_\tau(\cals^\train,\cals^\train,\calp) = \frac{1}{N^\train}\sum_{i\in\cals^\train} \hat\tau^2(X_i;\cals^\train,\calp).\]
-
+\\
 For \textbf{CT-H}, the honest version, the splitting objective risk function is $\widehat{\emse}_\tau(\cals^\train, N^\est, \calp)$, and
 \begin{align*}
 -\widehat{\emse}_\tau(\cals^\train, N^\est, \calp) & = 
@@ -219,6 +219,7 @@ In fit-based splitting rule, we decide at what value of the feature to split bas
 For \textbf{fit-A}, the objective risk function in splitting is 
 \[\widehat{\mse}_{\mu, W}(\cals^\train,\cals^\train,\calp) =  \sum_{i\in\cals^\train} \left\{(Y_i-\hat\mu_w(W_i,X_i;\cals^\train,\calp))^2-Y^2_i\right\}\]
 where $\hat\mu_w$ is the mean of outcome in treatment/control group.\\
+\\
 For \textbf{fit-H}, the honest version, the risk function is $\widehat{\emse}_{\mu, W}(\cals^\train, N^\est, \calp)$,
 \begin{align*}
 -\widehat{\emse}_{\mu, W}(\cals^\train, N^\est, \calp) & = 
@@ -259,12 +260,12 @@ tree <- causalTree(y ~ x1 + x2 + x3 + x4, data = simulation.1,
 rpart.plot(tree)
 @
 
-From the plot we can see, without pruning, the tree we get is quite large and implies overfitting. The following section will talk about different cross validation method and the way to prune the tree.
+From the plot we can see, without pruning, the tree we get is quite large and implies overfitting. The following section will talk about different cross validation methods to prune the tree.
 
 \section{Cross Validation and Pruning}
-Adoptting the same idea in \texttt{rpart}, we will build cross validation trees to select a complexity parameter used for pruning. Different from \texttt{rpart}, in cross validation, we can choose different evaluation criteria to calculate the cross validation error.
+Adoptting the same idea in \texttt{rpart}, we will build cross validation trees to select a complexity parameter corresponding to the minimum cross validaiton error used for pruning. Different from \texttt{rpart}, in cross validation, we can choose different evaluation criteria to calculate the error.
 \subsection{Cross validation options}
-We offers four criteria for cross validation. Each criterion corresponds to an evaluation function which is used to calculate the cross validation error. Notice we still use the same splitting rule to build cross validation trees, but the cross validation error evaluation function is specified by current criterion.
+We offers four criteria for cross validation, \textbf{TOT}, \textbf{CT}, \textbf{fit} and \textbf{matching}. Each criterion corresponds to an evaluation function for computing cross validation error. Notice we still use the same splitting rule as before (specified by \texttt{split.Rule}) to build cross validation trees, but the cross validation error evaluation function is specified by current criterion.
 \subsubsection{TOT}
 In \textbf{TOT} cross validation method, the evaluation function is
 \[\widehat{\mse}(\cals^{\train, \tcv}, \cals^{\train, \train}, \Pi) = \frac{1}{N^{\train, \tcv}}\sum_{i\in\cals^{\train, \tcv}}\left\{(Y^*_i - \hat{\tau}(X_i; \cals^{\train, \train}, \calp))^2  - Y^{*2}_i\right\}
@@ -281,7 +282,7 @@ For \textbf{CT-A} cross validation method, the evaluation funciton is
 X_i;\cals^{\train, \train},\calp).
 \end{align*}
 where $\hat\tau(X_i;\cals^{\train, \tcv},\calp)$ is the treatment effect calculated through the validation sample and $\hat\tau(X_i;\cals^{\train, \train},\calp)$ is the treatment effect in the already-built cross validation tree.\\
-For \textbf{CT-H} cross validation method, the evaluation function is 
+For \textbf{CT-H} cross validation method, the evaluation function is $\widehat{\emse}_\tau(\cals^{\train, \tcv}, N^\est, \calp)$, and 
 \begin{align*}
 -\widehat{\emse}_\tau(\cals^{\train, \tcv}, N^\est, \calp) & = 
 \frac{1}{N^{\train, \tcv}}\sum_{i\in\cals^{\train, \tcv}} \hat\tau^2(X_i;\cals^{\train, \tcv},\calp) \\
@@ -289,10 +290,55 @@ For \textbf{CT-H} cross validation method, the evaluation function is
 \Bigl(\frac{1}{N^{\train, \tcv}} + \frac{1}{N^\est}\Bigr)\cdot \sum_{\ell\in\calp}
 \left( \frac{S^2_{\cals^{\train, \tcv}_\treat}(\ell)}{p}+ \frac{S^2_{\cals^{\train, \tcv}_\control}(\ell)}{1-p}\right).
 \end{align*}
+Like its splitting method, we also incorporate an additional factor \texttt{cv.alpha} for adjustment of two terms in the formula,
+\begin{align*}
+-\widehat{\emse}_\tau(\cals^{\train, \tcv}, N^\est, \calp, \alpha) & = 
+\alpha \cdot \frac{1}{N^{\train, \tcv}}\sum_{i\in\cals^{\train, \tcv}} \hat\tau^2(X_i;\cals^{\train, \tcv},\calp) \\
+& - (1 - \alpha) \cdot
+\Bigl(\frac{1}{N^{\train, \tcv}} + \frac{1}{N^\est}\Bigr)\cdot \sum_{\ell\in\calp}
+\left( \frac{S^2_{\cals^{\train, \tcv}_\treat}(\ell)}{p}+ \frac{S^2_{\cals^{\train, \tcv}_\control}(\ell)}{1-p}\right).
+\end{align*}
+
+
 \subsubsection{fit}
+Like its splitting counterpart, \textbf{fit} cross validation criterion also has adaptive version \textbf{fit-A} and honest version \textbf{fit-H} to evaluate the model.\\
+For \textbf{fit-A} criterion, the evaluation risk function is  
+\[\widehat{\mse}_{\mu, W}(\cals^{\train, \tcv},\cals^{\train, \train},\calp) =  \sum_{i\in\cals^{\train, \tcv}} \left\{(Y_i-\hat\mu_w(W_i,X_i;\cals^{\train, \train},\calp))^2-Y^2_i\right\}\]
+where $\hat\mu_w(W_i,X_i;\cals^{\train, \train},\calp)$ is the mean of outcome in treatment/control group of the built cross validation tree where validation sample $(X_i, Y_i, W_i) \in \cals^{\train, \tcv}$ finally be assigned.\\
+\\
+For \textbf{fit-H} criterion, the evaluation function is $\widehat{\emse}_{\mu, W}(\cals^{\train, \tcv}, N^\est, \calp)$,
+\begin{align*}
+-\widehat{\emse}_{\mu, W}(\cals^{\train, \tcv}, N^\est, \calp) & = 
+\frac{1}{N^{\train, \tcv}}\sum_{i\in\cals^{\train, \tcv}} \hat\mu_w^2(W_i,X_i;\cals^{\train, \tcv},\calp) \\
+& -
+\Bigl(\frac{1}{N^{\train, \tcv}} + \frac{1}{N^\est}\Bigr)\cdot \sum_{\ell\in\calp}
+\left( S^2_{\cals^{\train, \tcv}_\treat}(\ell)+ S^2_{\cals^{\train, \tcv}_\control}(\ell)\right),
+\end{align*}
+In contrast to the adaptive version, $\hat\mu_w(W_i,X_i;\cals^{\train, \tcv},\calp)$ is the mean of outcome derived from the validation group.\\
+Also we incorporate \texttt{cv.alpha} for adjustment in \textbf{CT-H} evaluation function,
+\begin{align*}
+-\widehat{\emse}_{\mu, W}(\cals^{\train, \tcv}, N^\est, \calp, \alpha) & = 
+\alpha \cdot \frac{1}{N^{\train, \tcv}}\sum_{i\in\cals^{\train, \tcv}} \hat\mu_w^2(W_i,X_i;\cals^{\train, \tcv},\calp) \\
+& - (1 - \alpha) \cdot
+\Bigl(\frac{1}{N^{\train, \tcv}} + \frac{1}{N^\est}\Bigr)\cdot \sum_{\ell\in\calp}
+\left( S^2_{\cals^{\train, \tcv}_\treat}(\ell)+ S^2_{\cals^{\train, \tcv}_\control}(\ell)\right),
+\end{align*}
 
 \subsubsection{matching}
-
+In \textbf{matching} method, we first define $n(W_i, X_i; \cals)$ to be the nearest neighbor of $(X_i, Y_i, W_i)$ in feature space with opposite $W$.\\
+To be more specific, let $j = n(W_i, X_i; \cals)$, then 
+\begin{align*}
+ & (X_j, Y_j, W_j) \in \cals, \\
+ & W_j = 1 - W_i,\\
+ & d_X((X_j, Y_j, W_j), (X_i, Y_i, W_i)) = \min_{\substack{
+ (X_k, Y_k, W_k) \in \cals,\\ W_k = 1 - W_i }} d_X((X_k, Y_k, W_k), (X_i, Y_i, W_i)).
+\end{align*}
+Then we can define the \textbf{matching} estimator of treatment effect as
+\[\tau^*(X_i, W_i; \cals) \equiv (2W_i - 1) (Y_i - Y_{n(W_i, X_i; \cals)})\]
+The evaluation risk function in \textbf{matching} method is
+\[
+\widehat\mse_{\tau}(\cals^{\train, \tcv}, \cals^{\train, \train}, \calp) = \sum_{i \in \cals^{\train, \tcv}}\left(\tau^*(X_i, W_i; \cals) - \frac{\hat{\tau}(X_i; \cals^{\train, \train}, \calp) + \hat{\tau}(X_{n(W_i, X_i; \cals^{\train, \tcv})}; \cals^{\train, \train}, \calp )}{2}\right)^2
+\]
 \subsection{Example}
 <<example2, fig = TRUE, include = TRUE>>=
 fit <- causalTree(y~x1 + x2 + x3 + x4, data = simulation.1, 
