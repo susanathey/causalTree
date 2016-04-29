@@ -6,6 +6,7 @@
 \addtolength{\textwidth}{1in}
 \addtolength{\oddsidemargin}{-.5in}
 \setlength{\evensidemargin}{\oddsidemargin}
+%\setlength{\parskip}{0.5em}
 
 \newcommand{\spp}{{\rm p}}
 \newcommand{\match}{{\rm match}}
@@ -112,11 +113,11 @@
 \tableofcontents
 
 \section{Introduction}
-This document is a brief introduction of \texttt{causalTree} package, which is indended to give a short overview of the \texttt{causalTree} function and the \texttt{honest.causalTree} function, which implement the methods from \textit{Recursive Partitioning for Heterogeneous Causal Effects} \cite{athey2015machine}. \par 
+This document is a brief introduction of \texttt{causalTree} package, which is intended to give a short overview of the \texttt{causalTree} function and the \texttt{honest.causalTree} function, which implement the methods from \textit{Recursive Partitioning for Heterogeneous Causal Effects} \cite{athey2015machine}. \par 
 The \texttt{causalTree} function builds a regression model and returns an \texttt{rpart} object, which is the object derived from \texttt{rpart} package, implemneting many ideas in the CART (Classification and Regression Trees), written by Breiman, Friedman, Olshen and Stone \cite{Breiman83}. Like \texttt{rpart}, \texttt{causalTree} builds a binary regression tree model in two stages, but focuses on estimating heterogeneous causal effect.\par
 Following \texttt{rpart}, in the first stage, the tree is grown from the root node based on a specified splitting rule. In each node, the data in a leaf will be split into two groups to best minimize the risk function. Next, in the left sub-node and right sub-node, the splitting routine will be applied separately and so on recursively until no improvements can made, or until some limits are reached (e.g. the routine will stop if it cannot make splits that have at least \texttt{minsize} of treated observations and \texttt{minsize} control observations in each terminal node.) \par
 In the second stage, the tree will be pruned using a specified cross-validation method, where the cross-validation penalty parameter
-penalizes the number of nodes in the tree.  The leaves to be pruned are selected according to the risk function calculated while
+penalizes the number of nodes in the tree. The leaves to be pruned are selected according to the risk function calculated while
 the tree is built. \par
 The \texttt{causalTree} package incorporates an additional function not included in \texttt{rpart}, which is honest re-estimation \texttt{honest.causalTree} of causal effects. Honest here means that we estimate causal effects in the leaves of a given tree on an independent estimation sample rather than the data used to build and cross-validate the tree.  The user first builds the tree
 with \texttt{causalTree}, specifying the training data for building the tree, and then passes the tree object as well as the estimation sample data
@@ -139,6 +140,11 @@ $\cals$ \> a data sample drawn from data sample population, \\
 \> $\cals^{\text{te}}$ denotes a test sample, \\
 \> $\cals^{\text{est}}$ denotes an estimation sample.\\
 \> $\cals_{\text{treat}}$ and $\cals_{\text{control}}$ denote the subsamples of treated and control units.\\
+\\
+$N$ 
+\> $N^\train$ denotes the number of observations in training sample,\\
+\> $N^\test$ denotes the number of observations in testing sample,\\
+\> $N^\est$ denotes the number of observations in estimation sample.\\
 \\
 $\Pi$ \>  a partitioning tree $\calp=\{\ell_1,\ldots,\ell_{\#(\Pi)}\}$ with $\cup_{j=1}^{\#(\calp)} \ell_j=\mathbb{X}$ \\ 
 \> corresponds to a partitioning of the feature space the feature sapce $\mathbb{X}$, with\\
@@ -189,18 +195,19 @@ used off-the-shelf (applied with $Y^*_i$ as the outcome) to implement the method
 In causal trees splitting rule, we have two versions, adaptive verison, denoted as \textbf{CT-A}, and honest version, \textbf{CT-H}. \\
 For \textbf{CT-A}, we use $\widehat{\mse}_\tau(\cals^\train,\cals^\train,\calp)$ as the objective risk function, and
 \[-\widehat{\mse}_\tau(\cals^\train,\cals^\train,\calp) = \frac{1}{N^\train}\sum_{i\in\cals^\train} \hat\tau^2(X_i;\cals^\train,\calp).\]
-For \textbf{CT-H}, the honest version, the splitting objective risk function is $\widehat{\emse}_\tau(\cals^\train,\calp)$, and
+
+For \textbf{CT-H}, the honest version, the splitting objective risk function is $\widehat{\emse}_\tau(\cals^\train, N^\est, \calp)$, and
 \begin{align*}
--\widehat{\emse}_\tau(\cals^\train,\calp) & = 
+-\widehat{\emse}_\tau(\cals^\train, N^\est, \calp) & = 
 \frac{1}{N^\train}\sum_{i\in\cals^\train} \hat\tau^2(X_i;\cals^\train,\calp) \\
 & -
 \Bigl(\frac{1}{N^\train} + \frac{1}{N^\est}\Bigr)\cdot \sum_{\ell\in\calp}
 \left( \frac{S^2_{\cals^\train_\treat}(\ell)}{p}+ \frac{S^2_{\cals^\train_\control}(\ell)}{1-p}\right).
 \end{align*}
-where $S^2_{\cals^\train_\control}(\ell)$ is the within-leaf variance on outcome $Y$ for $\cals^\train_\control$ in leaf $\ell$, and $S^2_{\cals^\train_\treat}(\ell)$ is the counter part for $\cals^\train_\treat$.\\
+where $S^2_{\cals^\train_\control}(\ell)$ is the within-leaf variance on outcome $Y$ for $\cals^\train_\control$ in leaf $\ell$, and $S^2_{\cals^\train_\treat}(\ell)$ is the counter part for $\cals^\train_\treat$. $N^\est$ (number of observations in re-estimation sample) is specified as \texttt{HonestSampleSize} in \texttt{causalTree} function, and the default value is $N^\train$.\\
 In our package we incorporate an additional parameter \texttt{split.alpha} = $\alpha \in (0, 1)$ as a parameter to adjust the proportion of $\widehat{\mse}$ and the varaince term in $\widehat{\emse}$.
 \begin{align*}
--\widehat{\emse}_\tau(\cals^\train,\calp, \alpha) &= 
+-\widehat{\emse}_\tau(\cals^\train, N^\est, \calp, \alpha) &= 
 \alpha \cdot \frac{1}{N^\train}\sum_{i\in\cals^\train} \hat\tau^2(X_i;\cals^\train,\calp) \\
 & - (1 - \alpha) \cdot
 \Bigl(\frac{1}{N^\train} + \frac{1}{N^\est}\Bigr) \cdot \sum_{\ell\in\calp}
@@ -211,18 +218,19 @@ In our package we incorporate an additional parameter \texttt{split.alpha} = $\a
 In fit-based splitting rule, we decide at what value of the feature to split based on the goodness-of-fit of the outcome rather than the treatment effect. As \textbf{CT}, there are two versions of \textbf{fit}, namely adaptive version \textbf{fit-A} and honest version \textbf{fit-H}.\\
 For \textbf{fit-A}, the objective risk function in splitting is 
 \[\widehat{\mse}_{\mu, W}(\cals^\train,\cals^\train,\calp) =  \sum_{i\in\cals^\train} \left\{(Y_i-\hat\mu_w(W_i,X_i;\cals^\train,\calp))^2-Y^2_i\right\}\]
-For \textbf{fit-H}, the honest version, the risk function is $\widehat{\emse}_{\mu, W}(\cals^\train, \calp)$,
+where $\hat\mu_w$ is the mean of outcome in treatment/control group.\\
+For \textbf{fit-H}, the honest version, the risk function is $\widehat{\emse}_{\mu, W}(\cals^\train, N^\est, \calp)$,
 \begin{align*}
--\widehat{\emse}_{\mu, W}(\cals^\train,\calp) & = 
+-\widehat{\emse}_{\mu, W}(\cals^\train, N^\est, \calp) & = 
 \frac{1}{N^\train}\sum_{i\in\cals^\train} \hat\mu_w^2(W_i,X_i;\cals^\train,\calp) \\
 & -
 \Bigl(\frac{1}{N^\train} + \frac{1}{N^\est}\Bigr)\cdot \sum_{\ell\in\calp}
 \left( S^2_{\cals^\train_\treat}(\ell)+ S^2_{\cals^\train_\control}(\ell)\right),
 \end{align*}
-where $S^2_{\cals^\train_\control}(\ell)$ is the within-leaf variance on outcome $Y$ for $\cals^\train_\control$ in leaf $\ell$, and $S^2_{\cals^\train_\treat}(\ell)$ is the counter part for $\cals^\train_\treat$.\\
+where $S^2_{\cals^\train_\control}(\ell)$ is the within-leaf variance on outcome $Y$ for $\cals^\train_\control$ in leaf $\ell$, and $S^2_{\cals^\train_\treat}(\ell)$ is the counter part for $\cals^\train_\treat$. $N^\est$ (number of observations in re-estimation sample) is specified as \texttt{HonestSampleSize} in \texttt{causalTree} function, and the default value is $N^\train$.\\
 Also like \textbf{CT}, we have adjusted honest verison for $\widehat{\emse}_{\mu, W}$ using \texttt{split.alpha},
 \begin{align*}
--\widehat{\emse}_{\mu, W}(\cals^\train,\calp, \alpha) & = 
+-\widehat{\emse}_{\mu, W}(\cals^\train, N^\est,\calp, \alpha) & = 
 \alpha \cdot \frac{1}{N^\train}\sum_{i\in\cals^\train} \hat\mu_w^2(W_i,X_i;\cals^\train,\calp) \\
 & - (1 - \alpha) \cdot
 \Bigl(\frac{1}{N^\train} + \frac{1}{N^\est}\Bigr)\cdot \sum_{\ell\in\calp}
@@ -236,25 +244,55 @@ In sqaured t-statistic trees, we consider the splits with the largest value for 
 )^2}{S_{L1}^2/N_{L1}+ S_{L0}^2/N_{L0}+S_{R1}^2/N_{R1}+S_{R0}^2/N_{R0}},\]
 where $S_{\ell,w}^2$ is the conditional within treatment group sample variance given the split.
 \subsection{Discrete splitting}
+In our package, we also support discrete version of \texttt{causalTree}, which is more robust when data is big. To use discrete splitting, one should set \texttt{split.Bucket = TRUE} and specify\texttt{bucketNum}, \texttt{bucketMax}. The default value of \texttt{bucketNum = 5} and \texttt{bucketMax = 100}.\par
+In discrete splitting, the samples in a node will first be sorted by value of a feautre and then get partitioned in to several buckets. Each bucket contains \texttt{bucketNum} observations. Then one bucket will be treated as a whole and assigned into left branch or right branch. \texttt{bucketMax} is specified as the maximum number of buckets to be used in splitting tree.
+
 \subsection{Example}
-The data we use in this example is the simulated data called \texttt{simulation.1} built in \texttt{causalTree} package. 
-
-
+The data we use in this example is a simulated data set called \texttt{simulation.1} built in \texttt{causalTree} package. \par
+In this model, we choose \textbf{TOT} as splitting rule and \textbf{fit} as cross validation method by setting \texttt{split.Rule = "TOT"} and \texttt{cv.option = "fit"}. The propensity score (treatment probability) is set as \texttt{propensity = 0.5} for \textbf{TOT} splitting rule. We also use discrete splitting version by setting \texttt{split.Bucket = T}.
 <<example1, fig=TRUE, include=TRUE>>=
 library(causalTree)
-fit <- causalTree(y~x1 + x2 + x3 + x4, data = simulation.1, 
+tree <- causalTree(y ~ x1 + x2 + x3 + x4, data = simulation.1, 
                   treatment = simulation.1$treatment, split.Rule = "TOT",
-                  cv.option = "fit", cv.Honest = F, split.Bucket = F, 
+                  cv.option = "fit", cv.Honest = F, split.Bucket = T, 
                   xval = 10, cv.alpha = 0.5, propensity = 0.5)
-
-rpart.plot(fit)
+rpart.plot(tree)
 @
+
+From the plot we can see, without pruning, the tree we get is quite large and implies overfitting. The following section will talk about different cross validation method and the way to prune the tree.
+
 \section{Cross Validation and Pruning}
+Adoptting the same idea in \texttt{rpart}, we will build cross validation trees to select a complexity parameter used for pruning. Different from \texttt{rpart}, in cross validation, we can choose different evaluation criteria to calculate the cross validation error.
 \subsection{Cross validation options}
+We offers four criteria for cross validation. Each criterion corresponds to an evaluation function which is used to calculate the cross validation error. Notice we still use the same splitting rule to build cross validation trees, but the cross validation error evaluation function is specified by current criterion.
 \subsubsection{TOT}
+In \textbf{TOT} cross validation method, the evaluation function is
+\[\widehat{\mse}(\cals^{\train, \tcv}, \cals^{\train, \train}, \Pi) = \frac{1}{N^{\train, \tcv}}\sum_{i\in\cals^{\train, \tcv}}\left\{(Y^*_i - \hat{\tau}(X_i; \cals^{\train, \train}, \calp))^2  - Y^{*2}_i\right\}
+\]
+where $\cals^{\train, \train}$ is part of training sample used for building cross validaiton trees and $\cals^{\train, \tcv}$ is the other part of training sample (here we called validation sample) used for predicting and calculating the error, and $N^{\train, \tcv}$ is the number of observations in $\cals^{\train, \tcv}$.
+
 \subsubsection{CT}
+In \textbf{CT} cross validation method, like its splitting rule, we have two versions, adaptive and honest. We also denote them as \textbf{CT-A} and \textbf{CT-H}. \\
+For \textbf{CT-A} cross validation method, the evaluation funciton is
+\begin{align*}
+\widehat{\mse}_\tau(\cals^{\train, \tcv},\cals^{\train, \train},\calp) =&
+-\frac{2}{N^{\train, \tcv}}\sum_{i\in\cals^{\train, \tcv}}\hat\tau(X_i;\cals^{\train, \tcv},\calp)\hat\tau(X_i;\cals^{\train, \train},\calp)\\
+& + \frac{1}{N^{\train, \tcv}}\sum_{i\in\cals^{\train, \tcv}}\hat\tau^2(
+X_i;\cals^{\train, \train},\calp).
+\end{align*}
+where $\hat\tau(X_i;\cals^{\train, \tcv},\calp)$ is the treatment effect calculated through the validation sample and $\hat\tau(X_i;\cals^{\train, \train},\calp)$ is the treatment effect in the already-built cross validation tree.\\
+For \textbf{CT-H} cross validation method, the evaluation function is 
+\begin{align*}
+-\widehat{\emse}_\tau(\cals^{\train, \tcv}, N^\est, \calp) & = 
+\frac{1}{N^{\train, \tcv}}\sum_{i\in\cals^{\train, \tcv}} \hat\tau^2(X_i;\cals^{\train, \tcv},\calp) \\
+& -
+\Bigl(\frac{1}{N^{\train, \tcv}} + \frac{1}{N^\est}\Bigr)\cdot \sum_{\ell\in\calp}
+\left( \frac{S^2_{\cals^{\train, \tcv}_\treat}(\ell)}{p}+ \frac{S^2_{\cals^{\train, \tcv}_\control}(\ell)}{1-p}\right).
+\end{align*}
 \subsubsection{fit}
+
 \subsubsection{matching}
+
 \subsection{Example}
 <<example2, fig = TRUE, include = TRUE>>=
 fit <- causalTree(y~x1 + x2 + x3 + x4, data = simulation.1, 
