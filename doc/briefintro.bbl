@@ -1,0 +1,13 @@
+\begin{thebibliography}{1}
+
+\bibitem{athey2015machine}
+Susan Athey and Guido Imbens.
+\newblock Machine learning methods for estimating heterogeneous causal effects.
+\newblock {\em arXiv preprint arXiv:1504.01132}, 2015.
+
+\bibitem{Breiman83}
+L.~Breiman, J.H. Friedman, R.A. Olshen, , and C.J Stone.
+\newblock {\em Classification and Regression Trees}.
+\newblock Wadsworth, Belmont, Ca, 1983.
+
+\end{thebibliography}
