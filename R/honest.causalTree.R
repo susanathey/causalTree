@@ -476,7 +476,9 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
     if (!is.null(xlevels)) attr(ans, "xlevels") <- xlevels
     if (method == "class") attr(ans, "ylevels") <- init$ylevels
     class(ans) <- "rpart"
-
+    if(ncol(ans$cptable) >= 4) {
+        ans$cptable[,4]  <- ans$cptable[,4] / ans$cptable[1, 4]
+    }
     ans <- honest.est.causalTree(ans, est_X, est_wts, est_treatment, est_Y)
     ans
 }

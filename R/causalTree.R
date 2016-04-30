@@ -237,6 +237,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
     if (length(extraArgs)) {
         controlargs <- names(formals(rpart.control)) # legal arg names
         indx <- match(names(extraArgs), controlargs, nomatch = 0L)
+        
         if (any(indx == 0L))
             stop(gettextf("Argument %s not matched",
                 names(extraArgs)[indx == 0L]),
@@ -450,6 +451,8 @@ causalTree <- function(formula, data, weights, treatment, subset,
     if (!is.null(xlevels)) attr(ans, "xlevels") <- xlevels
     if (method == "class") attr(ans, "ylevels") <- init$ylevels
     class(ans) <- "rpart"
-
+    if(ncol(ans$cptable) >= 4) {
+        ans$cptable[,4]  <- ans$cptable[,4] / ans$cptable[1, 4]
+    }
     ans
 }

@@ -340,22 +340,57 @@ The evaluation risk function in \textbf{matching} method is
 \widehat\mse_{\tau}(\cals^{\train, \tcv}, \cals^{\train, \train}, \calp) = \sum_{i \in \cals^{\train, \tcv}}\left(\tau^*(X_i, W_i; \cals) - \frac{\hat{\tau}(X_i; \cals^{\train, \train}, \calp) + \hat{\tau}(X_{n(W_i, X_i; \cals^{\train, \tcv})}; \cals^{\train, \train}, \calp )}{2}\right)^2
 \]
 \subsection{Example}
+
+In the following example, we choose honest splitting rule as \textbf{CT-H} (\texttt{split.Rule ="CT"}, \texttt{split.Honest = T}), and cross validation method as \textbf{matching} (\texttt{cv.option = "matching"} and \texttt{cv.Honest = F}). We set 10 folds cross validation (\texttt{xval = 10}) and print out the \texttt{cptable} to check out the complexity parameter (\texttt{cp}) and normalized cross validation error (\texttt{xerror}).
 <<example2, fig = TRUE, include = TRUE>>=
-fit <- causalTree(y~x1 + x2 + x3 + x4, data = simulation.1, 
+tree <- causalTree(y ~ x1 + x2 + x3 + x4, data = simulation.1, 
                   treatment = simulation.1$treatment, split.Rule = "CT",
-                  cv.option = "CT", cv.Honest = F, split.Bucket = F, 
-                  xval = 10, cv.alpha = 0.5, propensity = 0.5, cp = 0)
-rpart.plot(fit)
+                  split.Honest = T, cv.option = "matching", cv.Honest = F, 
+                  split.Bucket = F, xval = 10)
+tree$cptable
+rpart.plot(tree)
 @
-
-Then we do prunning to minize the cross validaiton error in \texttt{cptable}.
+\\
+The built tree in the plot is large and deep, which implies overfitting. Like \texttt{rpart}, we choose the complexity paramter \texttt{opcp} corresponding to the minimum cross validation error (\texttt{xerror}) in \texttt{tree\$cptable}, and use the function \texttt{prune()} to trim the tree: 
 <<prune, fig = TRUE, include = TRUE>>=
-opcp <- fit$cptable[, 1][which.min(fit$cptable[,4])]
-opfit <- prune(fit, cp = opcp)
-rpart.plot(opfit)
+opcp <- tree$cptable[, 1][which.min(tree$cptable[,4])]
+optree <- prune(tree, cp = opcp)
+rpart.plot(optree)
+@
+\section{Honest Estimation}
+In addtion to \texttt{causalTree}, we also support one-step honest re-estimation in function \texttt{honest.causalTree}. It can fit a \texttt{causalTree} model and get honest estimation results with tree structre built on training sample (including cross validation) and leaf treatment effect estimates taken from estimation sample.
+
+\subsection{Example}
+<<example3, fig = TRUE, include = TRUE>>=
+n <- nrow(simulation.1)
+
+trIdx <- which(simulation.1$treatment == 1)
+
+conIdx <- which(simulation.1$treatment == 0)
+
+train_idx <- c(sample(trIdx, length(trIdx) / 2), 
+               sample(conIdx, length(conIdx) / 2))
+
+train_data <- simulation.1[train_idx, ]
+
+est_data <- simulation.1[-train_idx, ]
+
+honestTree <- honest.causalTree(y ~ x1 + x2 + x3 + x4, data = train_data,
+                                treatment = train_data$treatment, 
+                                est_data = est_data, 
+                                est_treatment = est_data$treatment, 
+                                split.Rule = "CT", split.Honest = T, 
+                                HonestSampleSize = nrow(est_data), 
+                                split.Bucket = T, cv.option = "fit",
+                                cv.Honest = F)
+                                
+opcp <-  honestTree$cptable[,1][which.min(honestTree$cptable[,4])]
+
+opTree <- prune(honestTree, opcp)
+
+rpart.plot(opTree)
 @
 
-\section{Honest Estimation}
 \bibliographystyle{plain}
 \bibliography{refer}
 \end{document}
