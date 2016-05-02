@@ -16,18 +16,17 @@ causalTree(formula, data, weights, treatment, subset, na.action = na.causalTree,
 
     
 \arguments{
-  \item{formula}{a \link{formula}, with a response but no interaction
+  \item{formula}{a \link{formula}, with a response and features but no interaction
     terms.  If this a a data frome, that is taken as the model frame
     (see \code{\link{model.frame}).}
   }
   
-  \item{data}{an optional data frame in which to interact the variables
+  \item{data}{an optional data frame that includes the variables
     named in the formula.} 
   
   \item{weights}{optional case weights.}
   
-  \item{treatment}{a vector indicates the treatment status of the data, 1 represents treated and 0 represents control.  Only binary treatment
-			supported in this version. }
+  \item{treatment}{a vector that indicates the treatment status of each observation. 1 represents treated and 0 represents control.  Only binary treatment supported in this version. }
   
   \item{subset}{optional expression saying that only a subset of the
     rows of the data should be used in the fit.}
@@ -47,11 +46,13 @@ the parameter \code{split.alpha} does not matter.  For \code{split.Rule}=\code{"
 returns the estimates from the training data, no matter what the value of \code{split.Honest} is; the tree must be re-estimated to get the honest estimates using \code{estimate.causalTree}. The wrapper function \code{honest.CausalTree}
 does honest estimation in one step and returns a tree.}
     
-    \item{HonestSampleSize}{number of samples will be used in honest re-estimation after building the tree, which is used to adjust the risk function for re-estimaiton.}
+    \item{HonestSampleSize}{number of observations anticipated to be used in honest re-estimation after building the tree. This enters the
+risk function used in both splitting and cross-validation.}
     
-    \item{split.Bucket}{boolean option, \code{TRUE} or \code{FALSE}, used to specify whether to apply discrete method in splitting the tree. If set as \code{TRUE}, in splitting a node, the samples will first be partitioned in to several buckets in some order, with each bucket containing \code{bucketNum} samples, then buckets will be splitted into left branch or right branch.}
+    \item{split.Bucket}{boolean option, \code{TRUE} or \code{FALSE}, used to specify whether to apply the discrete method in splitting the tree. If set as \code{TRUE}, in splitting a node, the observations in a leaf will be be partitioned into buckets, with each bucket containing \code{bucketNum} treated and \code{bucketNum} control units, and where observations are ordered prior to partitioning. Splitting will take place by bucket.  }
     
-    \item{bucketNum}{number of observations in each bucket when set \code{split.Bucket} = \code{TRUE}.}
+    \item{bucketNum}{number of observations in each bucket when set \code{split.Bucket} = \code{TRUE}.  However, the code will override
+this choice in order to guarantee that there are at least \code{minsize} and at most \code{bucketMax} buckets.}
     \item{bucketMax}{Option to choose maximum number of buckets to use in splitting when set \code{split.Bucket} = \code{TRUE}, \code{bucketNum} can change by choice of \code{bucketMax}.}
     
     \item{cv.option}{cross validation options, one of \code{"TOT"}, \code{"matching"}, \code{"CT"}, \code{"fit"}, four cross validation methods in \pkg{causalTree}.  There is no \code{cv.option} for the \code{split.Rule} \code{"tstats"}; see Athey and Imbens (2016) for discussion.}
@@ -59,7 +60,7 @@ does honest estimation in one step and returns a tree.}
     \item{cv.Honest}{boolean option, \code{TRUE} or \code{FALSE}, only used for \code{cv.option} as \code{"CT"} or \code{"fit"}, to specify whether to apply honest risk evalation function in cross validation. If set \code{TRUE}, use honest risk function, otherwise use adaptive risk function in cross validation.  If set \code{FALSE}, the user choice of \code{cv.alpha} will be set to 1.  If set \code{TRUE}, \code{cv.alpha}
 will default to 0.5, but the user choice of \code{cv.alpha} will be respected.  Note that honest cv estimates within-leaf variances and may perform better with larger leaf sizes and/or small number of cross-validation sets.}
     
-    \item{minsize}{the minimum number of treated cases and controlled cases in the terminal nodes of the tree. The default value is set as 2.}
+    \item{minsize}{in order to split, each leaf must have at least \code{minsize} treated cases and \code{minsize} control cases. The default value is set as 2.}
   
   \item{model}{if logical: keep a copy of the model frame in the result?
     If the input value for \code{model} is a model frame (likely from an
@@ -71,7 +72,7 @@ will default to 0.5, but the user choice of \code{cv.alpha} will be respected.  
     missing and \code{model} is supplied this defaults to \code{FALSE}.}
     
     \item{propensity}{propensity score used in \code{"TOT"} splitting and \code{"TOT"}, honest \code{"CT"} cross validation methods. The default value is the proportion of treated cases in all observations.  In this implementation, the propensity score is a constant for the whole
-dataset.  Unit-specific propensity scores are not supported.}
+dataset.  Unit-specific propensity scores are not supported; however, the user may use inverse propensity scores as case weights if desired.}
     
   \item{control}{a list of options that control details of the
     \code{rpart} algorithm.  See \code{\link{rpart.control}}.}
@@ -95,8 +96,8 @@ dataset.  Unit-specific propensity scores are not supported.}
 }
 
 \details{
- CausalTree differs from \code{rpart} function from \pkg{rpart} package in splitting rules and cross validation methods. Please check Susan and Guido's paper \emph{Recursive Partitioning for Heterogeneous Causal
-Effects} (2016) for more detials.
+ CausalTree differs from \code{rpart} function from \pkg{rpart} package in splitting rules and cross validation methods. Please check Athey and Imbens, \emph{Recursive Partitioning for Heterogeneous Causal
+Effects} (2016) for more details.
 }
 
 \value{
