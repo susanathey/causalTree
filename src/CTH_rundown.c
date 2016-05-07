@@ -1,6 +1,5 @@
 /*
- * This rundown function is typically for TOT method. You may change it to make it 
- * compatibel with other splitting funcitons.
+ * This rundown function for CTH.
  *
  */
 #include "causalTree.h"
@@ -15,15 +14,12 @@ void
 CTH_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, int k, double alpha, 
             double xtrain_to_est_ratio, double propensity)
 {
-    //Rprintf("I am in CTH_rundow, obs = %d\n", obs);
-    //Rprintf("in CTH_rundown, xtrain_to_est_ratio = %f\n", xtrain_to_est_ratio);
     int i, obs2 = (obs < 0) ? -(1 + obs) : obs;
     int my_leaf_id;
     pNode otree =  tree;
     pNode otree_tmp = tree;
     pNode tree_tmp = tree;
     
-    // for debug only:
     int opnumber = 0;
     int j, s;
     int tmp_obs, tmp_id;
@@ -45,8 +41,7 @@ CTH_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, int k
         trsums = 0.;
         tr_sqr_sum = 0.;
         con_sqr_sum = 0.;
-        //tree = otree_tmp;
-        //Rprintf("cp = %f, tree->complexity = %f\n", cp[i], tree->complexity);
+        
         while (cp[i] < tree->complexity) {
 	        tree = branch(tree, obs);
 	        if (tree == 0)
@@ -54,9 +49,7 @@ CTH_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, int k
 	        otree = tree;
 	    }
 	    xpred[i] = tree->response_est[0];
-        // now find other samples in the same leaf;
         my_leaf_id = tree->id;
-        //Rprintf("current leaf id = %d, xpred = %f\n", my_leaf_id, xpred[i]);
         
         for (s = k; s < ct.n; s++) {
             tree_tmp = otree_tmp;
@@ -66,10 +59,8 @@ CTH_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, int k
                 tree_tmp = branch(tree_tmp, tmp_obs);
             }
             tmp_id = tree_tmp->id;
-            //Rprintf("for obs %d, tmp_id = %d\n", s, tmp_id);
             if (tmp_id == my_leaf_id) {
                 if (ct.treatment[tmp_obs] == 0) {
-                    //control
                     cons += ct.wt[tmp_obs];
                     consums += *ct.ydata[tmp_obs] * ct.wt[tmp_obs];
                     con_sqr_sum += (*ct.ydata[tmp_obs]) * (*ct.ydata[tmp_obs]) * ct.wt[tmp_obs];
@@ -80,15 +71,10 @@ CTH_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, int k
                 }
             }
         }
-        //Rprintf("trs = %f; cons = %f; trsums = %f; consums = %f;", trs, cons, trsums, consums);
-        
-        //calculate tr_mean and con_mean
+
         if (trs == 0) {
-            //Rprintf("i = %d, recursion happen\n", i);
-            // want to trace back to tree->parent for tr_mean;
             tr_mean = tree->parent->xtreatMean[0];
             tr_var = 0;
-            //tr_mean = NAN;
         } else {
             tr_mean = trsums / trs;
             tree->xtreatMean[0] = tr_mean;
@@ -96,7 +82,6 @@ CTH_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, int k
         }
         
         if (cons == 0) {
-            //Rprintf("recursion happen\n");
             con_mean = tree->parent->xcontrolMean[0];
             con_var = 0;
         } else {
@@ -107,7 +92,6 @@ CTH_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, int k
         
         xtemp[i] = (*ct_xeval)(ct.ydata[obs2], ct.wt[obs2], ct.treatment[obs2], tr_mean, 
                     con_mean, trs, cons, alpha, xtrain_to_est_ratio, propensity);
-        //Rprintf("for obs = %d, cp = %d, error = %f\n", obs, i, xtemp[i]);
     }
     return;
 

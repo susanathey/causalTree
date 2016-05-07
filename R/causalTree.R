@@ -1,33 +1,30 @@
 #
-#  The recursive partitioning function, for R
+#  The recursive partitioning function
 #
 # 
 
 causalTree <- function(formula, data, weights, treatment, subset, 
 					   na.action = na.causalTree, 
 					   split.Rule, split.Honest, HonestSampleSize, split.Bucket, bucketNum = 5,
-					   bucketMax = 100, cv.option, cv.Honest, minsize = 2L, model = FALSE,
-					   x = FALSE, y = TRUE, propensity, control, split.alpha = 0.5, cv.alpha = 0.5, cost, ...)  { 
+					   bucketMax = 100, cv.option, cv.Honest, minsize = 2L, 
+					   x = FALSE, y = TRUE, propensity, control, split.alpha = 0.5, cv.alpha = 0.5,
+					   cost, ...){ 
 
 	Call <- match.call()
-	if (is.data.frame(model)) {
-		m <- model
-		model <- FALSE
-	} else {
-		indx <- match(c("formula", "data", "weights", "subset", "treatment"),
-					  names(Call), nomatch = 0L)
-
-		if (indx[1] == 0L) stop("a 'formula' argument is required")
-		temp <- Call[c(1L, indx)]      
-		temp$na.action <- na.action  
-		temp[[1L]] <- quote(stats::model.frame) 
-		m <- eval.parent(temp)
-	}
+	
+	indx <- match(c("formula", "data", "weights", "subset", "treatment"),
+				  names(Call), nomatch = 0L)
+	
+	if (indx[1] == 0L) stop("a 'formula' argument is required")
+	temp <- Call[c(1L, indx)]      
+	temp$na.action <- na.action  
+	temp[[1L]] <- quote(stats::model.frame) 
+	m <- eval.parent(temp)
 
 	Terms <- attr(m, "terms")
 	if (any(attr(Terms, "order") > 1L))
 		stop("Trees cannot handle interaction terms")
-
+    
 	Y <- model.response(m)
 	wt <- model.weights(m)
 	if (any(wt < 0)) stop("negative weights not allowed")
@@ -95,8 +92,6 @@ causalTree <- function(formula, data, weights, treatment, subset,
 			 if (split.Rule.int %in% c(1, 5)) {
 				 if (!missing(split.Honest)) {
 					 warning("split.Honest is not used in your chosen splitting rule.")
-					 #warning("The default split.Honest = TRUE.")
-					 #split.Honest <- FALSE
 				 }
 				 if (!missing(split.alpha)) {
 					 warning("split.alpha is not used in your chosen splitting rule. split.Honest set to FALSE")
@@ -108,18 +103,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
 					 warning("The default split.Honest = TRUE for your chosen splitting rule.")
 				 }
 
-				 #if (split.Rule.int == 4 || split.Rule.int == 8) {
-				 #    # tstats or tstatsD
-				 #    if(missing(split.alpha)) {
-				 #        split.alpha <- 0.5
-				 #    }
-				 #} else {
-				 #    if(!missing(split.alpha)) {
-				 #        warning("split.alpha is not used in your chosen splitting rule.")
-				 #    }
-				 #}
 			 }
-
 
 			 ## check the Split.Honest == T/F
 			 split.Honest.num <- pmatch(split.Honest, c(T, F))
@@ -205,14 +189,6 @@ causalTree <- function(formula, data, weights, treatment, subset,
 
 			 init <- get(paste("causalTree", method, sep = "."), envir = environment())(Y, offset, wt) 
 
-			 #{
-			 #    if (missing(parms))
-			 #        get(paste("causalTree", method, sep = "."), envir = environment())(Y, offset, parms, wt) 
-			 #    else
-			 #        get(paste("causalTree", method, sep = "."), envir = environment())(Y, offset, parms, wt)
-			 #}
-
-
 			 ns <- asNamespace("causalTree")
 			 if (!is.null(init$print)) environment(init$print) <- ns
 			 if (!is.null(init$summary)) environment(init$summary) <- ns
@@ -226,12 +202,6 @@ causalTree <- function(formula, data, weights, treatment, subset,
 				 cats[match(names(xlevels), colnames(X))] <-
 					 unlist(lapply(xlevels, length))
 
-				 ## We want to pass any ... args to causalTree.control, but not pass things
-				 ##  like "dats = mydata" where someone just made a typo.  The use of ...
-				 ##  is simply to allow things like "cp = 0.05" with easier typing
-
-				 # controls: maxcompete, maxdepth <= 30, minsplit, minbucket, usesurrogate, surrogatestyle, cp
-				 #print ("I am OK.")
 				 extraArgs <- list(...)
 
 				 if (length(extraArgs)) {
@@ -253,18 +223,11 @@ causalTree <- function(formula, data, weights, treatment, subset,
 					 xval <- 0L
 				 } else if (length(xval) == 1L) {
 					 ## make random groups
-					 ################ here we debug only:
 					 control_idx <- which(treatment == 0)
 					 treat_idx <- which(treatment == 1)
 					 xgroups <- rep(0, nobs)
 					 xgroups[control_idx] <- sample(rep(1L:xval, length = length(control_idx)), length(control_idx), replace = F)
 					 xgroups[treat_idx] <- sample(rep(1L:xval, length = length(treat_idx)), length(treat_idx), replace = F)  
-					 # for debug:
-					 #xgroups <- c(9, 4, 5, 2, 6, 1, 8, 7, 3, 10, 1, 2, 7, 3, 5, 10, 4, 8, 9, 6)
-					 #xgroups <- c(8, 3, 5, 2, 6, 6, 7, 4, 9, 1, 9, 2, 7, 4, 10, 1, 8, 3, 5, 
-					 #            10, 8, 1, 7, 6, 9, 8, 2, 4, 6, 5, 4, 2, 3, 7, 5,9, 3, 10, 10, 1) 
-					 #print("xgroups = ")
-					 #print(xgroups)
 				 } else if (length(xval) == nobs) {
 					 ## pass xgroups by xval 
 					 xgroups <- xval
@@ -308,7 +271,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
 				 storage.mode(wt) <- "double"
 				 storage.mode(treatment) <- "double"
 				 minsize <- as.integer(minsize) # minimum number of obs for treated and control cases in one leaf node
-
+                
 				 ctfit <- .Call(C_causalTree,
 								ncat = as.integer(cats * !isord),
 								split_Rule = as.integer(split.Rule.int), # tot, ct, fit, tstats, totD, ctD, fitD, tstatsD
@@ -318,7 +281,6 @@ causalTree <- function(formula, data, weights, treatment, subset,
 								crossmeth = as.integer(cv.option.num), # tot, ct, fit, tstats
 								crossHonest = as.integer(cv.Honest.num),
 								as.double(unlist(controls)), # control list in rpart
-								#temp, # parms
 								minsize, # minsize = min_node_size
 								as.double(propensity),
 								as.integer(xval),
@@ -356,7 +318,6 @@ causalTree <- function(formula, data, weights, treatment, subset,
 
 				 ## Now, make ordered factors look like factors again (a printout choice)
 				 nadd <- sum(isord[ctfit$isplit[, 1L]])
-				 #print (nadd)
 				 if (nadd > 0L) { # number of splits at an ordered factor.
 					 newc <- matrix(0L, nadd, max(cats))
 					 cvar <- ctfit$isplit[, 1L]
@@ -365,7 +326,6 @@ causalTree <- function(formula, data, weights, treatment, subset,
 					 ccut <- floor(splits[indx, 4L]) # cut point
 					 splits[indx, 2L] <- cats[cvar[indx]] # Now, # of categories instead
 					 splits[indx, 4L] <- ncat + 1L:nadd # rows to contain the splits
-					 #print (splits)
 
 					 ## Next 4 lines can be done without a loop, but become indecipherable
 					 for (i in 1L:nadd) {
@@ -385,16 +345,12 @@ causalTree <- function(formula, data, weights, treatment, subset,
 					 ncat <- ncat + nadd
 				 } else catmat <- ctfit$csplit
 
-				 #print(catmat)
-				 ## NB: package adabag depends on 'var' being a factor.
-				 #print (ctfit$dnode[,4L])
 				 if (nsplit == 0L) {   
 					 frame <- data.frame(row.names = 1L,
 										 var = "<leaf>",
 										 n = ctfit$inode[, 5L],
 										 wt = ctfit$dnode[, 3L],
 										 dev = ctfit$dnode[, 1L],
-										 # need to be adjust for honest estimation
 										 yval = ctfit$dnode[, 4L],
 										 complexity = ctfit$dnode[, 2L],
 										 ncompete = 0L,
@@ -413,7 +369,6 @@ causalTree <- function(formula, data, weights, treatment, subset,
 										 nsurrogate = ctfit$inode[, 4L])
 				 }
 
-
 				 if (is.null(init$summary))
 					 stop("Initialization routine is missing the 'summary' function")
 				 functions <- if (is.null(init$print)) list(summary = init$summary)
@@ -421,10 +376,8 @@ causalTree <- function(formula, data, weights, treatment, subset,
 				 if (!is.null(init$text)) functions <- c(functions, list(text = init$text))
 				 if (method == "user") functions <- c(functions, mlist)
 
-
 				 where <- ctfit$which
 				 names(where) <- row.names(X)
-
 
 				 ans <- list(frame = frame,
 							 where = where,
@@ -437,10 +390,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
 				 if (nsplit) ans$splits = splits
 				 if (ncat > 0L) ans$csplit <- catmat + 2L
 				 if (nsplit) ans$variable.importance <- importance(ans)
-				 if (model) {
-					 ans$model <- m
-					 if (missing(y)) y <- FALSE
-				 }
+
 				 if (y) ans$y <- Y
 				 if (x) {
 					 ans$x <- X

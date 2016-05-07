@@ -24,7 +24,6 @@ myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg,
     alphasave = ct.alpha;
     double xtrain_to_est_ratio = 0.;
     
-    //int cv_count = 0;
 
     /*
      * Allocate a set of temporary arrays
@@ -37,9 +36,6 @@ myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg,
     for (i = 0; i < ct.n; i++)
         savew[i] = ct.which[i]; /* restore at the end */
 
-    /*
-     * Make the list of CPs that I will compare against
-     */
 
     // cp[0] = 10 * cptable_head->cp;      /* close enough to infinity */
     cp[0] = 10000 * cptable_head->cp;
@@ -47,7 +43,6 @@ myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg,
         cp[i] = sqrt(cplist->cp * (cplist->forward)->cp);
     }
 
-    /* why we need to concern about wt> */
     total_wt = 0;
     for (i = 0; i < ct.n; i++)
         total_wt += ct.wt[i];

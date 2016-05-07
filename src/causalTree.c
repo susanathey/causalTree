@@ -12,9 +12,10 @@
  *      
  *      crossmeth = 1 - TOT
  *                  2 - matching
- *                  3 - fit
- *                  4 - CTH
- *                  5 - CTA
+ *                  3 - fitH
+ *                  4 - fitA
+ *                  5 - CTH
+ *                  6 - CTA
  *                  
  *      opt  =  vector of options.  Same order as causalTree.control, as a vector
  *                   of doubles.
@@ -58,7 +59,6 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
         SEXP ymat2, SEXP xmat2, SEXP wt2, SEXP treatment2, SEXP ny2, SEXP cost2, 
         SEXP xvar2, SEXP split_alpha2, SEXP cv_alpha2, SEXP NumHonest2)
 {
-    //Rprintf("I am in\n");
     pNode tree;          /* top node of the tree */
     char *errmsg;
     int i, j, k, n;
@@ -68,7 +68,6 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     double *dptr;               /* temp */
     int *iptr;
     int method;
-    /* 2016 add */
     int split_Rule;
     int bucketnum;  
     int bucketMax;
@@ -82,7 +81,6 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
 
     double *wt;
     double *treatment;
-    //double *parms;
     int minsize;
     /* add propensity score: */
     double propensity;
@@ -103,8 +101,6 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     int **ccsplit;
     double scale;
     
-    
-    
     CpTable cp;
 
     ncat = INTEGER(ncat2);
@@ -112,7 +108,6 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     xvals = asInteger(xvals2);
     wt = REAL(wt2);
     treatment = REAL(treatment2);
-    //parms = REAL(parms2);
     minsize = asInteger(minsize2);
     propensity = asReal(p2);
     split_alpha = asReal(split_alpha2);
@@ -137,7 +132,6 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
         ct_init = split_func_table[split_id].init_split;
         ct_choose = split_func_table[split_id].choose_split;
         ct_eval = split_func_table[split_id].eval;
-        //ct_error = split_func_table[split_id].error;
         ct_xeval = cv_func_table[cv_id].xeval;
         ct.num_y = asInteger(ny2);
     } else {
@@ -164,9 +158,6 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     ct.NumHonest = NumHonest;
     
     n = ct.n;                   
-    /* I get tired of typing "ct.n" 100 times 
-     * below */
-    //Rprintf("n = %d\n", n);
     ct.nvar = ncols(xmat2);
     ct.numcat = INTEGER(ncat2);
     ct.wt = wt;
@@ -174,16 +165,10 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     ct.iscale = 0.0;
     ct.vcost = REAL(cost2);
     
-    // pass the variance of predictors into ct:
     ct.xvar = REAL(xvar2);
     ct.NumXval = xvals;
     
     
-    /*
-     * create the "ragged array" pointers to the matrix
-     *   x and missmat are in column major order
-     *   y is in row major order
-     */
     dptr = REAL(xmat2);
     ct.xdata = (double **) ALLOC(ct.nvar, sizeof(double *));
     for (i = 0; i < ct.nvar; i++) {
@@ -195,7 +180,6 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     
     dptr = REAL(ymat2);
     temp2 = 0;
-    // only consider numerical ys: temporarily
     for (i = 0; i < n; i++) {
         ct.ydata[i] = dptr;
         for (j = 0; j < ct.num_y; j++) {
@@ -273,8 +257,8 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     errmsg = _("unknown error");
     which3 = PROTECT(allocVector(INTSXP, n));
     ct.which = INTEGER(which3);
-    temp = 0; // temp variable for weights
-    temp2 = 0; // temp variable for treatments
+    temp = 0;
+    temp2 = 0; 
 
     for (i = 0; i < n; i++) {
         ct.which[i] = 1;
@@ -282,7 +266,6 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
         temp2 += treatment[i];
     }
     
-    //Rprintf("begin split!\n");
     train_to_est_ratio = 100;
     i = (*ct_init) (n, ct.ydata, maxcat, &errmsg, &ct.num_resp, 1, wt, treatment,
          bucketnum, bucketMax, &train_to_est_ratio);
@@ -337,15 +320,11 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     }
     tree->complexity = tree->risk;
     ct.alpha = ct.complexity * tree->risk;
-    //Rprintf("ct.complexity = %f, tree->risk = %f, ct.alpha = %f\n", ct.complexity, ct.alpha);
-    
-    
 
     /*
      * Do the basic tree
      */
     
-
     partition(1, tree, &temp, 0, n, minsize, split_Rule, split_alpha, bucketnum, bucketMax,
               train_to_est_ratio); // temp store sumrisk
   
@@ -464,7 +443,6 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
 
     /* Create the output list */
     int nout = catcount > 0 ? 7 : 6;
-    //Rprintf("nout = %d\n", nout);
     SEXP rlist = PROTECT(allocVector(VECSXP, nout));
     SEXP rname = allocVector(STRSXP, nout);
     setAttrib(rlist, R_NamesSymbol, rname);
@@ -486,6 +464,5 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     }
 
     UNPROTECT(1 + nout);
-    //Rprintf("DoneDoneDone!\n");
     return rlist;
 }

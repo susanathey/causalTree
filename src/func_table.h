@@ -1,15 +1,7 @@
 /*
  * The table of implimented splitting functions
  *
- *  init_split   - Will be called before a tree is started.  May do very
- *                  little, but empirical Bayes like methods will need to set
- *                  some global variables.
- *  choose_split - function to find the best split
- *  eval         - function to calculate the response estimate and risk
- *  error        - Function that returns the prediction error.
- *  num_y        - Number of columns needed to represent y (usually 1)
  */
-
 
 extern int totinit(int n, double *y[], int maxcat, char **error, int *size,
                    int who, double *wt, double *treatment, int bucketnum, int bucketMax, 
@@ -20,9 +12,7 @@ extern void tot(int n, double *y[], double *x, int nclass,
                   double myrisk, double *wt, double *treatment, double propensity,int minsize);
 extern void totss(int n, double *y[], double *value, double *tr_mean, double *con_mean, double *risk,
                     double *wt, double *treatment, double max_y, double propensity);
-// dishonest error function used in calculate the fit error in cross validation:
 extern double totpred(double *y, double wt, double treatment, double *yhat, double p);
-// honest error function used in calculate the fit error in cross validation:
 
 extern int totDinit(int n, double *y[], int maxcat, char **error,
              int *size, int who, double *wt, double *treatment,
@@ -57,7 +47,6 @@ extern void CTD(int n, double *y[], double *x, int nclass,
         int bucketMax, double train_to_est_ratio);
 extern double CTDpred(double *y, double wt, double treatment, double *yhat, 
                       double propensity); 
-
 
 extern int fitinit(int n, double *y[], int maxcat, char **error,
             int *size, int who, double *wt, double *treatment, int bucketnum, 
@@ -111,8 +100,6 @@ extern void tstatsD(int n, double *y[], double *x, int nclass,
 extern double tstatsDpred(double *y, double wt, double treatment, double *yhat, double propensity);
 
 
-
-
 /* ------------------------------------------------------ --------------------------- */
 extern double tot_xpred(double *y, double wt, double treatment, double *yhat, double propensity); 
 extern double matching_xpred(double *y1, double *y2, double wt1, double wt2, double treatment1,
@@ -142,7 +129,6 @@ extern void anova(int n, double *y[], double *x, int nclass,
   	  int edge, double *improve, double *split, int *csplit,
 		  double myrisk, double *wt, double *treatment, int minsize);
 
-//extern double anovapred(double *y, double *yhat);
 extern double anovapred(double *y, double wt, double treatment, double *yhat, double p);
 
 
@@ -162,8 +148,6 @@ static struct {
     void (*eval) ();
     double (*error) ();
 } split_func_table[] = {
-    // need to be changed to new version:
-    // init_split; choose_split; split_eval; cv_eval????; error??
     {totinit, tot, totss, totpred},
     {CTinit, CT, CTss, CTpred},
     {fitinit, fit, fitss, fitpred},

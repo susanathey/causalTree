@@ -1,5 +1,5 @@
 /*
- * The four routines for split.Rule = TOT
+ * split.Rule = TOT
  */
 #include <math.h>
 #include "causalTree.h"
@@ -8,10 +8,6 @@
 /*
  * Warning: need to change to discrete version of TOT
  */
-//static double *sums, *wtsums, *treatment_effect;
-//static double *wts, *trs, *trsums;
-//static int *countn;
-//static int *tsplit;
 static double *mean, *sums;
 static double *wts;
 static int *countn;
@@ -43,22 +39,18 @@ totss(int n, double *y[], double *value,  double *con_mean, double *tr_mean, dou
 {
     int i;
     double temp = 0., twt = 0.;
-    double temp0, temp1; // control; treatment.
+    double temp0, temp1; 
     double trs, cons;
     double mean, ss;
-    //double temp0 = 0., temp1 = 0., twt = 0.; /* sum of the weights */ 
     double ystar;
     temp0 = 0.;
     temp1 = 0.;
     trs = 0.;
     cons = 0.;
 
-    //Rprintf("propensity score = %f", propensity);
-    
+
     for (i = 0; i < n; i++) {
-        //Rprintf("treatment[%d] = %f\n", i, treatment[i]);
         ystar = *y[i] * (treatment[i] - propensity) / (propensity * (1 - propensity));
-        //Rprintf("y[%d] = %f, ystar[%d] = %f\n", i, *y[i], i, ystar);
         temp += ystar * wt[i];
         twt += wt[i];
         if (treatment[i] == 0) {
@@ -72,8 +64,7 @@ totss(int n, double *y[], double *value,  double *con_mean, double *tr_mean, dou
         }
     }
     mean = temp / twt;
-    //Rprintf("mean = %f\n", mean);
-    
+
     ss = 0.;
     for (i = 0; i < n; i++) {
         ystar = *y[i] * (treatment[i] - propensity) / (propensity * (1 - propensity));
@@ -83,16 +74,8 @@ totss(int n, double *y[], double *value,  double *con_mean, double *tr_mean, dou
     *con_mean  = temp0 / cons;
     *tr_mean = temp1 / trs;
     *value = temp1 /trs - temp0 / cons;
-    //*value = mean;
     *risk = ss;
 }
-
-/*
- * The anova splitting function.  Find that split point in x such that
- *  the sum of squares of y within the two groups is decreased as much
- *  as possible.  It is not necessary to actually calculate the SS, the
- *  improvement involves only means in the two groups.
- */
 
 void tot(int n, double *y[], double *x, int nclass, int edge, double *improve, 
          double *split, int *csplit, double myrisk, double *wt, double *treatment,
@@ -148,7 +131,6 @@ void tot(int n, double *y[], double *x, int nclass, int edge, double *improve,
                 (int) right_tr >= min_node_size &&
                 (int) right_wt - (int) right_tr >= min_node_size) {
     
-                //if (x[i + 1] != x[i] && left_n >= edge) {
                 left_mean = left_sum / left_wt;
                 right_mean = right_sum / right_wt;
                 temp = left_wt * (grandmean - left_mean) * (grandmean - left_mean) + 
@@ -240,26 +222,11 @@ double
         
         ystar = y[0] * (treatment - propensity) / (propensity * (1 - propensity));
         temp = ystar - *yhat;
-        //if (treatment == 1)  temp = y[0] / propensity;
-        //else temp = - y[0] / (1 - propensity);
-        //double temp = y[0] - *yhat;
-        //temp -= *yhat;
         return temp * temp * wt;
     }
 
 double totxeval(int *unique_leaf, int **val_leaf_mat, int cp_id, int t, int *sorts, double *wt,
                 double *treatment,  double *y[], double propensity, int k, int nobs, double val_sum_wt, int val_count) {
-    /*
-    * nobs = ct.n
-    * t = # of unique leaves
-    * k: start pt of validation set
-    * sorts = ct.sorts[0][]
-    * wt = ct.wt
-    * cp_id = jj
-    * treatment = ct.treatment
-    * y[] = ct.ydata
-    * val_sum_wt = total wts in the validation set:
-    */
     
     int s, i, j;
     int jj = cp_id;
@@ -272,7 +239,6 @@ double totxeval(int *unique_leaf, int **val_leaf_mat, int cp_id, int t, int *sor
     
     leaf_total_error = 0.;
     for (s = 0; s < t; s++) {
-        // in leaf s:
         leaf_local_wt = 0.;
         leaf_local_wt_sum = 0.;
         leaf_local_wt_sq_sum = 0.;
@@ -281,7 +247,6 @@ double totxeval(int *unique_leaf, int **val_leaf_mat, int cp_id, int t, int *sor
             Rprintf("There is a bug!\n");
         }
         for (i = k; i < nobs; i++) {
-            // consider the obs in the node:
             j = sorts[i];
             if(val_leaf_mat[j][jj] == node) {
                 ystar = y[0][j] * (treatment[j] - propensity) / (propensity * (1 - propensity));

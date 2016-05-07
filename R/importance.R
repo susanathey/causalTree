@@ -4,6 +4,7 @@
 # Each surrogate split gets split$adj times the primary split's value
 #
 # Called only internally by causalTree
+# Note: same as the "importance" function in rpart.
 #
 importance <- function(fit)
 {

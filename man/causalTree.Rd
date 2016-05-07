@@ -62,10 +62,6 @@ will default to 0.5, but the user choice of \code{cv.alpha} will be respected.  
     
     \item{minsize}{in order to split, each leaf must have at least \code{minsize} treated cases and \code{minsize} control cases. The default value is set as 2.}
   
-  \item{model}{if logical: keep a copy of the model frame in the result?
-    If the input value for \code{model} is a model frame (likely from an
-    earlier call to the \code{causalTree} function), then this frame is used
-    rather than constructing new data.}
   \item{x}{keep a copy of the \code{x} matrix in the result.}
   
   \item{y}{keep a copy of the dependent variable in the result.  If

@@ -1,21 +1,12 @@
 useDynLib(causalTree, .registration = TRUE, .fixes = "C_")
 
 export(causalTree, honest.causalTree, na.causalTree, estimate.causalTree, causalTree.matrix)
-export(causalTree.exp) 
 
 importFrom(grDevices, dev.cur, dev.off)
 importFrom(graphics, plot, text)
 importFrom(stats, model.frame, predict, residuals)
 importFrom(rpart, rpart)
 
-#S3method(labels, causalTree)
-#S3method(meanvar, causalTree)
 S3method(model.frame, causalTree)
-#S3method(plot, causalTree)
-#S3method(post, causalTree)
-#S3method(predict, causalTree)
-#S3method(print, causalTree)
-#S3method(prune, causalTree)
-#S3method(residuals, causalTree)
-#S3method(summary, causalTree)
+
 

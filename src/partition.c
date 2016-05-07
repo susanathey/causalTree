@@ -50,10 +50,8 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
 		      j = -(1 + j);   /* if missing, value = -(1+ true index) */
 	      ct.wtemp[k] = ct.wt[j];
           ct.trtemp[k] = ct.treatment[j];
-          //Rprintf("trtemp[%d] = %f\n", k, ct.trtemp[k]);
 	      ct.ytemp[k] = ct.ydata[j];
 	      twt += ct.wt[j];
-          /* correction made 2016 */
           ttr += ct.treatment[j] * ct.wt[j];
 	      k++;
 	    }
@@ -90,18 +88,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
 	        (*ct_eval) (n, ct.ytemp, me->response_est, me->controlMean, me->treatMean, 
           &(me->risk), ct.wtemp, ct.trtemp, ct.max_y, alpha, train_to_est_ratio);
 	    }
-	    //(*ct_eval) (n, ct.ytemp, me->response_est, &(me->risk), ct.wtemp, ct.trtemp, ct.max_y, ct.propensity);
-        /*
-        if (method == 5 || method == 6 || method == 7 || method == 8) // anova2 or tstats
-            (*ct_eval) (n, ct.ytemp, me->response_est, &(me->risk), ct.wtemp, ct.trtemp, ct.max_y, alpha);
-        else if (method == 9) //anovafit {
-            (*ct_eval) (n, ct.ytemp, me->response_est, me->treatMean, me->controlMean, &(me->risk), ct.wtemp, ct.trtemp, ct.max_y, alpha);
-            //Rprintf("me->treatMean = %f\n", *me->treatMean);
-            //Rprintf("me->controlMean = %f\n", *me->controlMean);
-        }
-        else
-            (*ct_eval) (n, ct.ytemp, me->response_est, &(me->risk), ct.wtemp, ct.trtemp, ct.max_y); 
-       */
+
 	    me->num_obs = n;
 	    me->sum_wt = twt;
         me->sum_tr = ttr;
@@ -109,21 +96,16 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
 	    if (tempcp > me->complexity)
 	      tempcp = me->complexity;
     } else
-	    tempcp = me->risk; // nodenum == 1 i.e.: root node
-   // Rprintf("me->num_obs= %d\n", me->num_obs); 
-    //Rprintf("line 93:temcp = %f\n", tempcp);
+	    tempcp = me->risk; 
 
     /*
      * Can I quit now ?
      */
-    // Rprintf("min_split = %d\n", ct.min_split);
-    //Rprintf("ct.maxnode = %d, nodenum = %d\n", ct.maxnode, nodenum);
-    //Rprintf("me->num_obs= %d, ct.min_split =%d\n", me->num_obs , ct.min_split);
-    //Rprintf("tempcp = %f\n", tempcp);
+  
     if (me->num_obs < ct.min_split || tempcp <= ct.alpha || nodenum > ct.maxnode) {
         me->complexity = ct.alpha;
   	    *sumrisk = me->risk;
-        //Rprintf("quit now!\n");
+
 	/*
 	 * make sure the split doesn't have random pointers to somewhere
 	 * i.e., don't trust that whoever allocated memory set it to zero
@@ -137,16 +119,10 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     /*
      * Guess I have to do the split
      */
-    //bsplit(me, n1, n2);
-    //Rprintf("before bsplit\n");
-    //if (!me->primary) {
-    //    Rprintf("Not primary at 124L");
-    //}
     
     bsplit(me, n1, n2, min_node_size, split_Rule, alpha, bucketnum, bucketMax, train_to_est_ratio);
-    //Rprintf("after bsplit\n");
+
     if (!me->primary) {
-      //Rprintf("stop here!\n");
 	/*
 	 * This is rather rare -- but I couldn't find a split worth doing
 	 */
@@ -181,20 +157,15 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
      * Update my estimate of cp, and split the right son.
      */
     tempcp = (me->risk - left_risk) / (left_split + 1);
-    //Rprintf("left_risk = %f, left_split = %d\n", left_risk, left_split);
     tempcp2 = (me->risk - (me->leftson)->risk);
     if (tempcp < tempcp2)
 	tempcp = tempcp2;
-   //Rprintf("now tempcp = %f\n", tempcp);
     if (tempcp > me->complexity)
 	tempcp = me->complexity;
 
     me->rightson = (pNode) CALLOC(1, nodesize);
     (me->rightson)->parent = me;
     (me->rightson)->complexity = tempcp - ct.alpha;
-    //Rprintf("me->rightson->complexity = %f\n", (me->rightson)->complexity);
-    //right_split = partition(1 + 2 * nodenum, me->rightson, &right_risk,
-		//	    n1 + nleft, n1 + nleft + nright);
     right_split = partition(1 + 2 * nodenum, me->rightson, &right_risk,
   		    n1 + nleft, n1 + nleft + nright, min_node_size, split_Rule, alpha,
   		    bucketnum, bucketMax, train_to_est_ratio);
@@ -208,8 +179,6 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
      */
     tempcp = (me->risk - (left_risk + right_risk)) /
 	  (left_split + right_split + 1);
-    //Rprintf("the final tempcp = %f\n", tempcp);
-
     /* Who goes first -- minimum of tempcp, leftson, and rightson */
     if ((me->rightson)->complexity > (me->leftson)->complexity) {
       if (tempcp > (me->leftson)->complexity) {
@@ -241,8 +210,6 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     
     me->complexity = (me->risk - (left_risk + right_risk)) /
 	(left_split + right_split + 1);
-
-    //Rprintf("nodenum = %d, cp = %f\n", nodenum, me->complexity);
   
     
     if (me->complexity <= ct.alpha) {

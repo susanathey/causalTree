@@ -114,7 +114,7 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 				 } 
 				 if (missing(bucketNum)) {
 					 # number of treat cases or control cases in one bucket
-					 #Numbuckets = max(minsize, min(round(numtreated/bucketNum),round(numcontrol/bucketNum),bucketMax))
+					 # Numbuckets = max(minsize, min(round(numtreated/bucketNum),round(numcontrol/bucketNum),bucketMax))
 					 bucketNum <- 5
 					 # at least 5 obs in one bucket
 				 }
@@ -129,8 +129,6 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 			 if (split.Rule.int %in% c(1, 5)) {
 				 if (!missing(split.Honest)) {
 					 warning("split.Honest is not used in your chosen splitting rule.")
-					 #warning("The default split.Honest = TRUE.")
-					 #split.Honest <- FALSE
 				 }
 				 if (!missing(split.alpha)) {
 					 warning("split.alpha is not used in your chosen splitting rule. split.Honest set to FALSE")
@@ -141,17 +139,6 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 					 split.Honest <- TRUE
 					 warning("The default split.Honest = TRUE for your chosen splitting rule.")
 				 }
-
-				 #if (split.Rule.int == 4 || split.Rule.int == 8) {
-				 #    # tstats or tstatsD
-				 #    if(missing(split.alpha)) {
-				 #        split.alpha <- 0.5
-				 #    }
-				 #} else {
-				 #    if(!missing(split.alpha)) {
-				 #        warning("split.alpha is not used in your chosen splitting rule.")
-				 #    }
-				 #}
 			 }
 
 			 ## check the Split.Honest == T/F
@@ -243,14 +230,6 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 
 			 init <- get(paste("causalTree", method, sep = "."), envir = environment())(Y, offset, wt) 
 
-			 #{
-			 #    if (missing(parms))
-			 #        get(paste("causalTree", method, sep = "."), envir = environment())(Y, offset, parms, wt) 
-			 #    else
-			 #        get(paste("causalTree", method, sep = "."), envir = environment())(Y, offset, parms, wt)
-			 #}
-
-
 			 ns <- asNamespace("causalTree")
 			 if (!is.null(init$print)) environment(init$print) <- ns
 			 if (!is.null(init$summary)) environment(init$summary) <- ns
@@ -264,12 +243,6 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 				 cats[match(names(xlevels), colnames(X))] <-
 					 unlist(lapply(xlevels, length))
 
-				 ## We want to pass any ... args to causalTree.control, but not pass things
-				 ##  like "dats = mydata" where someone just made a typo.  The use of ...
-				 ##  is simply to allow things like "cp = 0.05" with easier typing
-
-				 # controls: maxcompete, maxdepth <= 30, minsplit, minbucket, usesurrogate, surrogatestyle, cp
-				 #print ("I am OK.")
 				 extraArgs <- list(...)
 				 if (length(extraArgs)) {
 					 controlargs <- names(formals(rpart.control)) # legal arg names
@@ -288,19 +261,12 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 					 xgroups <- 0L
 					 xval <- 0L
 				 } else if (length(xval) == 1L) {
-					 ## make random groups
-					 ################ here we debug only:
+					 # make random groups
 					 control_idx <- which(treatment == 0)
 					 treat_idx <- which(treatment == 1)
 					 xgroups <- rep(0, nobs)
 					 xgroups[control_idx] <- sample(rep(1L:xval, length = length(control_idx)), length(control_idx), replace = F)
 					 xgroups[treat_idx] <- sample(rep(1L:xval, length = length(treat_idx)), length(treat_idx), replace = F)  
-					 # for debug:
-					 #xgroups <- c(9, 4, 5, 2, 6, 1, 8, 7, 3, 10, 1, 2, 7, 3, 5, 10, 4, 8, 9, 6)
-					 #xgroups <- c(8, 3, 5, 2, 6, 6, 7, 4, 9, 1, 9, 2, 7, 4, 10, 1, 8, 3, 5, 
-					 #            10, 8, 1, 7, 6, 9, 8, 2, 4, 6, 5, 4, 2, 3, 7, 5,9, 3, 10, 10, 1) 
-					 #print("xgroups = ")
-					 #print(xgroups)
 				 } else if (length(xval) == nobs) {
 					 ## pass xgroups by xval 
 					 xgroups <- xval
@@ -343,9 +309,7 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 				 storage.mode(X) <- "double"
 				 storage.mode(wt) <- "double"
 				 storage.mode(treatment) <- "double"
-				 #temp <- as.double(unlist(init$parms)) # which we don't use for now.
 				 minsize <- as.integer(minsize) # minimum number of obs for treated and control cases in one leaf node
-				 #if (!length(temp)) temp <- 0  # if parms is NULL pass a dummy
 
 				 ctfit <- .Call(C_causalTree,
 								ncat = as.integer(cats * !isord),
@@ -356,7 +320,6 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 								crossmeth = as.integer(cv.option.num), # tot, ct, fit, tstats
 								crossHonest = as.integer(cv.Honest.num),
 								as.double(unlist(controls)), # control list in rpart
-								#temp, # parms
 								minsize, # minsize = min_node_size
 								as.double(propensity),
 								as.integer(xval),
@@ -382,11 +345,9 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 				 numcp <- ncol(ctfit$cptable)
 				 temp <- if (nrow(ctfit$cptable) == 3L) c("CP", "nsplit", "rel error")
 					 else c("CP", "nsplit", "rel error", "xerror", "xstd")
-				 #print (ctfit$cptable)
 				 dimnames(ctfit$cptable) <- list(temp, 1L:numcp)
 
 				 tname <- c("<leaf>", colnames(X))
-				 # print (tname)
 				 splits <- matrix(c(ctfit$isplit[, 2:3], ctfit$dsplit), ncol = 5L,
 								  dimnames = list(tname[ctfit$isplit[, 1L] + 1L],
 												  c("count", "ncat", "improve", "index", "adj")))
@@ -394,7 +355,6 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 
 				 ## Now, make ordered factors look like factors again (a printout choice)
 				 nadd <- sum(isord[ctfit$isplit[, 1L]])
-				 #print (nadd)
 				 if (nadd > 0L) { # number of splits at an ordered factor.
 					 newc <- matrix(0L, nadd, max(cats))
 					 cvar <- ctfit$isplit[, 1L]
@@ -403,7 +363,6 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 					 ccut <- floor(splits[indx, 4L]) # cut point
 					 splits[indx, 2L] <- cats[cvar[indx]] # Now, # of categories instead
 					 splits[indx, 4L] <- ncat + 1L:nadd # rows to contain the splits
-					 #print (splits)
 
 					 ## Next 4 lines can be done without a loop, but become indecipherable
 					 for (i in 1L:nadd) {
@@ -423,16 +382,12 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 					 ncat <- ncat + nadd
 				 } else catmat <- ctfit$csplit
 
-				 #print(catmat)
-				 ## NB: package adabag depends on 'var' being a factor.
-				 #print (ctfit$dnode[,4L])
 				 if (nsplit == 0L) {   
 					 frame <- data.frame(row.names = 1L,
 										 var = "<leaf>",
 										 n = ctfit$inode[, 5L],
 										 wt = ctfit$dnode[, 3L],
 										 dev = ctfit$dnode[, 1L],
-										 # need to be adjust for honest estimation
 										 yval = ctfit$dnode[, 4L],
 										 complexity = ctfit$dnode[, 2L],
 										 ncompete = 0L,
@@ -459,10 +414,8 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 				 if (!is.null(init$text)) functions <- c(functions, list(text = init$text))
 				 if (method == "user") functions <- c(functions, mlist)
 
-
 				 where <- ctfit$which
 				 names(where) <- row.names(X)
-
 
 				 ans <- list(frame = frame,
 							 where = where,

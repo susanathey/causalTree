@@ -7,7 +7,6 @@
 
 pNode branch(pNode tree, int obs);
 
-//void bsplit(pNode me, int n1, int n2);
 void bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha,
             int bucketnum, int bucketMax, double train_to_est_ratio);
 
@@ -34,7 +33,6 @@ void mysort(int start, int stop, double *x, int *cvec);
 
 void nodesplit(pNode me, int nodenum, int n1, int n2, int *nleft, int *nright);
 
-//int partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2);
 int partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2, 
               int minsize, int split_Rule, double alpha, int bucketnum, int bucketMax, 
               double train_to_est_ratio);
@@ -73,6 +71,8 @@ void surrogate(pNode me, int n1, int n2);
 void myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg, 
            int minsize, int *savesort, int split_Rule,
            int crossmeth, double split_alpha, double cv_alpha, int bucketnum, int bucketMax);
+
+
 /* ---------------------- for xvalHelper --------------------- */
 int findNeighbor(int obs, int k);
 double measureDistance(int i, int j);
