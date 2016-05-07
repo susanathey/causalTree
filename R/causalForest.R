@@ -1,6 +1,3 @@
-library(causalTree) 
-library(rpart)
-
 init.causalForest <- function(formula, data, treatment, weights=F, cost=F, num.trees) { 
   num.obs <- nrow(data)
   # this is a hack to fix global environment problem for formula; need to find more elegant solution
