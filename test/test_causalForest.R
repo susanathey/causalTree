@@ -88,7 +88,7 @@ names(dataTest)=nameall
 ########################## Do analysis
 
 
-
+num.trees.temp = ntr
 
 split.Bucket.temp=F
 minsize.temp=25
@@ -142,7 +142,7 @@ cf <- causalForest(as.formula(paste("y~",f)), data=dataTrain, treatment=dataTrai
                         split.alpha = 0.5, cv.alpha = 0.5,
                          
                          sample.size.total = floor(nrow(dataTrain) / 2), sample.size.train.frac = .5,
-                         mtry = ceiling(ncol(dataTrain)/3), nodesize = 3, num.trees=10) 
+                         mtry = ceiling(ncol(dataTrain)/3), nodesize = 3, num.trees=num.trees.temp) 
 
 cfpredtest <- predict.causalForest(cf, newdata=dataTest, type="vector")
 plot(dataTest$tau_true,cfpredtest)
@@ -157,7 +157,7 @@ plot(cfvar)
 pf <- propensityForest(as.formula(paste("y~",f)), data=dataTrain, treatment=dataTrain$w, 
                    split.Bucket=F, 
                    sample.size.total = floor(nrow(dataTrain) / 2), 
-                   mtry = ceiling(ncol(dataTrain)/3), nodesize = 25, num.trees=10) 
+                   mtry = ceiling(ncol(dataTrain)/3), nodesize = 25, num.trees=num.trees.temp) 
 
 pfpredtest <- predict.causalForest(pf, newdata=dataTest, type="vector")
 plot(dataTest$tau_true,pfpredtest)
