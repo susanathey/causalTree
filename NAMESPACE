@@ -1,6 +1,6 @@
 useDynLib(causalTree, .registration = TRUE, .fixes = "C_")
 
-export(causalTree, honest.causalTree, na.causalTree, estimate.causalTree, causalTree.matrix)
+export(causalTree, honest.causalTree, na.causalTree, estimate.causalTree, causalTree.matrix, causalForest, propensityForest, predict.causalForest)
 
 importFrom(grDevices, dev.cur, dev.off)
 importFrom(graphics, plot, text)
