@@ -35,9 +35,6 @@
 #define EXTERN extern
 #endif
 
-/* As a sop to S, I need to keep the total number of external symbols
- *  somewhat smaller.  So, pack most of them all into a structure.
- */
 EXTERN struct {
     double complexity;
     double alpha;

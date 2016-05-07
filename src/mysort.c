@@ -18,8 +18,8 @@ mysort(int start, int stop, double *x, int *cvec)
 
     while (start < stop) {
        /*
-	* first-- if the list is short, do an ordinary insertion sort
-	*/
+    	* first-- if the list is short, do an ordinary insertion sort
+	    */
 	if ((stop - start) < 11) {
 	    for (i = start + 1; i <= stop; i++) {
 		temp = x[i];

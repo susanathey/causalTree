@@ -15,11 +15,9 @@ insert_split(pSplit *listhead, int ncat, double improve, int max)
     int nlist;
     pSplit s1, s2, s3 = NULL, s4;
 
-    // csplit[0] gets used even for continuous splits.
     if (ncat == 0) ncat = 1; 
     int splitsize = sizeof(Split) + (ncat - 20) * sizeof(int);
 
-    // The Split structure is sized for 2 categpries.
     if (*listhead == 0) {
     /* first call to a new list */
 	s3 = (pSplit) CALLOC(1, splitsize);
@@ -40,7 +38,7 @@ insert_split(pSplit *listhead, int ncat, double improve, int max)
 	}
 	return s3;
     }
-   /* set up --- nlist = length of list, s4=last element, s3=next to last */
+    /* set up --- nlist = length of list, s4=last element, s3=next to last */
     nlist = 1;
     for (s4 = *listhead; s4->nextsplit; s4 = s4->nextsplit) {
 	s3 = s4;

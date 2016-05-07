@@ -1,12 +1,9 @@
-##
-## Do Rpart estimations given a tree and a matrix of predictors
+#
+# honest re-estimation and change the frame of object using estimation sample
+#
 honest.est.causalTree <- function(fit, x, wt, treatment, y)
 {
     frame <- fit$frame
-    if (nrow(frame) == 1L) {              # root only tree
-        #print ("here end?")
-        #return(structure(rep(1, nrow(x), names = rownames(x))))
-    }
     
     nc <- frame[, c("ncompete", "nsurrogate")]
     frame$index <- 1L + c(0L, cumsum((frame$var != "<leaf>") +
@@ -28,7 +25,7 @@ honest.est.causalTree <- function(fit, x, wt, treatment, y)
                   as.double(frame[, "yval"]),
                   as.integer(vnum),
                   as.double(fit$splits),
-                  as.integer(fit$csplit - 2L), # we added 2 in causalTree.R
+                  as.integer(fit$csplit - 2L),
                   as.integer((fit$control)$usesurrogate),
                   as.double(x),
                   as.double(wt),
@@ -36,6 +33,4 @@ honest.est.causalTree <- function(fit, x, wt, treatment, y)
                   as.double(y),
                   as.integer(is.na(x)))
     return (fit)
-    #names(temp) <- rownames(x)
-    #temp
 }

@@ -1,10 +1,10 @@
 /*
- * The fifth routines for t - statistic splitting:
+ * split.Rule = tstats
  */
 #include "causalTree.h"
 #include "causalTreeproto.h"
 
-// these only for categorical variables:
+
 static double *mean, *sums, *wtsums;
 static double *wts, *trs, *trsums;
 static double *wtsqrsums, *wttrsqrsums;
@@ -16,7 +16,6 @@ tstatsinit(int n, double *y[], int maxcat, char **error,
         int *size, int who, double *wt, double *treatment, int bucketnum, 
         int bucektMax, double *train_to_est_ratio)
 {
-    //Rprintf("maxcat = %d\n", maxcat);
     if (who == 1 && maxcat > 0) {
         graycode_init0(maxcat);
         countn = (int *) ALLOC(2 * maxcat, sizeof(int));
@@ -33,9 +32,7 @@ tstatsinit(int n, double *y[], int maxcat, char **error,
     return 0;
 }
 
-/*
- * The anova evaluation function.  Return the mean and the ss.
- */
+
 void
 tstatsss(int n, double *y[], double *value, double *con_mean,  double *tr_mean, double *risk,
          double *wt, double *treatment, double max_y, double alpha, double train_to_est_ratio)
@@ -57,11 +54,10 @@ tstatsss(int n, double *y[], double *value, double *con_mean,  double *tr_mean, 
     }
 
     effect = temp1 / ttreat - temp0 / (twt - ttreat);
-    //Rprintf("effect = %f\n", effect);
     tr_var = tr_sqr_sum / ttreat - temp1 * temp1 / (ttreat * ttreat);
     con_var = con_sqr_sum / (twt - ttreat) - temp0 * temp0 
-        / ((twt - ttreat) * (twt - ttreat));
-    //Rprintf("tr_var = %f, con_var = %f\n", tr_var, con_var);
+              / ((twt - ttreat) * (twt - ttreat));
+
     
     *tr_mean = temp1 / ttreat;
     *con_mean = temp0 / (twt - ttreat);
@@ -70,13 +66,6 @@ tstatsss(int n, double *y[], double *value, double *con_mean,  double *tr_mean, 
     + (1 - alpha) * (1 + train_to_est_ratio) * n 
     * (tr_var /ttreat  + con_var / (twt - ttreat));
 }
-
-/*
- * The anova splitting function.  Find that split point in x such that
- *  the sum of squares of y within the two groups is decreased as much
- *  as possible.  It is not necessary to actually calculate the SS, the
- *  improvement involves only means in the two groups.
- */
 
 void
 tstats(int n, double *y[], double *x, int nclass,
@@ -88,7 +77,6 @@ tstats(int n, double *y[], double *x, int nclass,
     double temp;
     double left_sum, right_sum;
     double left_tr_sum, right_tr_sum;
-    // add squared sum:
     double left_tr_sqr_sum, right_tr_sqr_sum;
     double left_sqr_sum, right_sqr_sum;
     double tr_var, con_var;
@@ -104,8 +92,7 @@ tstats(int n, double *y[], double *x, int nclass,
     double left_temp, right_temp;
     int min_node_size = minsize;
     double improve_temp, improve_best;
-    
-    //Rprintf("in tstats, train_to_est_ratio = %f\n", train_to_est_ratio);
+
 
     right_wt = 0.;
     right_tr = 0.;
@@ -117,28 +104,24 @@ tstats(int n, double *y[], double *x, int nclass,
     improve_temp = 0.;
     improve_best = 0.;
     for (i = 0; i < n; i++) {
-        //Rprintf("wt[%d] = %f\n", i, wt[i]);
         right_wt += wt[i];
-        //Rprintf("right_wt = %f\n", right_wt);
         right_tr += wt[i] * treatment[i];
         right_sum += *y[i] * wt[i];
         right_tr_sum += *y[i] * wt[i] * treatment[i];
         right_sqr_sum += (*y[i]) * (*y[i]) * wt[i];
         right_tr_sqr_sum += (*y[i]) * (*y[i]) * wt[i] * treatment[i];
     }
-    //Rprintf("right_wt = %f\n", right_wt);
+
     temp = right_tr_sum / right_tr - (right_sum - right_tr_sum) / (right_wt - right_tr);
     tr_var = right_tr_sqr_sum / right_tr - right_tr_sum * right_tr_sum 
         / (right_tr * right_tr);
     con_var = (right_sqr_sum - right_tr_sqr_sum) / (right_wt - right_tr)
         - (right_sum - right_tr_sum) * (right_sum - right_tr_sum) 
         / ((right_wt - right_tr) * (right_wt - right_tr));
-    //now we use t-statistic
+
     node_effect = alpha * temp * temp * n - (1 - alpha) * (1 + train_to_est_ratio) 
         * n * (tr_var / right_tr  + con_var / (right_wt - right_tr));
-    // temporarily set as 0:
-    //node_effect = 0
-   //Rprintf("n = %d, node_effect = %f\n", n, node_effect);
+
    
     if (nclass == 0) {
         /* continuous predictor */
@@ -153,15 +136,11 @@ tstats(int n, double *y[], double *x, int nclass,
         best = 0.;
 
         for (i = 0; right_n > edge; i++) {
-            //Rprintf("wt[%d] = %f", i, wt[i]);
-            //Rprintf("treatment[%d] = %f", i, treatment[i]);
             left_wt += wt[i];
             right_wt -= wt[i];
 
             left_tr += wt[i] * treatment[i];
             right_tr -= wt[i] * treatment[i];
-            //Rprintf("test = %f\n", right_tr);
-            //Rprintf("left_tr = %f\n", left_tr);
 
             left_n++;
             right_n--;
@@ -181,22 +160,11 @@ tstats(int n, double *y[], double *x, int nclass,
             left_sqr_sum += temp;
             right_sqr_sum -= temp;
 
-            //Rprintf("left_n = %d, edge = %d\n", left_n, edge);
-            //Rprintf("left_tr = %d, left_wt = %d, right_tr = %d, right_wt = %d\n", left_tr, left_wt, right_tr, right_wt);
-            //Rprintf("minsize = %d\n", min_node_size);
-            // I have a question about weights here in report:
             if (x[i + 1] != x[i] && left_n >= edge &&
                     (int) left_tr >= min_node_size &&
                     (int) left_wt - (int) left_tr >= min_node_size &&
                     (int) right_tr >= min_node_size &&
                     (int) right_wt - (int) right_tr >= min_node_size) {
-                //Rprintf("get in!\n");
-                //Rprintf("left_tr = %f\n", left_tr);
-                //Rprintf("left_con = %f\n", left_wt - left_tr);
-                //Rprintf("right_tr = %f\n", right_tr);
-                //Rprintf("right_con = %f\n", right_wt - right_tr);
-                //Rprintf("left_n = %d\n", left_n);
-                //Rprintf("right_n = %d\n", right_n);
 
                 left_temp = left_tr_sum / left_tr - (left_sum - left_tr_sum) / (left_wt - left_tr);
                 left_tr_var = left_tr_sqr_sum / left_tr - left_tr_sum  * left_tr_sum 
@@ -210,9 +178,6 @@ tstats(int n, double *y[], double *x, int nclass,
                   - (1 - alpha) * (1 + train_to_est_ratio) * left_n 
                     * (left_tr_var / left_tr + left_con_var / (left_wt - left_tr));
 
-                //taumean = right_tr / right_wt;
-                //temp = (right_tr_sum - right_sum * taumean) /
-                //((1 - taumean) * right_tr);
                 right_temp = right_tr_sum / right_tr - (right_sum - right_tr_sum) / (right_wt - right_tr);
                 right_tr_var = right_tr_sqr_sum / right_tr - right_tr_sum * right_tr_sum / (right_tr * right_tr);
                 right_con_var = (right_sqr_sum - right_tr_sqr_sum) / (right_wt - right_tr)
@@ -223,19 +188,10 @@ tstats(int n, double *y[], double *x, int nclass,
                     * (right_tr_var / right_tr + right_con_var / (right_wt - right_tr));    
 
                 sd = sqrt(left_var / left_wt  + right_var / right_wt);
-                // very strange !!!!!!
                 temp = fabs(left_temp - right_temp) / sd;
-                
-                //Rprintf("temp = %f\n", temp);
-
                 improve_temp = left_effect + right_effect - node_effect;
-                //Rprintf("improve_temp = %f\n", improve_temp);
-                //Rprintf("at %f,leftn: %d, lefteffect: %f, rightn: %d, righteffect: %f\n", x[i], left_n, left_effect,right_n, right_effect, node_effect);
-                //Rprintf("current best is %f, and temp improv = %f.\n", best, improve_temp);
-                //Rprintf("best  = %f\n", best);
+
                 if (temp > best) {
-                  
-                  //Rprintf("best  = %f\n", best);
                     best = temp;
                     where = i;
                     improve_best = improve_temp;
@@ -247,16 +203,12 @@ tstats(int n, double *y[], double *x, int nclass,
             }
         }
        
-        // change the value of improvement:
         *improve = improve_best;
-        //Rprintf("final improve = %f\n", improve_best);
                
         
         if (improve_best > 0) {         /* found something */
-            //Rprintf("best = %f, split = %f\n", improve_best, (x[where] + x[where + 1]) / 2 );
             csplit[0] = direction;
-            *split = (x[where] + x[where + 1]) / 2; /* where to split!!!!!!!!! */ 
-            //Rprintf("split = %f\n", *split);
+            *split = (x[where] + x[where + 1]) / 2;
         }
     }
 
@@ -278,15 +230,12 @@ tstats(int n, double *y[], double *x, int nclass,
 
         /* rank the classes by their mean y value */
         /* RANK THE CLASSES BY THEI */
-        // Rprintf("nclass = %d ", nclass);
         for (i = 0; i < n; i++) {
             j = (int) x[i] - 1;
-            // Rprintf("%d cat, ", j);
             countn[j]++;
             wts[j] += wt[i];
             trs[j] += wt[i] * treatment[i];
             sums[j] += *y[i];
-            // adding part
             wtsums[j] += *y[i] * wt[i];
             trsums[j] += *y[i] * wt[i] * treatment[i];
             wtsqrsums[j] += (*y[i]) * (*y[i]) * wt[i];
@@ -319,7 +268,6 @@ tstats(int n, double *y[], double *x, int nclass,
         best = 0;
         where = 0;
         while ((j = graycode()) < nclass) {
-            //Rprintf("graycode()= %d\n", j);
             tsplit[j] = LEFT;
             left_n += countn[j];
             right_n -= countn[j];
@@ -356,8 +304,7 @@ tstats(int n, double *y[], double *x, int nclass,
                 left_effect = alpha * left_temp * left_temp * left_wt
                   - (1 - alpha) * (1 + train_to_est_ratio) * left_wt
                     * (left_tr_var / left_tr + left_con_var / (left_wt - left_tr));
-
-                //Rprintf("left_sum = %f, left_wt_sum = %f, left_wt = %f, left_n = %d\n", left_sum, left_wt_sum, left_wt, left_n);             
+           
                 right_temp = right_tr_sum / right_tr - (right_sum - right_tr_sum) / (right_wt - right_tr);
                 right_tr_var = right_tr_sqr_sum / right_tr - right_tr_sum * right_tr_sum / (right_tr * right_tr);
                 right_con_var = (right_sqr_sum - right_tr_sqr_sum) / (right_wt - right_tr)
@@ -370,9 +317,7 @@ tstats(int n, double *y[], double *x, int nclass,
                 sd = sqrt(left_var / left_wt  + right_var / right_wt);
                 temp = fabs(left_temp - right_temp) / sd; 
                 improve_temp = left_effect + right_effect - node_effect;
-                //Rprintf("left_n= %d, lefteffect = %f, right_n = %d, righteffect = %f\n", left_n, left_effect, right_n, right_effect);               
-                //temp = left_sum * left_sum / left_wt +
-                //right_sum * right_sum / right_wt;
+                
                 if (temp > best) {
                     best = temp;
                     improve_best = improve_temp;
@@ -387,7 +332,6 @@ tstats(int n, double *y[], double *x, int nclass,
                 for (i = 0; i < nclass; i++) csplit[i] = tsplit[i];
         }
     }
-    //Rprintf("for %f variable, improv = %f\n", x[0], *improve);
 }
 
 double tstatspred(double *y, double wt, double treatment, double *yhat, double propensity) // pass in ct.which
@@ -397,9 +341,5 @@ double tstatspred(double *y, double wt, double treatment, double *yhat, double p
         
     ystar = y[0] * (treatment - propensity) / (propensity * (1 - propensity));
     temp = ystar - *yhat;
-    //if (treatment == 1)  temp = y[0] / propensity;
-    //else temp = - y[0] / (1 - propensity);
-    //double temp = y[0] - *yhat;
-    //temp -= *yhat;
     return temp * temp * wt;
 }

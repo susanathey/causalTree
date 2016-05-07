@@ -1,4 +1,6 @@
-
+/*
+ * rundown function for fitA
+ */
 #include "causalTree.h"
 #include "node.h"
 #include "causalTreeproto.h"
@@ -43,7 +45,6 @@ fitA_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, int 
 	        otree = tree;
 	    }
 	    xpred[i] = tree->response_est[0];
-        // now find other samples in the same leaf;
         my_leaf_id = tree->id;
 
         for (s = k; s < ct.n; s++) {
@@ -67,7 +68,6 @@ fitA_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, int 
             }
         }
         
-        //calculate tr_mean and con_mean
         if (trs == 0) {
             tr_mean = tree->parent->xtreatMean[0];
         } else {

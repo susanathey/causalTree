@@ -1,12 +1,10 @@
 /*
- * The discrteHonestObj splitting method:
+ * The discrte version of fit.
  */
 #include "causalTree.h"
 #include "causalTreeproto.h"
 
-// set temporarily:
-//static int bucketnum = 10;
-//static int bucketMax = 1000;
+
 
 #ifndef min
 #define min(a,b) (((a) < (b)) ? (a) : (b))
@@ -22,16 +20,11 @@ static double *wtsqrsums, *wttrsqrsums;
 static int *countn;
 static int *tsplit;
 
-// for discrete version:
+
 static int *n_bucket;
-//static int *n_tr_bucket, *n_con_bucket; // count number of tr obs in each bucket
 static double *wts_bucket, *trs_bucket;
 static double *wtsums_bucket, *trsums_bucket;
 static double *wtsqrsums_bucket, *trsqrsums_bucket; 
-//static double *end_bucket;
-//static double *diffsum_bucket; // only used in TOTD!
-//static double *wts_bucket, *trs_bucket, *sums_bucket;
-//static double *wtsums_bucket, *trsums_bucket, *wtsqrsums_bucket;
 static double *tr_end_bucket, *con_end_bucket;
 
 
@@ -96,12 +89,6 @@ fitDss(int n, double *y[], double *value, double *con_mean, double *tr_mean, dou
     * (tr_var + con_var );
  }
 
-/*
-* The anova splitting function.  Find that split point in x such that
-*  the sum of squares of y within the two groups is decreased as much
-*  as possible.  It is not necessary to actually calculate the SS, the
-*  improvement involves only means in the two groups.
-*/
 
 void
 fitD(int n, double *y[], double *x, int nclass,
@@ -110,7 +97,6 @@ fitD(int n, double *y[], double *x, int nclass,
 	   int bucketnum, int bucketMax, double alpha, double train_to_est_ratio)
 {
 	int i, j;
-    //int j1, j2;
 	double temp;
 	double left_sum, right_sum;
 	double left_tr_sum, right_tr_sum;
@@ -154,7 +140,6 @@ fitD(int n, double *y[], double *x, int nclass,
 	double trmean = right_tr_sum / right_tr;
 	double conmean = (right_sum - right_tr_sum) / (right_wt - right_tr);
 	temp = trmean - conmean;
-	//temp = right_tr_sum / right_tr - (right_sum - right_tr_sum) / (right_wt - right_tr);
 	tr_var = right_tr_sqr_sum / right_tr - right_tr_sum * right_tr_sum / (right_tr * right_tr);
 	con_var = (right_sqr_sum - right_tr_sqr_sum) / (right_wt - right_tr)
 		- (right_sum - right_tr_sum) * (right_sum - right_tr_sum) / ((right_wt - right_tr) * (right_wt - right_tr));
@@ -184,14 +169,10 @@ fitD(int n, double *y[], double *x, int nclass,
 	        fake_x[i] = 0.;
 	    }
 	    
-	    
 		bucketTmp = min(round(trsum / (double)bucketnum), round(((double)n - trsum) / (double)bucketnum));
 	    Numbuckets = max(minsize, min(bucketTmp, bucketMax));
-	    //Rprintf("Numbuckets = %d\n", Numbuckets);
 	    
 	    n_bucket = (int *) ALLOC(Numbuckets,  sizeof(int));
-	    //n_tr_bucket = (int *) ALLOC(Numbuckets, sizeof(int));
-	    //n_con_bucket = (int *) ALLOC(Numbuckets, sizeof(int));
 	    wts_bucket = (double *) ALLOC(Numbuckets, sizeof(double));
 	    trs_bucket = (double *) ALLOC(Numbuckets, sizeof(double));
 	    wtsums_bucket = (double *) ALLOC(Numbuckets, sizeof(double));
@@ -212,17 +193,12 @@ fitD(int n, double *y[], double *x, int nclass,
 	            tr_cum_wt += tmp_wt[i];
 	            cum_wt[i] = tr_cum_wt;
 	            fake_x[i] = (int)floor(Numbuckets * cum_wt[i]);
-	            // for checking:
-	            
 	        }
-	        //Rprintf("cum_wt[%d] = %f, fake_x[%d] = %f\n", i, cum_wt[i], i, fake_x[i]);
 	    }
 	    
 	    //  initialize
 	    for (j = 0; j < Numbuckets; j++) {
 	        n_bucket[j] = 0;
-	        //n_tr_bucket[j] = 0;
-	        //n_con_bucket[j] = 0;
 	        wts_bucket[j] = 0.;
 	        trs_bucket[j] = 0.;
 	        wtsums_bucket[j] = 0.;
@@ -260,7 +236,6 @@ fitD(int n, double *y[], double *x, int nclass,
 		best = 0;
 		
 		for (j = 0; j < Numbuckets; j++) {
-		    // split these buckets:
 		    left_n += n_bucket[j];
 		    right_n -= n_bucket[j];
 		    left_wt += wts_bucket[j];
@@ -289,7 +264,6 @@ fitD(int n, double *y[], double *x, int nclass,
 		        double left_trmean = left_tr_sum / left_tr;
 		        double left_conmean = (left_sum - left_tr_sum) / (left_wt - left_tr);
 		        left_temp = left_trmean - left_conmean;
-		        //left_temp = left_tr_sum / left_tr - (left_sum - left_tr_sum) / (left_wt - left_tr);
 		        left_tr_var = left_tr_sqr_sum / left_tr - 
 		            left_tr_sum  * left_tr_sum / (left_tr * left_tr);
 		        left_con_var = (left_sqr_sum - left_tr_sqr_sum) / (left_wt - left_tr)  
@@ -302,7 +276,6 @@ fitD(int n, double *y[], double *x, int nclass,
 		        double right_trmean = right_tr_sum / right_tr;
 		        double right_conmean = (right_sum - right_tr_sum) / (right_wt - right_tr);
 		        right_temp = right_trmean - right_conmean;
-		        //right_temp = right_tr_sum / right_tr - (right_sum - right_tr_sum) / (right_wt - right_tr);
 		        right_tr_var = right_tr_sqr_sum / right_tr -
 		            right_tr_sum * right_tr_sum / (right_tr * right_tr);
 		        right_con_var = (right_sqr_sum - right_tr_sqr_sum) / (right_wt - right_tr)
@@ -311,15 +284,12 @@ fitD(int n, double *y[], double *x, int nclass,
 		        right_effect = alpha * (right_tr * right_trmean * right_trmean 
                              + (right_wt - right_tr) * right_conmean * right_conmean) - (1 - alpha) * (1 + train_to_est_ratio)
 		                     * (right_tr_var + right_con_var );
-		        // node_effect, left_effect, right_effect are all risks in these nodes
 		        
 		         temp = left_effect + right_effect - node_effect;
-		        //temp = node_effect - left_effect - right_effect;
-		        //Rprintf("temp = %f\n", temp);
+
 		        if (temp > best) {
 		            best = temp;                  
 		            where = j; 
-		            //Rprintf("left_tmp = %f,right_tmp = %f, where = %d\n", left_temp, right_temp, where);
 		            if (left_temp < right_temp)
 		                direction = LEFT;
 		            else
@@ -371,7 +341,6 @@ fitD(int n, double *y[], double *x, int nclass,
 	    /*
 	    * Now find the split that we want
 	    */
-	    
 	    left_wt = 0;
 	    left_tr = 0;
 	    left_n = 0;
@@ -414,7 +383,6 @@ fitD(int n, double *y[], double *x, int nclass,
 	            double left_trmean = left_tr_sum / left_tr;
 	            double left_conmean = (left_sum - left_tr_sum) / (left_wt - left_tr);
 	            left_temp = left_trmean - left_conmean;
-	            //left_temp = left_tr_sum / left_tr - (left_sum - left_tr_sum) / (left_wt - left_tr);
 	            left_tr_var = left_tr_sqr_sum / left_tr - left_tr_sum  * left_tr_sum / (left_tr * left_tr);
 	            left_con_var = (left_sqr_sum - left_tr_sqr_sum) / (left_wt - left_tr) 
 	                - (left_sum - left_tr_sum) * (left_sum - left_tr_sum)/ ((left_wt - left_tr) * (left_wt - left_tr));        
@@ -424,18 +392,15 @@ fitD(int n, double *y[], double *x, int nclass,
 	            * (left_tr_var + left_con_var );
 	            
 	            
-	            
 	            double right_trmean = right_tr_sum / right_tr;
 	            double right_conmean = (right_sum - right_tr_sum) / (right_wt - right_tr);
 	            right_temp = right_trmean - right_conmean;
-	            //right_temp = right_tr_sum / right_tr - (right_sum - right_tr_sum) / (right_wt - right_tr);
 	            right_tr_var = right_tr_sqr_sum / right_tr - right_tr_sum * right_tr_sum / (right_tr * right_tr);
 	            right_con_var = (right_sqr_sum - right_tr_sqr_sum) / (right_wt - right_tr)
 	                - (right_sum - right_tr_sum) * (right_sum - right_tr_sum) / ((right_wt - right_tr) * (right_wt - right_tr));
 	            right_effect = alpha * (right_tr * right_trmean * right_trmean 
                              + (right_wt - right_tr) * right_conmean * right_conmean) - (1 - alpha) * (1 + train_to_est_ratio)
 	                         * (right_tr_var + right_con_var );
-	                // node_effect, left_effect, right_effect are all risks in these nodes
 	            temp = left_effect + right_effect - node_effect;
 	            
 	            if (temp > best) {
@@ -453,16 +418,12 @@ fitD(int n, double *y[], double *x, int nclass,
 }
 
 double
-fitDpred(double *y, double wt, double treatment, double *yhat, double propensity) // pass in ct.which
+fitDpred(double *y, double wt, double treatment, double *yhat, double propensity) 
 {
     double ystar;
     double temp;
         
     ystar = y[0] * (treatment - propensity) / (propensity * (1 - propensity));
     temp = ystar - *yhat;
-    //if (treatment == 1)  temp = y[0] / propensity;
-    //else temp = - y[0] / (1 - propensity);
-    //double temp = y[0] - *yhat;
-    //temp -= *yhat;
     return temp * temp * wt;
 }

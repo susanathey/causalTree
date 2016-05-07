@@ -1,5 +1,6 @@
-##
-## Do Rpart estimations given a tree and a matrix of predictors
+#
+# Run down the built tree and get the final leaf ids for estimation sample
+#
 est.causalTree <- function(fit, x)
 {
     frame <- fit$frame
@@ -22,7 +23,7 @@ est.causalTree <- function(fit, x)
                   as.integer(unlist(frame[, c("n", "ncompete", "nsurrogate", "index")])),
                   as.integer(vnum),
                   as.double(fit$splits),
-                  as.integer(fit$csplit - 2L), # we added 2 in causalTree.R
+                  as.integer(fit$csplit - 2L),
                   as.integer((fit$control)$usesurrogate),
                   as.double(x),
                   as.integer(is.na(x)))

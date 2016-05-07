@@ -1,5 +1,5 @@
 /*
- * The four routines for split.Rule = TOT
+ * discrete verion of tot:
  */
 #include <math.h>
 #include "causalTree.h"
@@ -13,20 +13,11 @@
 #define max(a,b)  (((a) > (b)) ? (a) : (b))
 #endif
 
-// set temporarily:
-//static int bucketnum = 5;
-//static int bucketMax = 40;
-
-
 static int *n_bucket;
 static double *wts_bucket, *trs_bucket;
 static double *tr_end_bucket, *con_end_bucket;
 static double *wtsums_bucket;
 
-
-/*
- * Warning: need to change to discrete version of TOT
- */
 
 static double *mean, *sums;
 static double *wts;
@@ -49,7 +40,6 @@ totDinit(int n, double *y[], int maxcat, char **error,
     }
     *size = 1;
     *train_to_est_ratio = n * 1.0 / ct.NumHonest;
-    //Rprintf("in totD init, train_to_est_ratio= %f\n", *train_to_est_ratio);
     return 0;
 }
 
@@ -62,7 +52,7 @@ totDss(int n, double *y[], double *value, double *con_mean, double *tr_mean, dou
     double temp = 0., twt = 0.;
     double mean, ss;
     double ystar;
-    double temp0, temp1; // control; treatment.
+    double temp0, temp1; 
     double trs, cons;
     
     temp0 = 0.;
@@ -76,11 +66,9 @@ totDss(int n, double *y[], double *value, double *con_mean, double *tr_mean, dou
         temp += ystar * wt[i];
         twt += wt[i];
         if (treatment[i] == 0) {
-            //con
             temp0 += *y[i] * wt[i];
             cons += wt[i];
         } else {
-            //tr
             temp1 += *y[i] * wt[i];
             trs += wt[i];
         }
@@ -100,12 +88,6 @@ totDss(int n, double *y[], double *value, double *con_mean, double *tr_mean, dou
     *risk = ss;
 }
 
-/*
- * The anova splitting function.  Find that split point in x such that
- *  the sum of squares of y within the two groups is decreased as much
- *  as possible.  It is not necessary to actually calculate the SS, the
- *  improvement involves only means in the two groups.
- */
 
 void totD(int n, double *y[], double *x, int nclass, int edge, double *improve, 
          double *split, int *csplit, double myrisk, double *wt, double *treatment, 
@@ -127,10 +109,8 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
     int Numbuckets;
     int min_node_size = minsize;
     
-    
     double *cum_wt, *tmp_wt, *fake_x;
     double tr_wt_sum, con_wt_sum, con_cum_wt, tr_cum_wt;
-    
     
     right_wt = 0;
     right_n = n;
@@ -167,7 +147,6 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
             fake_x[i] = 0.;
         }
         
-        //bucketTmp = min(round(trsum / (double)bucketnum), round(((double)n - trsum) / (double)bucketnum));
         int test1 = round(trsum / (double)bucketnum);
         int test2 = round(((double)n - trsum) / (double)bucketnum);
         bucketTmp = min(test1, test2);
@@ -228,7 +207,7 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
             right_n -= n_bucket[j];
             left_wt += wts_bucket[j];
             right_wt -= wts_bucket[j];
-            left_tr += trs_bucket[j]; // weighted
+            left_tr += trs_bucket[j]; 
             right_tr -= trs_bucket[j];
             
             left_sum += wtsums_bucket[j];
@@ -244,9 +223,7 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
                 left_mean = left_sum / left_wt;
                 right_mean = right_sum / right_wt;
                 temp = left_wt * (grandmean - left_mean) * (grandmean - left_mean) + 
-                    right_wt * (grandmean - right_mean) * (grandmean - right_mean);  
-                
-                //Rprintf("temp = %f\n", temp);
+                       right_wt * (grandmean - right_mean) * (grandmean - right_mean);  
                 
                 if (temp > best) {
                     best = temp;
@@ -335,10 +312,6 @@ double
         
         ystar = y[0] * (treatment - propensity) / (propensity * (1 - propensity));
         temp = ystar - *yhat;
-        //if (treatment == 1)  temp = y[0] / propensity;
-        //else temp = - y[0] / (1 - propensity);
-        //double temp = y[0] - *yhat;
-        //temp -= *yhat;
         return temp * temp * wt;
     }
 

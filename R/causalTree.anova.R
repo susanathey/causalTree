@@ -1,4 +1,3 @@
-
 causalTree.anova <- function(y, offset, wt)
 {
     if (!is.null(offset)) y <- y - offset

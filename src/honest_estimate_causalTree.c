@@ -1,30 +1,18 @@
 /* 
  * Do honest causalTree estimation with parameters
  * 
- * What changed: (in the frame)
- *      yval1
- *      dev1
- *      n1
- *      wt1
- * replace these values by the results from estimate data set
- * 
- * Output
- *      where: the final # of nodes each observation falls in
- *      
  */
  
 #include "causalTree.h"
 #include "causalTreeproto.h"
 
     static void
-honest_estimate_causalTree0(const int *dimx, int nnode, // # of nodes in the tree
-                     int nsplit, const int *dimc, const int *nnum, 
-                     const int *nodes2, //  n, ncompete, nsurrogate, index
-                     const int *vnum,
-        const double *split2, const int *csplit2, const int *usesur,
-        int *n1, double *wt1, double *dev1, double *yval1,
-        const double *xdata2, const double *wt2, const double *treatment2, const double *y2,
-        const int *xmiss2, int *where)
+honest_estimate_causalTree0(const int *dimx, int nnode, int nsplit, const int *dimc, 
+                            const int *nnum, const int *nodes2, const int *vnum,
+                            const double *split2, const int *csplit2, const int *usesur,
+                            int *n1, double *wt1, double *dev1, double *yval1, const double *xdata2, 
+                            const double *wt2, const double *treatment2, const double *y2,
+                            const int *xmiss2, int *where)
 {
     int i, j;
     int n;
@@ -37,11 +25,9 @@ honest_estimate_causalTree0(const int *dimx, int nnode, // # of nodes in the tre
     const double *split[4];
     const int **csplit = NULL, **xmiss;
     const double **xdata;
-    //const double *wtdata = wt2;
-    //const double *trdata = treatment2;
     double *trs = NULL;
-    double *cons = NULL; // trs + cons = wts;
-    double *trsums = NULL; // treatment sum
+    double *cons = NULL; 
+    double *trsums = NULL; 
     double *consums = NULL;
     double *trsqrsums = NULL;
     double *consqrsums = NULL;
@@ -106,7 +92,7 @@ honest_estimate_causalTree0(const int *dimx, int nnode, // # of nodes in the tre
         node = 1;               /* current node of the tree */
 next:
         for (npos = 0; nnum[npos] != node; npos++);  /* position of the node */
-        // my snicky work:
+
         n1[npos]++;
         wt1[npos] += wt2[i];
         trs[npos] += wt2[i] * treatment2[i];
@@ -117,7 +103,6 @@ next:
         consqrsums[npos] += wt2[i] * (1 - treatment2[i]) * y2[i] * y2[i];
         
         /* walk down the tree */
-        // yigai
         nspl = nodes[2][npos] - 1;      /* index of primary split */
         if (nspl >= 0) {        /* not a leaf node */
             var = vnum[nspl] - 1;
@@ -139,9 +124,8 @@ next:
                 }
             }
             if (*usesur > 0) {
-                // yigai
                 for (j = 0; j < nodes[1][npos]; j++) {
-                    nspl = nodes[0][npos] + nodes[2][npos] + j; //yigai
+                    nspl = nodes[0][npos] + nodes[2][npos] + j;
                     var = vnum[nspl] - 1;
                     if (xmiss[var][i] == 0) {   /* surrogate not missing */
                         ncat = (int) split[1][nspl];
@@ -164,11 +148,9 @@ next:
             }
             if (*usesur > 1) {  /* go with the majority */
                 for (j = 0; nnum[j] != (2 * node); j++);
-                //lcount = nodes[0][j];
                 lcount = n1[j];
                 for (j = 0; nnum[j] != (1 + 2 * node); j++);
                 rcount = n1[j];
-                //rcount = nodes[0][j];
                 if (lcount != rcount) {
                     if (lcount > rcount)
                         node = 2 * node;
@@ -204,9 +186,9 @@ next:
 #include <Rinternals.h>
 
 SEXP
-honest_estimate_causalTree(SEXP dimx, SEXP nnode, // # of nodes
+honest_estimate_causalTree(SEXP dimx, SEXP nnode, 
                            SEXP nsplit, SEXP dimc, SEXP nnum, 
-                           SEXP nodes2, //  ncompete, nsurrogate, index
+                           SEXP nodes2, 
                            SEXP n1, SEXP wt1, SEXP dev1, SEXP yval1, 
                            SEXP vnum, 
                            SEXP split2,

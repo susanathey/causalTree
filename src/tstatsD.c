@@ -1,5 +1,5 @@
 /*
- * The fifth routines for t - statistic splitting:
+ * discrete version for tstats:
  */
 #include "causalTree.h"
 #include "causalTreeproto.h"
@@ -12,22 +12,17 @@
 #define max(a,b)  (((a) > (b)) ? (a) : (b))
 #endif
 
-// these only for categorical variables:
 static double *mean, *sums, *wtsums;
 static double *wts, *trs, *trsums;
 static double *wtsqrsums, *wttrsqrsums;
 static int *countn;
 static int *tsplit;
 
-// for discrete version:
-static int *n_bucket, *n_tr_bucket, *n_con_bucket; // count number of tr obs in each bucket
+
+static int *n_bucket, *n_tr_bucket, *n_con_bucket; 
 static double *wts_bucket, *trs_bucket;
 static double *wtsums_bucket, *trsums_bucket;
 static double *wtsqrsums_bucket, *trsqrsums_bucket; 
-//static double *end_bucket;
-//static double *diffsum_bucket; // only used in TOTD!
-//static double *wts_bucket, *trs_bucket, *sums_bucket;
-//static double *wtsums_bucket, *trsums_bucket, *wtsqrsums_bucket;
 static double *tr_end_bucket, *con_end_bucket;
 
 int
@@ -35,7 +30,6 @@ tstatsDinit(int n, double *y[], int maxcat, char **error,
         int *size, int who, double *wt, double *treatment, 
         int bucketnum, int bucektMax, double *train_to_est_ratio)
 {
-    //Rprintf("maxcat = %d\n", maxcat);
     if (who == 1 && maxcat > 0) {
         graycode_init0(maxcat);
         countn = (int *) ALLOC(2 * maxcat, sizeof(int));
@@ -49,7 +43,6 @@ tstatsDinit(int n, double *y[], int maxcat, char **error,
     }
     *size = 1;
     *train_to_est_ratio = n * 1.0 / ct.NumHonest;
-    //*train_to_est_ratio = n * 1.0 / ct.NumHonest;
     if (bucketnum == 0) 
         Rprintf("ERROR for buket!\n");
     return 0;
@@ -69,7 +62,6 @@ tstatsDss(int n, double *y[], double *value, double *con_mean,  double *tr_mean,
     double tr_var, con_var;
     double con_sqr_sum = 0., tr_sqr_sum = 0.;
     
-    //Rprintf("in tstatsDss, train_to_est_ratio = %f\n", train_to_est_ratio);
     for (i = 0; i < n; i++) {
         temp1 += *y[i] * wt[i] * treatment[i];
         temp0 += *y[i] * wt[i] * (1 - treatment[i]);
@@ -80,10 +72,8 @@ tstatsDss(int n, double *y[], double *value, double *con_mean,  double *tr_mean,
     }
 
     effect = temp1 / ttreat - temp0 / (twt - ttreat);
-    //Rprintf("effect = %f\n", effect);
     tr_var = tr_sqr_sum / ttreat - temp1 * temp1 / (ttreat * ttreat);
     con_var = con_sqr_sum / (twt - ttreat) - temp0 * temp0 / ((twt - ttreat) * (twt - ttreat));
-    //Rprintf("tr_var = %f, con_var = %f\n", tr_var, con_var);
     
     *tr_mean = temp1 / ttreat;
     *con_mean = temp0 / (twt - ttreat);
@@ -92,12 +82,6 @@ tstatsDss(int n, double *y[], double *value, double *con_mean,  double *tr_mean,
     + (1 - alpha) * (1 + train_to_est_ratio) * twt * (tr_var /ttreat  + con_var / (twt - ttreat));
 }
 
-/*
- * The anova splitting function.  Find that split point in x such that
- *  the sum of squares of y within the two groups is decreased as much
- *  as possible.  It is not necessary to actually calculate the SS, the
- *  improvement involves only means in the two groups.
- */
 
 void
 tstatsD(int n, double *y[], double *x, int nclass,
@@ -106,11 +90,9 @@ tstatsD(int n, double *y[], double *x, int nclass,
         int bucketnum, int bucketMax, double train_to_est_ratio)
 {
     int i, j;
-    //int j1, j2;
     double temp;
     double left_sum, right_sum;
     double left_tr_sum, right_tr_sum;
-    // add squared sum:
     double left_tr_sqr_sum, right_tr_sqr_sum;
     double left_sqr_sum, right_sqr_sum;
     double tr_var, con_var;
@@ -141,7 +123,6 @@ tstatsD(int n, double *y[], double *x, int nclass,
     right_tr_sqr_sum = 0.;
     right_n = n;
     
-    // what's that for?
     improve_temp = 0.;
     improve_best = 0.;
     for (i = 0; i < n; i++) {
@@ -200,8 +181,6 @@ tstatsD(int n, double *y[], double *x, int nclass,
                 tr_cum_wt += tmp_wt[i];
                 cum_wt[i] = tr_cum_wt;
                 fake_x[i] = (int)floor(Numbuckets * cum_wt[i]);
-                // for checking:
-                //Rprintf("cum_wt[%d] = %f, fake_x[%d] = %f\n", i, cum_wt[i], i, fake_x[i]);
             }
         }
         
@@ -217,7 +196,6 @@ tstatsD(int n, double *y[], double *x, int nclass,
         tr_end_bucket = (double *) ALLOC(Numbuckets, sizeof(double));
         con_end_bucket = (double *) ALLOC (Numbuckets, sizeof(double));
         
-        //  initialize
         for (j = 0; j < Numbuckets; j++) {
             n_bucket[j] = 0;
             n_tr_bucket[j] = 0;
@@ -263,7 +241,7 @@ tstatsD(int n, double *y[], double *x, int nclass,
             right_n -= n_bucket[j];
             left_wt += wts_bucket[j];
             right_wt -= wts_bucket[j];
-            left_tr += trs_bucket[j]; // weighted
+            left_tr += trs_bucket[j]; 
             right_tr -= trs_bucket[j];
             
             left_sum += wtsums_bucket[j];
@@ -333,7 +311,6 @@ tstatsD(int n, double *y[], double *x, int nclass,
         /*
          * Categorical predictor
          */
-        
         for (i = 0; i < nclass; i++) {
             countn[i] = 0;
             wts[i] = 0;
@@ -347,15 +324,12 @@ tstatsD(int n, double *y[], double *x, int nclass,
 
         /* rank the classes by their mean y value */
         /* RANK THE CLASSES BY THEI */
-        // Rprintf("nclass = %d ", nclass);
         for (i = 0; i < n; i++) {
             j = (int) x[i] - 1;
-            // Rprintf("%d cat, ", j);
             countn[j]++;
             wts[j] += wt[i];
             trs[j] += wt[i] * treatment[i];
             sums[j] += *y[i];
-            // adding part
             wtsums[j] += *y[i] * wt[i];
             trsums[j] += *y[i] * wt[i] * treatment[i];
             wtsqrsums[j] += (*y[i]) * (*y[i]) * wt[i];
@@ -366,8 +340,6 @@ tstatsD(int n, double *y[], double *x, int nclass,
             if (countn[i] > 0) {
                 tsplit[i] = RIGHT;
                 mean[i] = sums[i] / wts[i];
-                // mean[i] = sums[i] / countn[i];
-                //Rprintf("countn[%d] = %d, mean[%d] = %f\n", i, countn[i], i, mean[i]);
             } else
                 tsplit[i] = 0;
         }
@@ -388,7 +360,6 @@ tstatsD(int n, double *y[], double *x, int nclass,
         best = 0;
         where = 0;
         while ((j = graycode()) < nclass) {
-            //Rprintf("graycode()= %d\n", j);
             tsplit[j] = LEFT;
             left_n += countn[j];
             right_n -= countn[j];
@@ -439,13 +410,8 @@ tstatsD(int n, double *y[], double *x, int nclass,
                 sd = sqrt(left_var / left_wt  + right_var / right_wt);
                 temp = fabs(left_temp - right_temp) / sd; 
                 improve_temp = left_effect + right_effect - node_effect;
-                //Rprintf("left_n= %d, lefteffect = %f, right_n = %d, righteffect = %f\n", left_n, left_effect, right_n, right_effect);               
-                //temp = left_sum * left_sum / left_wt +
-                //right_sum * right_sum / right_wt;
                 if (temp > best) {
                     best = temp;
-                    //left_temp = left_wt_sum / left_wt - (left_sum - left_wt_sum) / (left_n - left_wt);
-                    //right_temp = right_wt_sum / right_wt- (right_sum - right_wt_sum) / (right_n - right_wt);
                     improve_best = improve_temp;
                 }
             }
@@ -457,10 +423,7 @@ tstatsD(int n, double *y[], double *x, int nclass,
             else
                 for (i = 0; i < nclass; i++) csplit[i] = tsplit[i];
         }
-        // Rprintf("for %f variable, improv = %f\n", x[0], *improve);
-        //*improve = best / myrisk;       /* % improvement */
     }
-    //Rprintf("for %f variable, improv = %f\n", x[0], *improve);
 }
 
 double tstatsDpred(double *y, double wt, double treatment, double *yhat, double propensity) // pass in ct.which
@@ -470,9 +433,5 @@ double tstatsDpred(double *y, double wt, double treatment, double *yhat, double 
         
     ystar = y[0] * (treatment - propensity) / (propensity * (1 - propensity));
     temp = ystar - *yhat;
-    //if (treatment == 1)  temp = y[0] / propensity;
-    //else temp = - y[0] / (1 - propensity);
-    //double temp = y[0] - *yhat;
-    //temp -= *yhat;
     return temp * temp * wt;
 }

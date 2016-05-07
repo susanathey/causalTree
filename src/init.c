@@ -4,7 +4,6 @@
 #include "causalTreeproto.h"
 
 SEXP init_ctcallback(SEXP rhox, SEXP ny, SEXP nr, SEXP expr1x, SEXP expr2x);
-SEXP causalTreeexp2(SEXP dtimes, SEXP seps);
 SEXP pred_causalTree(SEXP dimx, SEXP nnode, SEXP nsplit, SEXP dimc,
 		SEXP nnum, SEXP nodes2, SEXP vnum, SEXP split2,
 		SEXP csplit2, SEXP usesur, SEXP xdata2, SEXP xmiss2);
@@ -12,9 +11,9 @@ SEXP estimate_causalTree(SEXP dimx, SEXP nnode, SEXP nsplit, SEXP dimc,
   	SEXP nnum, SEXP nodes2, SEXP vnum, SEXP split2,
 		SEXP csplit2, SEXP usesur, SEXP xdata2, SEXP xmiss2);
 
-SEXP honest_estimate_causalTree(SEXP dimx, SEXP nnode, // # of nodes
+SEXP honest_estimate_causalTree(SEXP dimx, SEXP nnode, 
                                SEXP nsplit, SEXP dimc, SEXP nnum, 
-                               SEXP nodes2, //  ncompete, nsurrogate, index
+                               SEXP nodes2,
                                SEXP n1, SEXP wt1, SEXP dev1, SEXP yval1, 
                                SEXP vnum, 
                                SEXP split2,
@@ -24,11 +23,7 @@ SEXP honest_estimate_causalTree(SEXP dimx, SEXP nnode, // # of nodes
 
 static const R_CallMethodDef CallEntries[] = {
     {"init_ctcallback", (DL_FUNC) &init_ctcallback, 5},
-    //{"causalTree", (DL_FUNC) &causalTree, 11},
-    //{"causalTree", (DL_FUNC) &causalTree, 12},
     {"causalTree", (DL_FUNC) &causalTree, 22},
-    //{"xpred", (DL_FUNC) &xpred, 18},
-    {"causalTreeexp2", (DL_FUNC) &causalTreeexp2, 2},
     {"pred_causalTree", (DL_FUNC) &pred_causalTree, 12},
     {"estimate_causalTree", (DL_FUNC) &estimate_causalTree, 12},
     {"honest_estimate_causalTree", (DL_FUNC) &honest_estimate_causalTree, 19},

@@ -1,13 +1,11 @@
 /*
- * The four routines for split.Rule = TOT
+ *  split.Rule = fit
  */
 #include <math.h>
 #include "causalTree.h"
 #include "causalTreeproto.h"
 
-/*
- * Warning: need to change to discrete version of TOT
- */
+
 static double *sums, *wtsums, *treatment_effect;
 static double *wtsqrsums, *wttrsqrsums;
 static double *wts, *trs, *trsums;
@@ -36,7 +34,7 @@ fitinit(int n, double *y[], int maxcat, char **error,
     return 0;
 }
 
-//(*ct_eval) (n, ct.ytemp, me->response_est, &(me->risk), ct.wtemp, ct.trtemp, ct.max_y);
+
 void
 fitss(int n, double *y[], double *value, double *con_mean,double *tr_mean, double *risk, double *wt,
       double *treatment, double max_y, double alpha, double train_to_est_ratio)
@@ -65,22 +63,11 @@ fitss(int n, double *y[], double *value, double *con_mean,double *tr_mean, doubl
     *tr_mean = trmean;
     *con_mean = conmean;
     *value = effect;
-    //Rprintf("alpha = %f\n", alpha);
     *risk =  4 * twt * ct.max_y * ct.max_y - alpha * (ttreat * trmean *trmean 
              + (twt - ttreat) * conmean * conmean) + (1 - alpha) * (1.0 + train_to_est_ratio) 
              * (tr_var  + con_var );
-    
-    //    - (1 - alpha) * (ttreat * trmean * trmean + (twt - ttreat) * conmean * conmean) 
-    //    + alpha * (1 + train_to_est_ratio) * (tr_var * ttreat + con_var *(twt - ttreat));
-    //*risk = tr_var * ttreat  + con_var * (twt - ttreat);  /* MSE when predicting according to treatment status */
 }
 
-/*
- * The anova splitting function.  Find that split point in x such that
- *  the sum of squares of y within the two groups is decreased as much
- *  as possible.  It is not necessary to actually calculate the SS, the
- *  improvement involves only means in the two groups.
- */
 
 void fit(int n, double *y[], double *x, int nclass,
              int edge, double *improve, double *split, int *csplit,
@@ -192,7 +179,6 @@ void fit(int n, double *y[], double *x, int nclass,
 				right_effect = alpha * (right_tr * right_trmean * right_trmean 
                                + (right_wt - right_tr) * right_conmean * right_conmean) - (1 - alpha) * (1 + train_to_est_ratio)
 				               * (right_tr_var + right_con_var );
-			    // node_effect, left_effect, right_effect are all risks in these nodes
 		        temp = left_effect + right_effect - node_effect;
 				
 				if (temp > best) {
@@ -209,16 +195,15 @@ void fit(int n, double *y[], double *x, int nclass,
 		
 		*improve = best;
 		if (best > 0) {         /* found something */
-		//    Rprintf("best = %f, split = %f\n", best, (x[where] + x[where + 1]) / 2 );
 		csplit[0] = direction;
-			*split = (x[where] + x[where + 1]) / 2; /* where to split!!!!!!!!! */ 
+			*split = (x[where] + x[where + 1]) / 2; 
 		
 		}
 	}
 	
 	/*
-	* Categorical predictor
-	*/
+	 * Categorical predictor
+	 */
 	
 	else {
 		for (i = 0; i < nclass; i++) {
@@ -255,9 +240,8 @@ void fit(int n, double *y[], double *x, int nclass,
 		graycode_init2(nclass, countn, treatment_effect);
 		
 		/*
-		* Now find the split that we want
-		*/
-		
+		 * Now find the split that we want
+		 */
 		left_wt = 0;
 		left_tr = 0;
 		left_n = 0;
@@ -307,8 +291,6 @@ void fit(int n, double *y[], double *x, int nclass,
 				left_effect =  alpha * (left_tr * left_trmean * left_trmean + 
 				+ (left_wt - left_tr) * left_conmean * left_conmean) - (1 - alpha) * (1 + train_to_est_ratio)
 				* (left_tr_var + left_con_var );
-				
-				
 				    
 				double right_trmean = right_tr_sum / right_tr;
 			    double right_conmean = (right_sum - right_tr_sum) / (right_wt - right_tr);
@@ -320,13 +302,9 @@ void fit(int n, double *y[], double *x, int nclass,
 				right_effect = alpha * (right_tr * right_trmean * right_trmean 
                                 + (right_wt - right_tr) * right_conmean * right_conmean) - (1 - alpha) * (1 + train_to_est_ratio)
 				                * (right_tr_var + right_con_var );
-				    // node_effect, left_effect, right_effect are all risks in these nodes
 				temp = left_effect + right_effect - node_effect;
-                
-				
 				if (temp > best) {
 					best = temp;
-					
 					if (left_temp > right_temp)
 						for (i = 0; i < nclass; i++) csplit[i] = -tsplit[i];
 					else
@@ -339,16 +317,12 @@ void fit(int n, double *y[], double *x, int nclass,
 }
 
 double
-fitpred(double *y, double wt, double treatment, double *yhat, double propensity) // pass in ct.which
+fitpred(double *y, double wt, double treatment, double *yhat, double propensity) 
 {
 	double ystar;
 	double temp;
 	
 	ystar = y[0] * (treatment - propensity) / (propensity * (1 - propensity));
 	temp = ystar - *yhat;
-	//if (treatment == 1)  temp = y[0] / propensity;
-	//else temp = - y[0] / (1 - propensity);
-	//double temp = y[0] - *yhat;
-	//temp -= *yhat;
 	return temp * temp * wt;
 }

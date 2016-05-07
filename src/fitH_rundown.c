@@ -1,4 +1,6 @@
-
+/*
+ * rundown function for fitH
+ */
 #include "causalTree.h"
 #include "node.h"
 #include "causalTreeproto.h"
@@ -25,13 +27,7 @@ fitH_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, int 
     double tr_mean, con_mean;
     double consums, trsums, cons, trs;
 
-
-    /*
-     * Now, repeat the following: for the cp of interest, run down the tree
-     *   until I find a node with smaller complexity.  The parent node will
-     *   not have collapsed, but this split will have, so this is my
-     *   predictor.
-     */
+    
     for (i = 0; i < ct.num_unique_cp; i++) {
         consums = 0.;
         trsums = 0.;
@@ -69,7 +65,6 @@ fitH_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, int 
             }
         }
         
-        //calculate tr_mean and con_mean
         if (trs == 0) {
             tr_mean = tree->parent->xtreatMean[0];
         } else {

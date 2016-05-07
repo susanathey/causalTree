@@ -1,12 +1,8 @@
 /*
- * The discrteHonestObj splitting method:
+ * The discrte version for CT
  */
 #include "causalTree.h"
 #include "causalTreeproto.h"
-
-// set temporarily:
-// static int bucketnum = 10;
-// static int bucketMax = 40;
 
 #ifndef min
 #define min(a,b) (((a) < (b)) ? (a) : (b))
@@ -23,18 +19,11 @@ static int *countn;
 static int *tsplit;
 
 // for discrete version:
-static int *n_bucket, *n_tr_bucket, *n_con_bucket; // count number of tr obs in each bucket
+static int *n_bucket, *n_tr_bucket, *n_con_bucket;
 static double *wts_bucket, *trs_bucket;
 static double *wtsums_bucket, *trsums_bucket;
 static double *wtsqrsums_bucket, *trsqrsums_bucket; 
-//static double *end_bucket;
-//static double *diffsum_bucket; // only used in TOTD!
-//static double *wts_bucket, *trs_bucket, *sums_bucket;
-//static double *wtsums_bucket, *trsums_bucket, *wtsqrsums_bucket;
 static double *tr_end_bucket, *con_end_bucket;
-
-
-
 
 
 int
@@ -61,21 +50,17 @@ CTDinit(int n, double *y[], int maxcat, char **error,
 	return 0;
 }
 
-/*
-* The anova evaluation function.  Return the mean and the ss.
-*/
+
 void
 CTDss(int n, double *y[], double *value, double *con_mean, double *tr_mean, double *risk, double *wt, double *treatment, 
       double max_y, double alpha, double train_to_est_ratio)
 {
-    //Rprintf("evaluating\n");
     int i;
     double temp0 = 0., temp1 = 0., twt = 0.; /* sum of the weights */ 
 	double ttreat = 0.;
 	double effect;
 	double tr_var, con_var;
 	double con_sqr_sum = 0., tr_sqr_sum = 0.;
-    //Rprintf("in CTDss, train_to_est_ratio = %f\n", train_to_est_ratio);
 	for (i = 0; i < n; i++) {
 		temp1 += *y[i] * wt[i] * treatment[i];
 		temp0 += *y[i] * wt[i] * (1 - treatment[i]);
@@ -96,13 +81,6 @@ CTDss(int n, double *y[], double *value, double *con_mean, double *tr_mean, doub
 	(1 - alpha) * (1 + train_to_est_ratio) * twt * (tr_var /ttreat  + con_var / (twt - ttreat));
  }
 
-/*
-* The anova splitting function.  Find that split point in x such that
-*  the sum of squares of y within the two groups is decreased as much
-*  as possible.  It is not necessary to actually calculate the SS, the
-*  improvement involves only means in the two groups.
-*/
-
 void
 CTD(int n, double *y[], double *x, int nclass,
 	   int edge, double *improve, double *split, int *csplit,
@@ -110,7 +88,6 @@ CTD(int n, double *y[], double *x, int nclass,
 	   double alpha, int bucketnum, int bucketMax, double train_to_est_ratio)
 {
 	int i, j;
-    //int j1, j2;
 	double temp;
 	double left_sum, right_sum;
 	double left_tr_sum, right_tr_sum;
@@ -150,13 +127,6 @@ CTD(int n, double *y[], double *x, int nclass,
 		right_tr_sqr_sum += (*y[i]) * (*y[i]) * wt[i] * treatment[i];
 		trsum += treatment[i];
 	}
-	//Rprintf("wt = %f\n", right_wt);
-	//Rprintf("tr = %f\n", right_tr);
-	//Rprintf("sum = %f\n", right_sum);
-	//Rprintf("tr_sum = %f\n", right_tr_sum);
-	//Rprintf("sqr_sum = %f\n", right_sqr_sum);
-	//Rprintf("tr_sqr_sum = %f\n", right_tr_sqr_sum);
-	//Rprintf("n = %d\n", right_n);
 	
 	temp = right_tr_sum / right_tr - (right_sum - right_tr_sum) / (right_wt - right_tr);
 	tr_var = right_tr_sqr_sum / right_tr - right_tr_sum * right_tr_sum / (right_tr * right_tr);
@@ -165,11 +135,9 @@ CTD(int n, double *y[], double *x, int nclass,
 	    / ((right_wt - right_tr) * (right_wt - right_tr));
 	node_effect = alpha * temp * temp * right_wt - (1 - alpha) * (1 + train_to_est_ratio) 
 	    * right_wt * (tr_var / right_tr  + con_var / (right_wt - right_tr));
-	//Rprintf("node_effect = %f\n", node_effect);
 	
 	if (nclass == 0) {
 		/* continuous predictor */
-		
 		cum_wt = (double *) ALLOC(n, sizeof(double));
 	    tmp_wt = (double *) ALLOC(n, sizeof(double));
 	    fake_x = (double *) ALLOC(n, sizeof(double));
@@ -203,8 +171,6 @@ CTD(int n, double *y[], double *x, int nclass,
 	            tr_cum_wt += tmp_wt[i];
 	            cum_wt[i] = tr_cum_wt;
 	            fake_x[i] = (int)floor(Numbuckets * cum_wt[i]);
-	            // for checking:
-	            //Rprintf("cum_wt[%d] = %f, fake_x[%d] = %f\n", i, cum_wt[i], i, fake_x[i]);
 	        }
 	    }
 	    
@@ -220,7 +186,6 @@ CTD(int n, double *y[], double *x, int nclass,
 	    tr_end_bucket = (double *) ALLOC(Numbuckets, sizeof(double));
 	    con_end_bucket = (double *) ALLOC (Numbuckets, sizeof(double));
 	    
-	    //  initialize
 	    for (j = 0; j < Numbuckets; j++) {
 	        n_bucket[j] = 0;
 	        n_tr_bucket[j] = 0;
@@ -262,12 +227,11 @@ CTD(int n, double *y[], double *x, int nclass,
 		best = 0;
 		
 		for (j = 0; j < Numbuckets; j++) {
-		    // split these buckets:
 		    left_n += n_bucket[j];
 		    right_n -= n_bucket[j];
 		    left_wt += wts_bucket[j];
 		    right_wt -= wts_bucket[j];
-		    left_tr += trs_bucket[j]; // weighted
+		    left_tr += trs_bucket[j]; 
 		    right_tr -= trs_bucket[j];
 		    
 		    left_sum += wtsums_bucket[j];
@@ -299,8 +263,6 @@ CTD(int n, double *y[], double *x, int nclass,
 		            - (1 - alpha) * (1 + train_to_est_ratio) * left_wt 
 		            * (left_tr_var / left_tr + left_con_var / (left_wt - left_tr));
 		        
-		        //Rprintf("left_effect= %f\n", left_effect);
-		        
 		        right_temp = right_tr_sum / right_tr -
 		            (right_sum - right_tr_sum) / (right_wt - right_tr);
 		        right_tr_var = right_tr_sqr_sum / right_tr -
@@ -316,7 +278,6 @@ CTD(int n, double *y[], double *x, int nclass,
 		        if (temp > best) {
 		            best = temp;                  
 		            where = j; 
-		            //Rprintf("left_tmp = %f,right_tmp = %f, where = %d\n", left_temp, right_temp, where);
 		            if (left_temp < right_temp)
 		                direction = LEFT;
 		            else
@@ -369,9 +330,8 @@ CTD(int n, double *y[], double *x, int nclass,
 		graycode_init2(nclass, countn, mean);
 		
 		/*
-		* Now find the split that we want
-		*/
-		
+		 * Now find the split that we want
+		 */
 		left_wt = 0;
 		left_tr = 0;
 		left_n = 0;

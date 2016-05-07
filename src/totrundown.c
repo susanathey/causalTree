@@ -1,4 +1,6 @@
-
+/*
+ * rundown function fot tot
+ */
 #include "causalTree.h"
 #include "node.h"
 #include "causalTreeproto.h"
@@ -11,12 +13,6 @@ totrundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp)
     
     int opnumber = 0;
 
-    /*
-     * Now, repeat the following: for the cp of interest, run down the tree
-     *   until I find a node with smaller complexity.  The parent node will
-     *   not have collapsed, but this split will have, so this is my
-     *   predictor.
-     */
     for (i = 0; i < ct.num_unique_cp; i++) {
         while (cp[i] < tree->complexity) {
 	        tree = branch(tree, obs);
@@ -29,8 +25,6 @@ totrundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp)
 
         xtemp[i] = (*ct_xeval)(ct.ydata[obs2], ct.wt[obs2], ct.treatment[obs2], tree->response_est,
                 ct.propensity);
-
-    
     }
     return;
 

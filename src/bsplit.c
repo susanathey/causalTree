@@ -16,8 +16,6 @@ void
 bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int bucketnum, int bucketMax,
        double train_to_est_ratio)
 {
-    // set alpha temporarily:
-    
     int i, j, k;
     int kk;
     int nc;
@@ -48,32 +46,18 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
         for (j = n1; j < n2; j++) {
             kk = index[j];
 
-            //if (kk >= 0 && ct.wt[kk] > 0) {
-            //}
             /* x data not missing and wt > 0 */
-            if(kk >= 0 && ct.wt[kk] > 0) { // here we can assgin the weight to be 0, kk >= 0 means x data not missing
+            if(kk >= 0 && ct.wt[kk] > 0) { 
                 xtemp[k] = ct.xdata[i][kk];
                 ytemp[k] = ct.ydata[kk];
                 wtemp[k] = ct.wt[kk];
                 trtemp[k] = ct.treatment[kk];
-                //Rprintf("trtemp[%d] = %f\n", k, trtemp[k]);
                 k++;
             }
         }
         
-        
-        //Rprintf("split_Rule = %d, k = %d, nc = %d\n", split_Rule, k, nc);
-        //if (me->id == 1) {
-        //    Rprintf("n1 = %d, n2 = %d, ytemp = %f, xtemp = %f, ct.min_node = %d, split = %f, me->risk = %f\n",
-        //            n1, n2, *ytemp[0], *xtemp, ct.min_node, split, me->risk);
-        //    Rprintf("minsize = %d, alpha = %f\n", minsize, alpha);
-        //}
-
         if (k == 0 || (nc == 0 && xtemp[0] == xtemp[k - 1]))
             continue;           /* no place to split */
-
-        //(*ct_choose) (k, ytemp, xtemp, nc, ct.min_node, &improve,
-        //	      &split, ct.csplit, me->risk, wtemp);
         
         if (split_Rule == 1) {
             //tot
@@ -93,11 +77,9 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
              &split, ct.csplit, me->risk, wtemp, trtemp, minsize, alpha, train_to_est_ratio);
         } else if (split_Rule == 5) {
             // totD
-            //Rprintf("before choose\n");
             (*ct_choose) (k, ytemp, xtemp, nc, ct.min_node, &improve, 
              &split, ct.csplit, me->risk, wtemp, trtemp, ct.propensity, minsize,
              bucketnum, bucketMax);
-            //Rprintf("after choose\n");
         } else if (split_Rule == 6) {
             //CTD
             (*ct_choose) (k, ytemp, xtemp, nc, ct.min_node, &improve, 
@@ -114,18 +96,6 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
              &split, ct.csplit, me->risk, wtemp, trtemp, minsize, alpha, 
              bucketnum, bucketMax, train_to_est_ratio);
         }
-        
-        
-        /*
-        if (method == 5 || method == 6 || method == 7 || method == 8 || method == 9) // anova2 or tstats
-            (*ct_choose) (k, ytemp, xtemp, nc, ct.min_node, &improve,
-                    &split, ct.csplit, me->risk, wtemp, trtemp, minsize, alpha);
-        else 	
-            (*ct_choose) (k, ytemp, xtemp, nc, ct.min_node, &improve,
-                    &split, ct.csplit, me->risk, wtemp, trtemp, minsize);
-        */
-        //Rprintf("%d predictor has improve = %f\n", i, improve);
-
 
         /*
          * Originally, this just said "if (improve > 0)", but rounding
@@ -134,7 +104,6 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
          */
         if (improve > ct.iscale)
             ct.iscale = improve;  /* largest seen so far */
-        //Rprintf("improve = %f, ct.iscale = %f\n", improve, ct.iscale);
         if (improve > (ct.iscale * 1e-10)) {
             improve /= ct.vcost[i];     /* scale the improvement */
             tsplit = insert_split(&(me->primary), nc, improve, ct.maxpri);

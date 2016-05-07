@@ -1,3 +1,4 @@
+# requirement when missing values are included in sample.
 na.causalTree <- function(x)
 {
     Terms <- attr(x, "terms")

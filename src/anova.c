@@ -1,5 +1,5 @@
 /*
- * The four routines for anova splitting
+ * The anova funciton inherited from rpart package. 
  */
 #include "causalTree.h"
 #include "causalTreeproto.h"
@@ -48,7 +48,6 @@ anovass(int n, double *y[], double *value, double *risk, double *wt, double *tre
 
     effect = temp1 / ttreat - temp0 / (twt - ttreat);
     *value = effect;
-    //*risk = 4 * n * max_y * max_y - n * effect * effect ;
     *risk = 4 * twt * max_y * max_y - twt * effect * effect ;
 }
 
@@ -91,7 +90,6 @@ anova(int n, double *y[], double *x, int nclass,
     }
 
     temp = right_tr_sum / right_tr - (right_sum - right_tr_sum) / (right_wt - right_tr);
-    //node_effect = temp * temp * n;
     node_effect = temp * temp * right_wt;
     
     if (nclass == 0) {
@@ -122,11 +120,9 @@ anova(int n, double *y[], double *x, int nclass,
                     (int) right_wt - (int) right_tr >= min_node_size) {
 
                 left_temp = left_tr_sum / left_tr - (left_sum - left_tr_sum) / (left_wt - left_tr);
-                //left_effect = left_temp * left_temp * left_n;
                 left_effect = left_temp * left_temp * left_wt;
 
                 right_temp = right_tr_sum / right_tr - (right_sum - right_tr_sum) / (right_wt - right_tr);
-                //right_effect = right_temp * right_temp * right_n;
                 right_effect = right_temp * right_temp * right_wt;
                 temp = left_effect + right_effect - node_effect;
 
@@ -216,11 +212,9 @@ anova(int n, double *y[], double *x, int nclass,
                     (int) right_wt - (int) right_tr >= min_node_size) {
 
                 left_temp = left_tr_sum / left_tr - (left_sum - left_tr_sum) / (left_wt - left_tr);
-                //left_effect = left_temp * left_temp * left_n;
                 left_effect = left_temp * left_temp * left_wt;
 
                 right_temp = right_tr_sum / right_tr - (right_sum - right_tr_sum) / (right_wt - right_tr);
-                //right_effect = right_temp * right_temp * right_n;
                 right_effect = right_temp * right_temp * right_wt;
     
                 temp = left_effect + right_effect - node_effect;

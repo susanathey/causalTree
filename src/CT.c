@@ -1,5 +1,5 @@
 /*
- * The four routines for split.Rule = TOT
+ * split.Rule = CT
  */
 #include <math.h>
 #include "causalTree.h"
@@ -49,7 +49,6 @@ CTss(int n, double *y[], double *value,  double *con_mean, double *tr_mean, doub
     double tr_var, con_var;
     double con_sqr_sum = 0., tr_sqr_sum = 0.;
     
-    //Rprintf("in CTss, train_to_est_ratio = %f\n", train_to_est_ratio);
     for (i = 0; i < n; i++) {
         temp1 += *y[i] * wt[i] * treatment[i];
         temp0 += *y[i] * wt[i] * (1 - treatment[i]);
@@ -70,12 +69,6 @@ CTss(int n, double *y[], double *value,  double *con_mean, double *tr_mean, doub
     (1 - alpha) * (1 + train_to_est_ratio) * twt * (tr_var /ttreat  + con_var / (twt - ttreat));
 }
 
-/*
- * The anova splitting function.  Find that split point in x such that
- *  the sum of squares of y within the two groups is decreased as much
- *  as possible.  It is not necessary to actually calculate the SS, the
- *  improvement involves only means in the two groups.
- */
 
 void CT(int n, double *y[], double *x, int nclass, int edge, double *improve, double *split, 
         int *csplit, double myrisk, double *wt, double *treatment, int minsize, double alpha,
@@ -123,10 +116,7 @@ void CT(int n, double *y[], double *x, int nclass, int edge, double *improve, do
     node_effect = alpha * temp * temp * right_wt - (1 - alpha) * (1 + train_to_est_ratio) 
         * right_wt * (tr_var / right_tr  + con_var / (right_wt - right_tr));
     
-    //temp = right_tr_sum / right_tr - (right_sum - right_tr_sum) / (right_wt - right_tr);
-    //node_effect = temp * temp * n;
-    //node_effect = temp * temp * right_wt;
-    
+
     if (nclass == 0) {
         /* continuous predictor */
         left_wt = 0;
@@ -188,7 +178,6 @@ void CT(int n, double *y[], double *x, int nclass, int edge, double *improve, do
                 
                 temp = left_effect + right_effect - node_effect;
                 if (temp > best) {
-                    //Rprintf("temp > best\n");
                     best = temp;
                     where = i;               
                     if (left_temp < right_temp)
@@ -200,10 +189,9 @@ void CT(int n, double *y[], double *x, int nclass, int edge, double *improve, do
         }
         
         *improve = best;
-        //Rprintf("best = %f\n", best);
         if (best > 0) {         /* found something */
         csplit[0] = direction;
-            *split = (x[where] + x[where + 1]) / 2; /* where to split!!!!!!!!! */ 
+            *split = (x[where] + x[where + 1]) / 2; 
         }
     }
     
@@ -327,17 +315,13 @@ void CT(int n, double *y[], double *x, int nclass, int edge, double *improve, do
 
 
 double
-    CTpred(double *y, double wt, double treatment, double *yhat, double propensity) // pass in ct.which
+    CTpred(double *y, double wt, double treatment, double *yhat, double propensity)
     {
         double ystar;
         double temp;
         
         ystar = y[0] * (treatment - propensity) / (propensity * (1 - propensity));
         temp = ystar - *yhat;
-        //if (treatment == 1)  temp = y[0] / propensity;
-        //else temp = - y[0] / (1 - propensity);
-        //double temp = y[0] - *yhat;
-        //temp -= *yhat;
         return temp * temp * wt;
     }
 

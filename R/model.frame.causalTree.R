@@ -1,3 +1,4 @@
+# get model frame of causalTree, same as rpart
 model.frame.causalTree <- function(formula, ...)
 {
     m <- formula$model

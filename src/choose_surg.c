@@ -20,7 +20,7 @@ choose_surg(int n1, int n2, int *y, double *x, int *order,
     double *lwt = ct.lwt, *rwt = ct.rwt;
     double llwt, lrwt, rrwt, rlwt;      /* sum of weights for each */
     double agree, majority, total_wt;
-    int success = 0;  // set to 1 when something worthwhile is found
+    int success = 0;  
 
     /*
      * I enforce that at least 2 obs must go each way, to avoid having an
