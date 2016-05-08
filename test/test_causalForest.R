@@ -110,6 +110,9 @@ names(dataTraintemp)[names(dataTraintemp)=="w"] <- outcomename
 #here: replace elements of the rpart object to make it look like anova tree, so that we'll be able to properly predict with it later, etc.
 tree.propensity <- rpart(as.formula(paste("y~",f)), data=dataTraintemp, method="class", 
                          control=rpart.control(cp=0, minbucket=minsize.temp*2))
+opcpid <- which.min(tree.propensity$cp[,4])
+opcp <- tree.propensity$cp[opcpid,1]
+tree.propensity <- prune(tree.propensity, cp = opcp) 
 
 # make it look like a method="anova" tree 
 tree.propensity$method <- "anova"
