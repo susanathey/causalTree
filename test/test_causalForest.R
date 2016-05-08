@@ -71,16 +71,13 @@ nameall <- c( name,  "y", "w", "tau_true")
 
 tau_true <- (1-2*w)*(y_ - y)
 
-ntr <- round(.333*n)
-nest <- round(.333*n)
-ntest <- n - ntr - nest
+ntr <- round(.9*n)
+ntest <- n - ntr 
 
 dataTrain <- data.frame(X[1:ntr,], y[1:ntr], w[1:ntr], tau_true[1:ntr])
-dataEst <- data.frame(X[(ntr+1):(ntr+nest),], y[(ntr+1):(ntr+nest)], w[(ntr+1):(ntr+nest)], tau_true[(ntr+1):(ntr+nest)])
-dataTest <- data.frame(X[(ntr+nest+1):n,], y[(ntr+nest+1):n], w[(ntr+nest+1):n], tau_true[(ntr+nest+1):n])
+dataTest <- data.frame(X[(ntr+1):n,], y[(ntr+1):n], w[(ntr+1):n], tau_true[(ntr+1):n])
 
 names(dataTrain)=nameall
-names(dataEst)=nameall
 names(dataTest)=nameall
 
 
@@ -88,7 +85,7 @@ names(dataTest)=nameall
 ########################## Do analysis
 
 
-num.trees.temp = ntr
+num.trees.temp = min(ntr,1000)
 
 split.Bucket.temp=F
 minsize.temp=25
@@ -99,14 +96,6 @@ cv.Honest.temp = T
 split.alpha.temp = .5
 cv.alpha.temp = .5
 
-# test out a causal tree just for fun
-ct <- causalTree(as.formula(paste("y~",paste(f))), 
-         data=dataTrain, treatment=dataTrain$w, 
-         split.Rule=split.Rule.temp, split.Honest=T, split.Bucket=split.Bucket.temp, bucketNum = bucketNum.temp, 
-         bucketMax = bucketMax.temp, cv.option=cv.option.temp, cv.Honest=cv.Honest.temp, minsize = minsize.temp, 
-         split.alpha = split.alpha.temp, cv.alpha = cv.alpha.temp, xval=0, HonestSampleSize=nest, cp=0)
-ctpredtest <- predict(ct, newdata=dataTest, type="vector")
-plot(dataTest$tau_true,ctpredtest)
 
 # estimate a propensity tree
 outcomename = "y"
@@ -131,7 +120,10 @@ tree.propensity$functions$print <- NULL
 names(dataTraintemp)[names(dataTraintemp)==outcomename] <- "w"
 names(dataTraintemp)[names(dataTraintemp)=="temptemp"] <- outcomename
 pt <- estimate.causalTree(object=tree.propensity,data=dataTraintemp, treatment=dataTraintemp$w)
+
 ptpredtest <- predict(pt, newdata=dataTest, type="vector")
+ptpredtrain <- predict(pt, newdata=dataTrain, type="vector")
+print(c("mean of ATE treatment effect from propensity tree on Training data", round(mean(ptpredtrain),5)))
 plot(dataTest$tau_true,ptpredtest)
 
 
@@ -144,10 +136,12 @@ cf <- causalForest(as.formula(paste("y~",f)), data=dataTrain, treatment=dataTrai
                          sample.size.total = floor(nrow(dataTrain) / 2), sample.size.train.frac = .5,
                          mtry = ceiling(ncol(dataTrain)/3), nodesize = 3, num.trees=num.trees.temp) 
 
-cfpredtest <- predict.causalForest(cf, newdata=dataTest, type="vector")
+cfpredtest <- predict(cf, newdata=dataTest, type="vector")
 plot(dataTest$tau_true,cfpredtest)
 
-cfpredtrainall <- predict.causalForest(cf, newdata=dataTrain, predict.all = TRUE, type="vector")
+cfpredtrainall <- predict(cf, newdata=dataTrain, predict.all = TRUE, type="vector")
+
+print(c("mean of ATE treatment effect from causalForest on Training data", round(mean(cfpredtrainall$aggregate),5)))
 
 # use infJack routine from randomForestCI
 cfvar <- infJack(cfpredtrainall$individual, cf$inbag, calibrate = TRUE)
@@ -159,10 +153,11 @@ pf <- propensityForest(as.formula(paste("y~",f)), data=dataTrain, treatment=data
                    sample.size.total = floor(nrow(dataTrain) / 2), 
                    mtry = ceiling(ncol(dataTrain)/3), nodesize = 25, num.trees=num.trees.temp) 
 
-pfpredtest <- predict.causalForest(pf, newdata=dataTest, type="vector")
+pfpredtest <- predict(pf, newdata=dataTest, type="vector")
 plot(dataTest$tau_true,pfpredtest)
 
-pfpredtrainall <- predict.causalForest(pf, newdata=dataTrain, predict.all = TRUE, type="vector")
+pfpredtrainall <- predict(pf, newdata=dataTrain, predict.all = TRUE, type="vector")
+print(c("mean of ATE treatment effect from propensityForest on Training data", round(mean(pfpredtrainall$aggregate),5)))
 
 pfvar <- infJack(pfpredtrainall$individual, pf$inbag, calibrate = TRUE)
 plot(pfvar)
