@@ -1,10 +1,8 @@
 init.causalForest <- function(formula, data, treatment, weights=F, cost=F, num.trees) { 
   num.obs <- nrow(data)
-  # this is a hack to fix global environment problem for formula; need to find more elegant solution
-  formform <- as.formula(paste(as.character(formula[2]),as.character(formula[1]),as.character(formula[3])))
   trees <- vector("list", num.trees)
   inbag <- matrix(0, num.obs, num.trees) 
-  causalForestobj <- list(trees = trees, formula=formform, data=data, treatment=treatment, weights=weights, cost=cost, ntree = num.trees, inbag = inbag) 
+  causalForestobj <- list(trees = trees, formula=formula, data=data, treatment=treatment, weights=weights, cost=cost, ntree = num.trees, inbag = inbag) 
   class(causalForestobj) <- "causalForest" 
   return(causalForestobj)
 } 
@@ -37,10 +35,7 @@ causalForest <- function(formula, data, treatment,
   # do not implement subset option of causalTree, that is inherited from rpart but have not implemented it here yet
 
   num.obs <-nrow(data)
-  # this is a hack to fix global environment problem for formula; need to find more elegant solution
-  formform <- as.formula(paste(as.character(formula[2]),as.character(formula[1]),as.character(formula[3])))
-  
-  causalForest.hon <- init.causalForest(formula=formform, data=data, treatment=treatment, weights=weights, cost=cost, num.trees=num.trees)
+  causalForest.hon <- init.causalForest(formula=formula, data=data, treatment=treatment, weights=weights, cost=cost, num.trees=num.trees)
   sample.size <- min(sample.size.total, num.obs)
   train.size <- round(sample.size.train.frac*sample.size)
   est.size <- sample.size - train.size
@@ -61,7 +56,7 @@ causalForest <- function(formula, data, treatment,
     dataTree <- data.frame(data[train.idx,])
     dataEstim <- data.frame(data[reestimation.idx,])
 
-    tree.honest <- honest.causalTree(formula=formform, data = dataTree, 
+    tree.honest <- honest.causalTree(formula=formula, data = dataTree, 
                                      treatment = treatmentdf[train.idx,], 
                                      est_data=dataEstim, est_treatment=treatmentdf[reestimation.idx,],
                                      split.Rule="CT", split.Honest=T, split.Bucket=split.Bucket, 
@@ -71,7 +66,7 @@ causalForest <- function(formula, data, treatment,
                                      split.alpha = 0.5, cv.alpha = 0.5, xval=0, 
                                      HonestSampleSize=est.size, cp=0)
 
-    #print(tree.honest)
+
     causalForest.hon$trees[[tree.index]] <- tree.honest
     causalForest.hon$inbag[full.idx, tree.index] <- 1
   }
@@ -99,10 +94,8 @@ propensityForest <- function(formula, data, treatment,
   
   num.obs <-nrow(data)
   
-  # this is a hack to fix global environment problem for formula; need to find more elegant solution; but do have to change formula anyway
-  formform <- as.formula(paste(as.character(formula[2]),as.character(formula[1]),as.character(formula[3])))
-  
-  causalForest.hon <- init.causalForest(formula=formform, data=data, treatment=treatment, num.trees=num.trees, weights=F, cost=F)
+
+  causalForest.hon <- init.causalForest(formula=formula, data=data, treatment=treatment, num.trees=num.trees, weights=F, cost=F)
   sample.size <- min(sample.size.total, num.obs)
   train.size <- round(sample.size.train.frac*sample.size)
   
@@ -132,7 +125,7 @@ propensityForest <- function(formula, data, treatment,
     
     #one options: estimate the propensity tree with anova so that it will be type "anova" when we re-estimate
     #here: replace elements of the rpart object to make it look like anova tree, so that we'll be able to properly predict with it later, etc.
-    tree.propensity <- rpart(formula=formform, data=dataTree, method="class", 
+    tree.propensity <- rpart(formula=formula, data=dataTree, method="class", 
                              control=rpart.control(cp=0, minbucket=nodesize))
     
     # make it look like a method="anova" tree 
