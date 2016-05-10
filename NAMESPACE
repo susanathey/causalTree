@@ -6,7 +6,9 @@ importFrom(grDevices, dev.cur, dev.off)
 importFrom(graphics, plot, text)
 importFrom(stats, model.frame, predict, residuals)
 importFrom(rpart, rpart)
+importFrom(data.table, copy)
 
 S3method(model.frame, causalTree)
+
 
 

@@ -12,7 +12,7 @@ Description: Recursive partitioning for classification,
   regression and survival trees.  An implementation of most of the 
   functionality of the 1984 book by Breiman, Friedman, Olshen and Stone.
 Title: Recursive Partitioning Causal Trees
-Depends: R (>= 2.15.0), graphics, stats, grDevices, rpart, rpart.plot
+Depends: R (>= 2.15.0), graphics, stats, grDevices, rpart, rpart.plot, data.table
 Suggests: survival
 License: GPL-2 | GPL-3
 LazyData: yes

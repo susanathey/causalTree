@@ -27,6 +27,7 @@ estimate.causalTree <- function(object, data, weights, treatment, na.action = na
         wts <- rep(1, nrow(m))
     else 
         wts <- model.weights(m)
-    ans <- honest.est.causalTree(object, X, wts, treatment, Y)
+    new_object <- data.table::copy(object)
+    ans <- honest.est.causalTree(new_object, X, wts, treatment, Y)
     return(ans)
 }

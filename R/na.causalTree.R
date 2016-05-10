@@ -14,8 +14,8 @@ na.causalTree <- function(x)
                 ((ymiss %*% rep(1, ncol(ymiss))) == 0)
         else ((xmiss %*% rep(1, ncol(xmiss))) < ncol(xmiss)) & !ymiss
     }
-    keep2 <- (!is.na(x$`(treatment)`))
-    keep <- keep & keep2
+    #keep2 <- (!is.na(x$`(treatment)`))
+    #keep <- keep & keep2
     if (all(keep)) x
     else {
 	temp <- seq(keep)[!keep]
