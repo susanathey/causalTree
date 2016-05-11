@@ -150,7 +150,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
 	# ------------------------------------- cv begins -------------------------------------- #
 	if (missing(cv.option)) {
 		# temporarily, no crossvalidation 
-		warning("You choose not to do cross validations.")
+		warning("Miss 'cv.option', choose not to do cross validations.")
 		cv.option <-"none"
 		xval <- 0
 	} 
