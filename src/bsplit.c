@@ -95,6 +95,15 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
             (*ct_choose) (k, ytemp, xtemp, nc, ct.min_node, &improve, 
              &split, ct.csplit, me->risk, wtemp, trtemp, minsize, alpha, 
              bucketnum, bucketMax, train_to_est_ratio);
+        } else if (split_Rule == 9) {
+            // user (temporarily set as CT)
+            (*ct_choose) (k, ytemp, xtemp, nc, ct.min_node, &improve, 
+             &split, ct.csplit, me->risk, wtemp, trtemp, minsize, alpha, train_to_est_ratio);
+        } else if (split_Rule == 10) {
+            // userD (temporarily set as CTD)
+            (*ct_choose) (k, ytemp, xtemp, nc, ct.min_node, &improve, 
+             &split, ct.csplit, me->risk, wtemp, trtemp, minsize, alpha,
+             bucketnum, bucketMax, train_to_est_ratio);
         }
 
         /*

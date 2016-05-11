@@ -100,6 +100,30 @@ extern void tstatsD(int n, double *y[], double *x, int nclass,
 extern double tstatsDpred(double *y, double wt, double treatment, double *yhat, double propensity);
 
 
+
+extern int userinit(int n, double *y[], int maxcat, char **error,
+                  int *size, int who, double *wt, double *treatment, int bucketnum, 
+                  int bucketMax, double *train_to_est_ratio);
+extern void userss(int n, double *y[], double *value, double *tr_mean, double *con_mean, double *risk, 
+                 double *wt, double *treatment, double max_y, double alpha, double train_to_est_ratio);
+extern void user(int n, double *y[], double *x, int nclass,int edge, double *improve, double *split, 
+               int *csplit, double myrisk, double *wt, double *treatment, int minsize, double alpha,
+               double train_to_est_ratio);
+extern double userpred(double *y, double wt, double treatment, double *yhat, double propensity);
+
+extern int userDinit(int n, double *y[], int maxcat, char **error, int *size,
+                   int who, double *wt, double *treatment, int bucketnum, int bucketMax,
+                   double *train_to_est_ratio);
+
+extern void userDss(int n, double *y[], double *value, double *tr_mean, double *con_mean, double *risk, double *wt, 
+                  double *treatment, double max_y, double alpha, double train_to_est_ratio);
+extern void userD(int n, double *y[], double *x, int nclass,
+                int edge, double *improve, double *split, int *csplit,
+                double myrisk, double *wt, double *treatment, int minsize, double alpha, int bucketnum,
+                int bucketMax, double train_to_est_ratio);
+extern double userDpred(double *y, double wt, double treatment, double *yhat, 
+                      double propensity); 
+
 /* ------------------------------------------------------ --------------------------- */
 extern double tot_xpred(double *y, double wt, double treatment, double *yhat, double propensity); 
 extern double matching_xpred(double *y1, double *y2, double wt1, double wt2, double treatment1,
@@ -112,9 +136,17 @@ extern double CTH_xpred(double *y, double wt, double treatment, double tr_mean, 
                         double propensity);
 extern double CTA_xpred(double *y, double wt, double treatment, double tr_mean, double con_mean,
                  double tree_tr_mean, double tree_con_mean, double alpha);
+extern double userH_xpred(double *y, double wt, double treatment, double tr_mean, double con_mean,
+                        double trs, double cons, double alpha, double xtrain_to_est_ratio,
+                        double propensity);
+extern double userA_xpred(double *y, double wt, double treatment, double tr_mean, double con_mean,
+                        double tree_tr_mean, double tree_con_mean, double alpha);
+
 extern double totxeval(int *unique_leaf, int **val_leaf_mat, int cp_id, int t, int *sorts, double *wt, 
                        double *treatment,  double *y[], double propensity, int k, int nobs, 
                        double val_sum_wt, int val_count);
+
+
     
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 extern int anovainit(int n, double *y[], int maxcat, char **error,
@@ -156,7 +188,8 @@ static struct {
     {CTDinit, CTD, CTDss, CTDpred},
     {fitDinit, fitD, fitDss, fitDpred},
     {tstatsDinit, tstatsD, tstatsDss, tstatsDpred},
-
+    {userinit, user, userss, userpred},
+    {userDinit, userD, userDss, userDpred},
 };
 
 static struct {
@@ -169,7 +202,9 @@ static struct {
     {fitA_xpred},
     {CTH_xpred},
     {CTA_xpred},
+    {userH_xpred},
+    {userA_xpred},
 };
 
-#define NUM_SPLIT_RULE 8
-#define NUM_CROSSMETH 7
+#define NUM_SPLIT_RULE 10
+#define NUM_CROSSMETH 9

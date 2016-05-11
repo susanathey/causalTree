@@ -317,6 +317,14 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
         //tstatsD:
         (*ct_eval) (n, ct.ydata, tree->response_est, tree->controlMean, tree->treatMean, 
          &(tree->risk), wt, treatment, ct.max_y, split_alpha, train_to_est_ratio);
+    } else if (split_Rule == 9) {
+        // user (temporarily set as CT)
+        (*ct_eval) (n, ct.ydata, tree->response_est, tree->controlMean, tree->treatMean, 
+         &(tree->risk), wt, treatment, ct.max_y, split_alpha, train_to_est_ratio);
+    } else if (split_Rule == 10) {
+        // userD (temporarily set as CTD)
+        (*ct_eval) (n, ct.ydata, tree->response_est, tree->controlMean, tree->treatMean, 
+         &(tree->risk), wt, treatment, ct.max_y, split_alpha, train_to_est_ratio);
     }
     tree->complexity = tree->risk;
     ct.alpha = ct.complexity * tree->risk;
