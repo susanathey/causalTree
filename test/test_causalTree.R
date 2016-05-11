@@ -138,7 +138,7 @@ tree_prune <- prune(tree, cp = opcp)
 tree_dishonest_CT_prune <- tree_prune
 
 # we can get the honest tree manually, by estimating the leaf effects on a new sample
-tree_honest_CT_prune2 <- estimate.causalTree(object=tree_dishonest_CT_prune_train,data=dataEst, treatment=dataEst$w)
+tree_honest_CT_prune2 <- estimate.causalTree(object=tree_dishonest_CT_prune,data=dataEst, treatment=dataEst$w)
 
 print(tree_honest_CT_prune)
 print(tree_honest_CT_prune2)
