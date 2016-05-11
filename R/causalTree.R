@@ -150,7 +150,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
 	# ------------------------------------- cv begins -------------------------------------- #
 	if (missing(cv.option)) {
 		# temporarily, no crossvalidation 
-		warning("You choose not to do cross validations.")
+		warning("Miss 'cv.option', choose not to do cross validations.")
 		cv.option <-"none"
 		xval <- 0
 	} 
@@ -171,11 +171,11 @@ causalTree <- function(formula, data, weights, treatment, subset,
 		}
 	}
 
-	cv.option.num <- pmatch(cv.option, c("TOT", "matching", "fitH", "fitA", "CTH", "CTA", "none", "userH", "userA"))
+	cv.option.num <- pmatch(cv.option, c("TOT", "matching", "fitH", "fitA", "CTH", "CTA", "userH", "userA", "none"))
 	if(is.na(cv.option.num)) stop("Invalid cv option.") 
 
 	# check cv.alpha
-	if (cv.option.num %in% c(1, 2, 4, 6, 9)) {
+	if (cv.option.num %in% c(1, 2, 4, 6, 8)) {
 	    # tot, matching, fitA, CTA, userA
 		if (!missing(cv.alpha))
 			warning("cv.alpha is not used in your chosen cross validation method.")
