@@ -142,9 +142,9 @@ extern double userH_xpred(double *y, double wt, double treatment, double tr_mean
 extern double userA_xpred(double *y, double wt, double treatment, double tr_mean, double con_mean,
                         double tree_tr_mean, double tree_con_mean, double alpha);
 
-extern double totxeval(int *unique_leaf, int **val_leaf_mat, int cp_id, int t, int *sorts, double *wt, 
-                       double *treatment,  double *y[], double propensity, int k, int nobs, 
-                       double val_sum_wt, int val_count);
+//extern double totxeval(int *unique_leaf, int **val_leaf_mat, int cp_id, int t, int *sorts, double *wt, 
+//                      double *treatment,  double *y[], double propensity, int k, int nobs, 
+//                       double val_sum_wt, int val_count);
 
 
     

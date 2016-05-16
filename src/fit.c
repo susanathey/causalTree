@@ -22,12 +22,14 @@ fitinit(int n, double *y[], int maxcat, char **error,
         graycode_init0(maxcat);
         countn = (int *) ALLOC(2 * maxcat, sizeof(int));
         tsplit = countn + maxcat;
-        treatment_effect = (double *) ALLOC(6 * maxcat, sizeof(double));
+        treatment_effect = (double *) ALLOC(8 * maxcat, sizeof(double));
         wts = treatment_effect + maxcat;
         trs = wts + maxcat;
         sums = trs + maxcat;
         wtsums = sums + maxcat;
         trsums = wtsums + maxcat;
+        wtsqrsums = trsums + maxcat;
+        wttrsqrsums = wtsqrsums + maxcat;
     }
     *size = 1;
     *train_to_est_ratio = n * 1.0 / ct.NumHonest;
@@ -199,13 +201,10 @@ void fit(int n, double *y[], double *x, int nclass,
 			*split = (x[where] + x[where + 1]) / 2; 
 		
 		}
-	}
-	
-	/*
-	 * Categorical predictor
-	 */
-	
-	else {
+	} else {
+	    /*
+	     * Categorical predictor
+	     */
 		for (i = 0; i < nclass; i++) {
 			countn[i] = 0;
 			wts[i] = 0;

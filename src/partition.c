@@ -13,6 +13,8 @@
 #include "node.h"
 #include "causalTreeproto.h"
 
+#define DEBUG 1
+
 int
 //partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2)
 partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
@@ -129,11 +131,13 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
      */
     
     bsplit(me, n1, n2, min_node_size, split_Rule, alpha, bucketnum, bucketMax, train_to_est_ratio);
-
+    
+    //Rprintf("partition.c: line 133: finish bsplit!\n");
     if (!me->primary) {
 	/*
 	 * This is rather rare -- but I couldn't find a split worth doing
 	 */
+	    //Rprintf("me->primary = NULL\n");
 	    me->complexity = ct.alpha;
 	    me->leftson = (pNode) NULL;
 	    me->rightson = (pNode) NULL;
@@ -149,7 +153,9 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
 	surrogate(me, n1, n2);
     else
 	me->surrogate = (pSplit) NULL;
+    
     nodesplit(me, nodenum, n1, n2, &nleft, &nright);
+    //Rprintf("root complexity = %f\n", me->complexity);
 
     /*
      * split the leftson
@@ -157,6 +163,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     me->leftson = (pNode) CALLOC(1, nodesize);
     (me->leftson)->parent = me;
     (me->leftson)->complexity = tempcp - ct.alpha;
+    //Rprintf("left son complexity = %f\n", (me->leftson)->complexity);
     left_split = partition(2 * nodenum, me->leftson, &left_risk, n1, n1 + nleft,
                            min_node_size, split_Rule, alpha, bucketnum, bucketMax,
                            train_to_est_ratio);
@@ -218,8 +225,9 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     
     me->complexity = (me->risk - (left_risk + right_risk)) /
 	(left_split + right_split + 1);
-  
+    //Rprintf("partition.c: line 222\n");
     
+    //Rprintf("me->complexiy = %f, ct.alpha = %f\n", me->complexity, ct.alpha);
     if (me->complexity <= ct.alpha) {
 	/*
 	 * All was in vain!  This node doesn't split after all.

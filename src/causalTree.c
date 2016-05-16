@@ -335,6 +335,8 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     
     partition(1, tree, &temp, 0, n, minsize, split_Rule, split_alpha, bucketnum, bucketMax,
               train_to_est_ratio); // temp store sumrisk
+    
+    //Rprintf("causalTree.c: line 339:finish partiton\n");
   
     CpTable cptable = (CpTable) ALLOC(1, sizeof(cpTable));
 
@@ -346,17 +348,20 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     cptable->xstd = 0;
     ct.num_unique_cp = 1;
     
-    
-
+    //Rprintf("caualTree.c: line 351\n");
     if (tree->rightson) {
+        //Rprintf("caualTree.c: line 353\n");
         make_cp_list(tree, tree->complexity, cptable);
+        //Rprintf("caualTree.c: line 355\n");
         make_cp_table(tree, tree->complexity, 0);
+        //Rprintf("caualTree.c: line 357\n");
         
         if (xvals > 1) {
             myxval(xvals, cptable, xgrp, maxcat, &errmsg, minsize, savesort, split_Rule,
                    crossmeth, split_alpha, cv_alpha, bucketnum, bucketMax);
         }
     }
+    //Rprintf("caualTree.c: line 361\n");
     /*
      * all done, create the return list for R
      * first the cp table
@@ -429,6 +434,7 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     }
 
 
+    //Rprintf("caualTree.c: line 434\n");
     ctmatrix(tree, ct.numcat, ddsplit, iisplit, ccsplit, ddnode, iinode, 1);
     free_tree(tree, 0);         /* let the memory go */
 

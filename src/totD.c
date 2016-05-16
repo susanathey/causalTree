@@ -13,16 +13,18 @@
 #define max(a,b)  (((a) > (b)) ? (a) : (b))
 #endif
 
+static double *sums, *wtsums, *treatment_effect;
+static double *wtsqrsums, *wttrsqrsums;
+static double *wts, *trs, *trsums;
+static int *countn;
+static int *tsplit;
+
+// for discrete version:
 static int *n_bucket;
 static double *wts_bucket, *trs_bucket;
 static double *tr_end_bucket, *con_end_bucket;
 static double *wtsums_bucket;
 
-
-static double *mean, *sums;
-static double *wts;
-static int *countn;
-static int *tsplit;
 
 int
 totDinit(int n, double *y[], int maxcat, char **error,
@@ -33,10 +35,14 @@ totDinit(int n, double *y[], int maxcat, char **error,
         graycode_init0(maxcat);
         countn = (int *) ALLOC(2 * maxcat, sizeof(int));
         tsplit = countn + maxcat;
-        mean = (double *) ALLOC(3 * maxcat, sizeof(double));
-        wts = mean + maxcat;
-        sums = wts + maxcat;
-
+        treatment_effect = (double *) ALLOC(8 * maxcat, sizeof(double));
+        wts = treatment_effect + maxcat;
+        trs = wts + maxcat;
+        sums = trs + maxcat;
+        wtsums = sums + maxcat;
+        trsums = wtsums + maxcat;
+        wtsqrsums = trsums + maxcat;
+        wttrsqrsums = wtsqrsums + maxcat;
     }
     *size = 1;
     *train_to_est_ratio = n * 1.0 / ct.NumHonest;
@@ -104,18 +110,19 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
     int direction = LEFT;
     int where = 0;
     double ystar;
+    int min_node_size = minsize;
+
     int bucketTmp;
     double trsum = 0.;
     int Numbuckets;
-    int min_node_size = minsize;
     
     double *cum_wt, *tmp_wt, *fake_x;
     double tr_wt_sum, con_wt_sum, con_cum_wt, tr_cum_wt;
     
-    right_wt = 0;
+    right_wt = 0.;
     right_n = n;
-    right_tr = 0;
-    right_sum = 0;
+    right_tr = 0.;
+    right_sum = 0.;
     trsum = 0.;
     for (i = 0; i < n; i++) {
         ystar = *y[i] * (treatment[i] - propensity) / (propensity * (1 - propensity));
@@ -131,6 +138,7 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
         cum_wt = (double *) ALLOC(n, sizeof(double));
         tmp_wt = (double *) ALLOC(n, sizeof(double));
         fake_x = (double *) ALLOC(n, sizeof(double));
+        
         tr_wt_sum = 0.;
         con_wt_sum = 0.;
         con_cum_wt = 0.;
@@ -247,34 +255,45 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
          * Categorical Predictor
          */
         for (i = 0; i < nclass; i++) {
-            sums[i] = 0;
             countn[i] = 0;
             wts[i] = 0;
+            trs[i] = 0;
+            sums[i] = 0;
+            wtsums[i] = 0;
+            trsums[i] = 0;
+            wtsqrsums[i] = 0;
+            wttrsqrsums[i] = 0;
         }
-        /* rank the classes by their mean y value */
+        
+        /* rank the classes by treatment effect */
         for (i = 0; i < n; i++) {
             j = (int) x[i] - 1;
             countn[j]++;
             wts[j] += wt[i];
-            ystar = *y[i] * (treatment[i] - propensity) / (propensity * (1 - propensity));
-            sums[j] += (ystar - grandmean) * wt[i];
+            trs[j] += wt[i] * treatment[i];
+            sums[j] += *y[i];
+            wtsums[j] += *y[i] * wt[i];
+            trsums[j] += *y[i] * wt[i] * treatment[i];
+            wtsqrsums[j] += (*y[i]) * (*y[i]) * wt[i];
+            wttrsqrsums[j] += (*y[i]) * (*y[i]) * wt[i] * treatment[i];
         }
+        
         for (i = 0; i < nclass; i++) {
             if (countn[i] > 0) {
                 tsplit[i] = RIGHT;
-                mean[i] = sums[i] / wts[i];
-            } else {
+                treatment_effect[i] = trsums[j] / trs[j] - (wtsums[j] - trsums[j]) / (wts[j] - trs[j]);
+            } else
                 tsplit[i] = 0;
-            }
         }
-        graycode_init2(nclass, countn, mean);
+        graycode_init2(nclass, countn, treatment_effect);
+  
         
         /*
          * Now find the split that we want
          */
         left_wt = 0;
         left_sum = 0;
-        right_sum = 0;
+        //right_sum = 0;
         left_n = 0;
         best = 0;
         where = 0;
@@ -286,7 +305,11 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
             right_wt -= wts[j];
             left_sum += sums[j];
             right_sum -= sums[j];
-            if (left_n >= edge && right_n >= edge) {
+            if (left_n >= edge && right_n >= edge &&
+                (int) left_tr >= min_node_size &&
+                (int) left_wt - (int) left_tr >= min_node_size &&
+                (int) right_tr >= min_node_size &&
+                (int) right_wt - (int) right_tr >= min_node_size) {
                 temp = left_sum * left_sum / left_wt +
                     right_sum * right_sum / right_wt;
                 if (temp > best) {

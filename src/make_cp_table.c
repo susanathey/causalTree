@@ -28,8 +28,12 @@ make_cp_table(pNode me, double parent, int nsplit)
 	 *  2) I send 0 to the left to keep the current split (me) from
 	 *       being counted twice, once by each child.
 	 */
+	//Rprintf("make_cp_table: line 31\n");
+	//Rprintf("me->complexity = %f\n", me->complexity);
 	make_cp_table(me->leftson, me->complexity, 0);
+	//Rprintf("make_cp_table: line 33\n");
 	cplist = make_cp_table(me->rightson, me->complexity, nsplit + 1);
+	//Rprintf("make_cp_table: line 35\n");
     } else
 	cplist = cptable_tail;
 
