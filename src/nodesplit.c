@@ -17,7 +17,6 @@
 void
 nodesplit(pNode me, int nodenum, int n1, int n2, int *nnleft, int *nnright)
 {
-	//Rprintf("I am in nodesplit!\n");
 	int i, j, k;
 	pSplit tsplit;
 	int var, extra, lastisleft, someleft;
@@ -69,7 +68,6 @@ nodesplit(pNode me, int nodenum, int n1, int n2, int *nnleft, int *nnright)
 		}
 	} else {
 		psplit = tsplit->spoint;        /* value of split point */
-		//Rprintf("psplit = %f\n", psplit);
 		extra = tsplit->csplit[0];
 		for (i = n1; i < n2; i++) {
 			j = sorts[pvar][i];
@@ -240,5 +238,4 @@ nodesplit(pNode me, int nodenum, int n1, int n2, int *nnleft, int *nnright)
 
 	*nnleft = nleft;
 	*nnright = nright;
-	//Rprintf("nleft = %d, nright = %d\n", nleft, nright);
 }

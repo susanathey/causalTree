@@ -105,7 +105,6 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
              &split, ct.csplit, me->risk, wtemp, trtemp, minsize, alpha,
              bucketnum, bucketMax, train_to_est_ratio);
         }
-        Rprintf("bsplit.c: line 108\n");
 
         /*
          * Originally, this just said "if (improve > 0)", but rounding
@@ -118,13 +117,11 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
             improve /= ct.vcost[i];     /* scale the improvement */
             tsplit = insert_split(&(me->primary), nc, improve, ct.maxpri);
             if (tsplit) {
-                Rprintf("I can split, split = %f\n", split);
                 tsplit->improve = improve;
                 tsplit->var_num = i;
                 tsplit->spoint = split;
                 tsplit->count = k;
                 if (nc == 0) {
-                    Rprintf("nc = %d\n", nc);
                     tsplit->spoint = split;
                     tsplit->csplit[0] = ct.csplit[0];
                 } else
@@ -133,5 +130,4 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
             }
         }
     }
-    Rprintf("bsplit.c: line 134\n");
 }

@@ -115,6 +115,7 @@ CTD(int n, double *y[], double *x, int nclass,
 	// for overlap:
 	double tr_min, tr_max, con_min, con_max;
 	double left_bd, right_bd;
+	double cut_point;
 
 	right_wt = 0;
 	right_tr = 0;
@@ -143,7 +144,6 @@ CTD(int n, double *y[], double *x, int nclass,
 
 	if (nclass == 0) {
 		/* continuous predictor */
-		//Rprintf("line142:before ALLOC cum_wt\n");
 		cum_wt = (double *) ALLOC(n, sizeof(double));
 		tmp_wt = (double *) ALLOC(n, sizeof(double));
 		fake_x = (double *) ALLOC(n, sizeof(double));
@@ -196,7 +196,6 @@ CTD(int n, double *y[], double *x, int nclass,
 		
 		bucketTmp = min(round(trsum / (double)bucketnum), round(((double)n - trsum) / (double)bucketnum));
 		Numbuckets = max(minsize, min(bucketTmp, bucketMax));
-		//Rprintf("Numbuckets = %d\n", Numbuckets);
 
 		for (i = 0; i < n; i++) {
 			if (treatment[i] == 0) {
@@ -212,7 +211,6 @@ CTD(int n, double *y[], double *x, int nclass,
 			}
 		}
         
-        //Rprintf("line180: before ALLOC n_bucket\n");
 		n_bucket = (int *) ALLOC(Numbuckets + 1,  sizeof(int));
 		n_tr_bucket = (int *) ALLOC(Numbuckets + 1, sizeof(int));
 		n_con_bucket = (int *) ALLOC(Numbuckets + 1, sizeof(int));
@@ -225,7 +223,6 @@ CTD(int n, double *y[], double *x, int nclass,
 		tr_end_bucket = (double *) ALLOC(Numbuckets + 1, sizeof(double));
 		con_end_bucket = (double *) ALLOC (Numbuckets + 1, sizeof(double));
 		
-		//Rprintf("line192: after ALLOC n_bucket\n");
 
 		for (j = 0; j < Numbuckets + 1; j++) {
 			n_bucket[j] = 0;
@@ -254,7 +251,6 @@ CTD(int n, double *y[], double *x, int nclass,
 				con_end_bucket[j] = x[i];
 			}
 		}
-		//Rprintf("line222: after updating buckets\n");
 
 		left_wt = 0;
 		left_tr = 0;
@@ -288,14 +284,13 @@ CTD(int n, double *y[], double *x, int nclass,
 			left_tr_sqr_sum += trsqrsums_bucket[j];
 			right_tr_sqr_sum -= trsqrsums_bucket[j];
             
-            double cut_point = (tr_end_bucket[j] + con_end_bucket[j]) / 2.0;
+            cut_point = (tr_end_bucket[j] + con_end_bucket[j]) / 2.0;
 			if (left_n >= edge && right_n >= edge &&
 					(int) left_tr >= min_node_size &&
 					(int) left_wt - (int) left_tr >= min_node_size &&
 					(int) right_tr >= min_node_size &&
 					(int) right_wt - (int) right_tr >= min_node_size &&
 					cut_point < right_bd && cut_point > left_bd) {
-                //Rprintf("I am in!\n");
 				left_temp = left_tr_sum / left_tr - 
 					(left_sum - left_tr_sum) / (left_wt - left_tr);
 				left_tr_var = left_tr_sqr_sum / left_tr - 
@@ -318,7 +313,6 @@ CTD(int n, double *y[], double *x, int nclass,
 					- (1 - alpha) * (1 + train_to_est_ratio) * right_wt 
 					* (right_tr_var / right_tr + right_con_var / (right_wt - right_tr));
 				temp = left_effect + right_effect - node_effect;
-                //Rprintf("temp = %f\n", temp);
 				if (temp > best) {
 					best = temp;                  
 					where = j; 
@@ -334,7 +328,6 @@ CTD(int n, double *y[], double *x, int nclass,
 		if (best > 0) {         /* found something */
 			csplit[0] = direction;
 			*split = (tr_end_bucket[where] + con_end_bucket[where]) / 2.0;
-			//Rprintf("best = %f,split here = %f!\n", best, *split);
 		}
 
 	} else {
