@@ -105,7 +105,7 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
              &split, ct.csplit, me->risk, wtemp, trtemp, minsize, alpha,
              bucketnum, bucketMax, train_to_est_ratio);
         }
-        Rprintf("bsplit.c: line 108\n");
+        // Rprintf("bsplit.c: line 108\n");
 
         /*
          * Originally, this just said "if (improve > 0)", but rounding
@@ -133,5 +133,5 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
             }
         }
     }
-    Rprintf("bsplit.c: line 134\n");
+    // Rprintf("bsplit.c: line 134\n");
 }
