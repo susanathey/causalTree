@@ -5,14 +5,11 @@
 #include "causalTree.h"
 #include "causalTreeproto.h"
 
-/*
- * Warning: need to change to discrete version of TOT
- */
 static double *sums, *wtsums, *treatment_effect;
 static double *wts, *trs, *trsums;
 static int *countn;
 static int *tsplit;
-static double *wtsqrsums, * trsqrsums;
+static double *wtsqrsums, *trsqrsums;
 
 int
 CTinit(int n, double *y[], int maxcat, char **error,
@@ -39,8 +36,9 @@ CTinit(int n, double *y[], int maxcat, char **error,
 
 
 void
-CTss(int n, double *y[], double *value,  double *con_mean, double *tr_mean, double *risk, double *wt, double *treatment, double max_y,
-         double alpha, double train_to_est_ratio)
+CTss(int n, double *y[], double *value,  double *con_mean, double *tr_mean, 
+     double *risk, double *wt, double *treatment, double max_y,
+     double alpha, double train_to_est_ratio)
 {
     int i;
     double temp0 = 0., temp1 = 0., twt = 0.; /* sum of the weights */ 
@@ -92,10 +90,10 @@ void CT(int n, double *y[], double *x, int nclass, int edge, double *improve, do
     double right_sqr_sum, right_tr_sqr_sum, left_sqr_sum, left_tr_sqr_sum;
     double left_tr_var, left_con_var, right_tr_var, right_con_var;
     
-    right_wt = 0;
-    right_tr = 0;
-    right_sum = 0;
-    right_tr_sum = 0;
+    right_wt = 0.;
+    right_tr = 0.;
+    right_sum = 0.;
+    right_tr_sum = 0.;
     right_sqr_sum = 0.;
     right_tr_sqr_sum = 0.;
     right_n = n;
@@ -116,7 +114,6 @@ void CT(int n, double *y[], double *x, int nclass, int edge, double *improve, do
     node_effect = alpha * temp * temp * right_wt - (1 - alpha) * (1 + train_to_est_ratio) 
         * right_wt * (tr_var / right_tr  + con_var / (right_wt - right_tr));
     
-
     if (nclass == 0) {
         /* continuous predictor */
         left_wt = 0;
@@ -153,7 +150,7 @@ void CT(int n, double *y[], double *x, int nclass, int edge, double *improve, do
                 (int) left_wt - (int) left_tr >= min_node_size &&
                 (int) right_tr >= min_node_size &&
                 (int) right_wt - (int) right_tr >= min_node_size) {
-                
+    
                 left_temp = left_tr_sum / left_tr - 
                     (left_sum - left_tr_sum) / (left_wt - left_tr);
                 left_tr_var = left_tr_sqr_sum / left_tr - 
@@ -231,9 +228,10 @@ void CT(int n, double *y[], double *x, int nclass, int edge, double *improve, do
                 tsplit[i] = 0;
         }
         graycode_init2(nclass, countn, treatment_effect);
+        
         /*
-        * Now find the split that we want
-        */
+         * Now find the split that we want
+         */
         
         left_wt = 0;
         left_tr = 0;

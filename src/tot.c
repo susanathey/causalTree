@@ -8,8 +8,10 @@
 /*
  * Warning: need to change to discrete version of TOT
  */
-static double *mean, *sums;
-static double *wts;
+
+static double *sums, *wtsums, *treatment_effect;
+static double *wtsqrsums, *wttrsqrsums;
+static double *wts, *trs, *trsums;
 static int *countn;
 static int *tsplit;
 
@@ -22,9 +24,14 @@ totinit(int n, double *y[], int maxcat, char **error,
         graycode_init0(maxcat);
         countn = (int *) ALLOC(2 * maxcat, sizeof(int));
         tsplit = countn + maxcat;
-        mean = (double *) ALLOC(3 * maxcat, sizeof(double));
-        wts = mean + maxcat;
-        sums = wts + maxcat;
+        treatment_effect = (double *) ALLOC(8 * maxcat, sizeof(double));
+        wts = treatment_effect + maxcat;
+        trs = wts + maxcat;
+        sums = trs + maxcat;
+        wtsums = sums + maxcat;
+        trsums = wtsums + maxcat;
+        wtsqrsums = trsums + maxcat;
+        wttrsqrsums = wtsqrsums + maxcat;
 
     }
     *size = 1;
@@ -157,27 +164,37 @@ void tot(int n, double *y[], double *x, int nclass, int edge, double *improve,
          * Categorical Predictor
          */
         for (i = 0; i < nclass; i++) {
-            sums[i] = 0;
             countn[i] = 0;
             wts[i] = 0;
+            trs[i] = 0;
+            sums[i] = 0;
+            wtsums[i] = 0;
+            trsums[i] = 0;
+            wtsqrsums[i] = 0;
+            wttrsqrsums[i] = 0;
         }
-        /* rank the classes by their mean y value */
+        
+        /* rank the classes by treatment effect */
         for (i = 0; i < n; i++) {
             j = (int) x[i] - 1;
             countn[j]++;
             wts[j] += wt[i];
-            ystar = *y[i] * (treatment[i] - propensity) / (propensity * (1 - propensity));
-            sums[j] += (ystar - grandmean) * wt[i];
+            trs[j] += wt[i] * treatment[i];
+            sums[j] += *y[i];
+            wtsums[j] += *y[i] * wt[i];
+            trsums[j] += *y[i] * wt[i] * treatment[i];
+            wtsqrsums[j] += (*y[i]) * (*y[i]) * wt[i];
+            wttrsqrsums[j] += (*y[i]) * (*y[i]) * wt[i] * treatment[i];
         }
+        
         for (i = 0; i < nclass; i++) {
             if (countn[i] > 0) {
                 tsplit[i] = RIGHT;
-                mean[i] = sums[i] / wts[i];
-            } else {
+                treatment_effect[i] = trsums[j] / trs[j] - (wtsums[j] - trsums[j]) / (wts[j] - trs[j]);
+            } else
                 tsplit[i] = 0;
-            }
         }
-        graycode_init2(nclass, countn, mean);
+        graycode_init2(nclass, countn, treatment_effect);
         
         /*
          * Now find the split that we want
@@ -224,43 +241,3 @@ double
         temp = ystar - *yhat;
         return temp * temp * wt;
     }
-
-double totxeval(int *unique_leaf, int **val_leaf_mat, int cp_id, int t, int *sorts, double *wt,
-                double *treatment,  double *y[], double propensity, int k, int nobs, double val_sum_wt, int val_count) {
-    
-    int s, i, j;
-    int jj = cp_id;
-    double leaf_total_error;
-    double leaf_local_wt;
-    double leaf_local_wt_sum;
-    double leaf_local_wt_sq_sum;
-    double ystar, ystarMean;
-    int node;
-    
-    leaf_total_error = 0.;
-    for (s = 0; s < t; s++) {
-        leaf_local_wt = 0.;
-        leaf_local_wt_sum = 0.;
-        leaf_local_wt_sq_sum = 0.;
-        node = unique_leaf[s];
-        if (node == 0) {
-            Rprintf("There is a bug!\n");
-        }
-        for (i = k; i < nobs; i++) {
-            j = sorts[i];
-            if(val_leaf_mat[j][jj] == node) {
-                ystar = y[0][j] * (treatment[j] - propensity) / (propensity * (1 - propensity));
-                leaf_local_wt += wt[j];
-                leaf_local_wt_sum += wt[j] * ystar;
-                leaf_local_wt_sq_sum += wt[j] * ystar * ystar;
-            }
-        }
-        ystarMean = leaf_local_wt_sum / leaf_local_wt;
-        leaf_total_error += leaf_local_wt_sq_sum - leaf_local_wt * ystarMean;
-    }
-    if (leaf_total_error != leaf_total_error) Rprintf("Nan value happens here!");
-    return leaf_total_error;
-}
-
-
-

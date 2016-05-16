@@ -1,6 +1,7 @@
 /*
  * The discrte version of fit.
  */
+#include <math.h>
 #include "causalTree.h"
 #include "causalTreeproto.h"
 
@@ -14,9 +15,9 @@
 #define max(a,b)  (((a) > (b)) ? (a) : (b))
 #endif
 
-static double *mean, *sums, *wtsums, *treatment_effect;
-static double *wts, *trs, *trsums;
+static double *sums, *wtsums, *treatment_effect;
 static double *wtsqrsums, *wttrsqrsums;
+static double *wts, *trs, *trsums;
 static int *countn;
 static int *tsplit;
 
@@ -38,12 +39,14 @@ fitDinit(int n, double *y[], int maxcat, char **error,
 		graycode_init0(maxcat);
 		countn = (int *) ALLOC(2 * maxcat, sizeof(int));
 		tsplit = countn + maxcat;
-		mean = (double *) ALLOC(6 * maxcat, sizeof(double));
-		wts = mean + maxcat;
+		treatment_effect = (double *) ALLOC(8 * maxcat, sizeof(double));
+		wts = treatment_effect + maxcat;
 		trs = wts + maxcat;
 		sums = trs + maxcat;
 		wtsums = sums + maxcat;
-		trsums = wtsums + maxcat;  
+		trsums = wtsums + maxcat;
+		wtsqrsums = trsums + maxcat;
+		wttrsqrsums = wtsqrsums + maxcat;
 	}
 	*size = 1;
 	*train_to_est_ratio = n * 1.0 / ct.NumHonest;
@@ -85,8 +88,8 @@ fitDss(int n, double *y[], double *value, double *con_mean, double *tr_mean, dou
     *con_mean = temp0 / (twt - ttreat);
     *value = effect;
     *risk =  4 * twt * ct.max_y * ct.max_y - alpha * (ttreat * trmean *trmean 
-    + (twt - ttreat) * conmean * conmean) + (1 - alpha) * (1 + train_to_est_ratio) 
-    * (tr_var + con_var );
+             + (twt - ttreat) * conmean * conmean) + (1 - alpha) * (1 + train_to_est_ratio) 
+             * (tr_var + con_var );
  }
 
 
@@ -119,6 +122,11 @@ fitD(int n, double *y[], double *x, int nclass,
 	
 	double *cum_wt, *tmp_wt, *fake_x;
 	double tr_wt_sum, con_wt_sum, con_cum_wt, tr_cum_wt;
+	
+	// for overlap:
+	double tr_min, tr_max, con_min, con_max;
+	double left_bd, right_bd;
+	double cut_point;
 	
 	right_wt = 0;
 	right_tr = 0;
@@ -158,29 +166,59 @@ fitD(int n, double *y[], double *x, int nclass,
 	    con_cum_wt = 0.;
 	    tr_cum_wt = 0.;
 	    
-	    for (i = 0; i < n; i ++) {
+	    // find the abs max and min of x:
+	    double max_abs_tmp = fabs(x[0]);
+	    for (i = 0; i < n; i++) {
+	        if (max_abs_tmp < fabs(x[i])) {
+	            max_abs_tmp = fabs(x[i]);
+	        }
+	    }
+	    
+	    // set tr_min, con_min, tr_max, con_max to a large/small value
+	    tr_min = max_abs_tmp;
+	    tr_max = -max_abs_tmp;
+	    con_min = max_abs_tmp;
+	    con_max = -max_abs_tmp;
+	    
+	    for (i = 0; i < n; i++) {
 	        if (treatment[i] == 0) {
 	            con_wt_sum += wt[i];
+	            if (con_min > x[i]) {
+	                con_min = x[i];
+	            }
+	            if (con_max < x[i]) {
+	                con_max = x[i];
+	            }
 	        } else {
 	            tr_wt_sum += wt[i];
+	            if (tr_min > x[i]) {
+	                tr_min = x[i];
+	            }
+	            if (tr_max < x[i]) {
+	                tr_max = x[i];
+	            }
 	        }
 	        cum_wt[i] = 0.;
 	        tmp_wt[i] = 0.;
 	        fake_x[i] = 0.;
 	    }
 	    
+	    // compute the left bound and right bound
+	    left_bd = max(tr_min, con_min);
+	    right_bd = min(tr_max, con_max);
+	    
 		bucketTmp = min(round(trsum / (double)bucketnum), round(((double)n - trsum) / (double)bucketnum));
 	    Numbuckets = max(minsize, min(bucketTmp, bucketMax));
 	    
-	    n_bucket = (int *) ALLOC(Numbuckets,  sizeof(int));
-	    wts_bucket = (double *) ALLOC(Numbuckets, sizeof(double));
-	    trs_bucket = (double *) ALLOC(Numbuckets, sizeof(double));
-	    wtsums_bucket = (double *) ALLOC(Numbuckets, sizeof(double));
-	    trsums_bucket = (double *) ALLOC(Numbuckets, sizeof(double));
-	    wtsqrsums_bucket = (double *) ALLOC(Numbuckets, sizeof(double));
-	    trsqrsums_bucket = (double *) ALLOC(Numbuckets, sizeof(double));
-	    tr_end_bucket = (double *) ALLOC(Numbuckets, sizeof(double));
-	    con_end_bucket = (double *) ALLOC (Numbuckets, sizeof(double));
+	    n_bucket = (int *) ALLOC(Numbuckets + 1,  sizeof(int));
+	    wts_bucket = (double *) ALLOC(Numbuckets + 1, sizeof(double));
+	    trs_bucket = (double *) ALLOC(Numbuckets + 1, sizeof(double));
+	    wtsums_bucket = (double *) ALLOC(Numbuckets + 1, sizeof(double));
+	    trsums_bucket = (double *) ALLOC(Numbuckets + 1, sizeof(double));
+	    wtsqrsums_bucket = (double *) ALLOC(Numbuckets + 1, sizeof(double));
+	    trsqrsums_bucket = (double *) ALLOC(Numbuckets + 1, sizeof(double));
+	    tr_end_bucket = (double *) ALLOC(Numbuckets + 1, sizeof(double));
+	    con_end_bucket = (double *) ALLOC (Numbuckets + 1, sizeof(double));
 	    
 	    for (i = 0; i < n; i++) {
 	        if (treatment[i] == 0) {
@@ -255,11 +293,13 @@ fitD(int n, double *y[], double *x, int nclass,
 		    left_tr_sqr_sum += trsqrsums_bucket[j];
 		    right_tr_sqr_sum -= trsqrsums_bucket[j];
 		    
+		    cut_point = (tr_end_bucket[j] + con_end_bucket[j]) / 2.0;
 		    if (left_n >= edge && right_n >= edge &&
                 (int) left_tr >= min_node_size &&
                 (int) left_wt - (int) left_tr >= min_node_size &&
                 (int) right_tr >= min_node_size &&
-                (int) right_wt - (int) right_tr >= min_node_size) {
+                (int) right_wt - (int) right_tr >= min_node_size &&
+                cut_point < right_bd && cut_point > left_bd) {
 		        
 		        double left_trmean = left_tr_sum / left_tr;
 		        double left_conmean = (left_sum - left_tr_sum) / (left_wt - left_tr);
@@ -305,6 +345,9 @@ fitD(int n, double *y[], double *x, int nclass,
 		}
 		
 	} else {
+	    /*
+	     * Categorical Predictor
+	     */
 	    for (i = 0; i < nclass; i++) {
 	        countn[i] = 0;
 	        wts[i] = 0;
@@ -405,7 +448,6 @@ fitD(int n, double *y[], double *x, int nclass,
 	            
 	            if (temp > best) {
 	                best = temp;
-	                
 	                if (left_temp > right_temp)
 	                    for (i = 0; i < nclass; i++) csplit[i] = -tsplit[i];
 	                else
