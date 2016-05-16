@@ -123,7 +123,7 @@ of the sample average of the treated group and the sample average of the control
 at each step.\par
 The user also specifies a cross-validation method.  Cross-validation is implemented similar to \texttt{rpart}, where the cross-validation penalty parameter
 penalizes the number of nodes in the tree.  The main difference arises in the cross-validation criterion, which is 
-selected by the user.  The \texttt{cptable} of the \texttt{rpart} object includes the cross-validation error.   The user can choose to prune the tree will be pruned using a specified cross-validation method, where  The leaves to be pruned are selected according to the risk function calculated while
+selected by the user.  The \texttt{cptable} of the \texttt{rpart} object includes the cross-validation error.   The user can choose to prune the tree using a specified cross-validation method, where  The leaves to be pruned are selected according to the risk function calculated while
 the tree is built. \par
 The \texttt{causalTree} package incorporates an additional function not included in \texttt{rpart}, which is honest re-estimation \texttt{honest.causalTree} of causal effects. Honest here means that we estimate causal effects in the leaves of a given tree on an independent estimation sample rather than the data used to build and cross-validate the tree.  The user first builds the tree
 with \texttt{causalTree}, specifying the training data for building the tree, and then passes the tree object as well as the estimation sample data
@@ -190,7 +190,7 @@ $N$
 \> $N^\est$ denotes the number of observations in estimation sample.\\
 \\
 $\Pi$ \>  a partitioning tree $\calp=\{\ell_1,\ldots,\ell_{\#(\Pi)}\}$ with $\cup_{j=1}^{\#(\calp)} \ell_j=\mathbb{X}$ \\ 
-\> corresponds to a partitioning of the feature space the feature sapce $\mathbb{X}$, with\\
+\> corresponds to a partitioning of the feature space the feature space $\mathbb{X}$, with\\
 \> $\#(\calp)$ the number of elements in the partition.\\
 \\
 $\ell(x; \calp)$ \> the leaf $\ell \in \calp$ such that $x \in \ell$.\\
