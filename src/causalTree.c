@@ -317,6 +317,14 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
         //tstatsD:
         (*ct_eval) (n, ct.ydata, tree->response_est, tree->controlMean, tree->treatMean, 
          &(tree->risk), wt, treatment, ct.max_y, split_alpha, train_to_est_ratio);
+    } else if (split_Rule == 9) {
+        // user (temporarily set as CT)
+        (*ct_eval) (n, ct.ydata, tree->response_est, tree->controlMean, tree->treatMean, 
+         &(tree->risk), wt, treatment, ct.max_y, split_alpha, train_to_est_ratio);
+    } else if (split_Rule == 10) {
+        // userD (temporarily set as CTD)
+        (*ct_eval) (n, ct.ydata, tree->response_est, tree->controlMean, tree->treatMean, 
+         &(tree->risk), wt, treatment, ct.max_y, split_alpha, train_to_est_ratio);
     }
     tree->complexity = tree->risk;
     ct.alpha = ct.complexity * tree->risk;
@@ -338,8 +346,6 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     cptable->xstd = 0;
     ct.num_unique_cp = 1;
     
-    
-
     if (tree->rightson) {
         make_cp_list(tree, tree->complexity, cptable);
         make_cp_table(tree, tree->complexity, 0);
@@ -419,7 +425,6 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     } else {
         ccsplit = NULL;
     }
-
 
     ctmatrix(tree, ct.numcat, ddsplit, iisplit, ccsplit, ddnode, iinode, 1);
     free_tree(tree, 0);         /* let the memory go */

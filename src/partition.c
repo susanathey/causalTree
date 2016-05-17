@@ -14,12 +14,10 @@
 #include "causalTreeproto.h"
 
 int
-//partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2)
 partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
           int minsize, int split_Rule, double alpha, int bucketnum, int bucketMax,
           double train_to_est_ratio)
 {
-    //Rprintf("partition (%d)\n", nodenum);
     pNode me;
     double tempcp;
     int i, j, k;
@@ -34,10 +32,6 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     me = splitnode;
     n = n2 - n1;                /* total number of observations */
     me->id = nodenum;
-    
-    //if (!me->primary) {
-    //    Rprintf("Not primary at 38L");
-    //}
     
 
     if (nodenum > 1) {
@@ -87,6 +81,14 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
 	        //tstatsD
 	        (*ct_eval) (n, ct.ytemp, me->response_est, me->controlMean, me->treatMean, 
           &(me->risk), ct.wtemp, ct.trtemp, ct.max_y, alpha, train_to_est_ratio);
+	    } else if (split_Rule == 9) {
+	        // user (temporarily set as CT)
+	        (*ct_eval) (n, ct.ytemp, me->response_est, me->controlMean, me->treatMean, 
+          &(me->risk), ct.wtemp, ct.trtemp, ct.max_y, alpha, train_to_est_ratio);
+	    } else if (split_Rule == 10) {
+	        // userD (temporarily set as CTD)
+	        (*ct_eval) (n, ct.ytemp, me->response_est, me->controlMean, me->treatMean, 
+          &(me->risk), ct.wtemp, ct.trtemp, ct.max_y, alpha, train_to_est_ratio);
 	    }
 
 	    me->num_obs = n;
@@ -121,7 +123,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
      */
     
     bsplit(me, n1, n2, min_node_size, split_Rule, alpha, bucketnum, bucketMax, train_to_est_ratio);
-
+    
     if (!me->primary) {
 	/*
 	 * This is rather rare -- but I couldn't find a split worth doing
@@ -141,6 +143,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
 	surrogate(me, n1, n2);
     else
 	me->surrogate = (pSplit) NULL;
+    
     nodesplit(me, nodenum, n1, n2, &nleft, &nright);
 
     /*
@@ -210,7 +213,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     
     me->complexity = (me->risk - (left_risk + right_risk)) /
 	(left_split + right_split + 1);
-  
+
     
     if (me->complexity <= ct.alpha) {
 	/*

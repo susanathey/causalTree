@@ -5,11 +5,12 @@
 #include "causalTreeproto.h"
 
 
-static double *mean, *sums, *wtsums;
-static double *wts, *trs, *trsums;
+static double *sums, *wtsums, *treatment_effect;
 static double *wtsqrsums, *wttrsqrsums;
+static double *wts, *trs, *trsums;
 static int *countn;
 static int *tsplit;
+
 
 int
 tstatsinit(int n, double *y[], int maxcat, char **error,
@@ -20,12 +21,14 @@ tstatsinit(int n, double *y[], int maxcat, char **error,
         graycode_init0(maxcat);
         countn = (int *) ALLOC(2 * maxcat, sizeof(int));
         tsplit = countn + maxcat;
-        mean = (double *) ALLOC(6 * maxcat, sizeof(double));
-        wts = mean + maxcat;
+        treatment_effect = (double *) ALLOC(8 * maxcat, sizeof(double));
+        wts = treatment_effect + maxcat;
         trs = wts + maxcat;
         sums = trs + maxcat;
         wtsums = sums + maxcat;
         trsums = wtsums + maxcat;
+        wtsqrsums = trsums + maxcat;
+        wttrsqrsums = wtsqrsums + maxcat;
     }
     *size = 1;
     *train_to_est_ratio = n * 1.0 / ct.NumHonest;
@@ -43,29 +46,27 @@ tstatsss(int n, double *y[], double *value, double *con_mean,  double *tr_mean, 
     double effect;
     double tr_var, con_var;
     double con_sqr_sum = 0., tr_sqr_sum = 0.;
-
+    
     for (i = 0; i < n; i++) {
         temp1 += *y[i] * wt[i] * treatment[i];
         temp0 += *y[i] * wt[i] * (1 - treatment[i]);
         twt += wt[i];
         ttreat += wt[i] * treatment[i];
         tr_sqr_sum += (*y[i]) * (*y[i]) * wt[i] * treatment[i];
-        con_sqr_sum += (*y[i]) * (*y[i]) * wt[i] * (1 - treatment[i]);
+        con_sqr_sum += (*y[i]) * (*y[i]) * wt[i] * (1- treatment[i]);
     }
-
+    
     effect = temp1 / ttreat - temp0 / (twt - ttreat);
     tr_var = tr_sqr_sum / ttreat - temp1 * temp1 / (ttreat * ttreat);
-    con_var = con_sqr_sum / (twt - ttreat) - temp0 * temp0 
-              / ((twt - ttreat) * (twt - ttreat));
-
+    con_var = con_sqr_sum / (twt - ttreat) - temp0 * temp0 / ((twt - ttreat) * (twt - ttreat));
     
     *tr_mean = temp1 / ttreat;
     *con_mean = temp0 / (twt - ttreat);
     *value = effect;
-    *risk = 4 * n * max_y * max_y - alpha * n * effect * effect 
-    + (1 - alpha) * (1 + train_to_est_ratio) * n 
-    * (tr_var /ttreat  + con_var / (twt - ttreat));
+    *risk = 4 * twt * max_y * max_y - alpha * twt * effect * effect + 
+    (1 - alpha) * (1 + train_to_est_ratio) * twt * (tr_var /ttreat  + con_var / (twt - ttreat));
 }
+
 
 void
 tstats(int n, double *y[], double *x, int nclass,
@@ -210,13 +211,11 @@ tstats(int n, double *y[], double *x, int nclass,
             csplit[0] = direction;
             *split = (x[where] + x[where + 1]) / 2;
         }
-    }
-
-    /*
-     * Categorical predictor
-     */
-
-    else {
+    } else {
+        
+        /*
+         * Categorical predictor
+         */
         for (i = 0; i < nclass; i++) {
             countn[i] = 0;
             wts[i] = 0;
@@ -227,9 +226,8 @@ tstats(int n, double *y[], double *x, int nclass,
             wtsqrsums[i] = 0;
             wttrsqrsums[i] = 0;
         }
-
-        /* rank the classes by their mean y value */
-        /* RANK THE CLASSES BY THEI */
+        
+        /* rank the classes by treatment effect */
         for (i = 0; i < n; i++) {
             j = (int) x[i] - 1;
             countn[j]++;
@@ -241,18 +239,16 @@ tstats(int n, double *y[], double *x, int nclass,
             wtsqrsums[j] += (*y[i]) * (*y[i]) * wt[i];
             wttrsqrsums[j] += (*y[i]) * (*y[i]) * wt[i] * treatment[i];
         }
-
+        
         for (i = 0; i < nclass; i++) {
             if (countn[i] > 0) {
                 tsplit[i] = RIGHT;
-                mean[i] = sums[i] / wts[i];
-                // mean[i] = sums[i] / countn[i];
-                //Rprintf("countn[%d] = %d, mean[%d] = %f\n", i, countn[i], i, mean[i]);
+                treatment_effect[i] = trsums[j] / trs[j] - (wtsums[j] - trsums[j]) / (wts[j] - trs[j]);
             } else
                 tsplit[i] = 0;
         }
-        graycode_init2(nclass, countn, mean);
-
+        graycode_init2(nclass, countn, treatment_effect);
+        
         /*
          * Now find the split that we want
          */
@@ -291,12 +287,13 @@ tstats(int n, double *y[], double *x, int nclass,
             right_tr_sqr_sum -= wttrsqrsums[j];
 
             if (left_n >= edge && right_n >= edge &&
-                    (int) left_tr >= min_node_size &&
-                    (int) left_wt - (int) left_tr >= min_node_size &&
-                    (int) right_tr >= min_node_size &&
-                    (int) right_wt - (int) right_tr >= min_node_size) {
+                (int) left_tr >= min_node_size &&
+                (int) left_wt - (int) left_tr >= min_node_size &&
+                (int) right_tr >= min_node_size &&
+                (int) right_wt - (int) right_tr >= min_node_size) {
 
-                left_temp = left_tr_sum / left_tr - (left_sum - left_tr_sum) / (left_wt - left_tr);
+                left_temp = left_tr_sum / left_tr - (left_sum - left_tr_sum)
+                          / (left_wt - left_tr);
                 left_tr_var = left_tr_sqr_sum / left_tr - left_tr_sum  * left_tr_sum / (left_tr * left_tr);
                 left_con_var = (left_sqr_sum - left_tr_sqr_sum) / (left_wt - left_tr) 
                     - (left_sum - left_tr_sum) * (left_sum - left_tr_sum)/ ((left_wt - left_tr) * (left_wt - left_tr));   
@@ -321,16 +318,15 @@ tstats(int n, double *y[], double *x, int nclass,
                 if (temp > best) {
                     best = temp;
                     improve_best = improve_temp;
+                    if (left_temp > right_temp)
+                        for (i = 0; i < nclass; i++) csplit[i] = -tsplit[i];
+                    else
+                        for (i = 0; i < nclass; i++) csplit[i] = tsplit[i];
                 }
             }
         }
-        *improve = best;
-        if (improve_best > 0) {
-            if (left_temp > right_temp)
-                for (i = 0; i < nclass; i++) csplit[i] = -tsplit[i];
-            else
-                for (i = 0; i < nclass; i++) csplit[i] = tsplit[i];
-        }
+        //*improve = best;
+        *improve = improve_best;
     }
 }
 

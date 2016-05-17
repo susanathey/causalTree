@@ -127,9 +127,9 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 		split.Rule <- paste(split.Rule, 'D', sep = '') 
 	}
 
-	split.Rule.int <- pmatch(split.Rule, c("TOT", "CT", "fit", "tstats", "TOTD", "CTD", "fitD", "tstatsD"))
+	split.Rule.int <- pmatch(split.Rule, c("TOT", "CT", "fit", "tstats", "TOTD", "CTD", "fitD", "tstatsD", "user", "userD"))
 	if (is.na(split.Rule.int)) stop("Invalid splitting rule.")
-	split.Rule <- c("TOT", "CT", "fit", "tstats", "TOTD", "CTD", "fitD", "tstatsD")[split.Rule.int]
+	split.Rule <- c("TOT", "CT", "fit", "tstats", "TOTD", "CTD", "fitD", "tstatsD", "user", "userD")[split.Rule.int]
 
 	## check the Split.Honest, for convenience
 	if (split.Rule.int %in% c(1, 5)) {
@@ -152,8 +152,8 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 	if(is.na(split.Honest.num)) 
 		stop("Invalid split.Honest input, split.Honest can be only TRUE or FALSE.")
 
-	if (split.Honest == TRUE && split.Rule.int %in% c(2, 3, 4, 6, 7, 8)) {
-		# ct, tstats, ctd, tstatsd:
+	if (split.Honest == TRUE && split.Rule.int %in% c(2, 3, 4, 6, 7, 8, 9, 10)) {
+		# ct, fit, tstats, ctd, fitd, tstatsd, user, userd:
 		if(missing(split.alpha)) {
 			# set default honest splitting alpha to 0.5
 			split.alpha <- 0.5
@@ -163,7 +163,7 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 				stop("Invalid input for split.alpha. split.alpha should between 0 and 1.")
 			}
 		}
-	} else if (split.Rule.int %in% c(2, 3, 4, 6, 7, 8)){
+	} else if (split.Rule.int %in% c(2, 3, 4, 6, 7, 8, 9, 10)){
 		# split.Honest = False
 		if (split.alpha != 1) 
 			warning("For dishonest(adaptive) splitting, split.alpha =  1.");
@@ -185,7 +185,7 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 	# ------------------------------------- cv begins -------------------------------------- #
 	if (missing(cv.option)) {
 		# temporarily, no crossvalidation 
-		warning("You choose not to do cross validations.")
+		warning("Miss 'cv.option', choose not to do cross validations.")
 		cv.option <-"none"
 		xval <- 0
 	} 
@@ -206,7 +206,7 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 		}
 	}
 
-	cv.option.num <- pmatch(cv.option, c("TOT", "matching", "fitH", "fitA", "CTH", "CTA", "none"))
+	cv.option.num <- pmatch(cv.option, c("TOT", "matching", "fitH", "fitA", "CTH", "CTA", "userH", "userA", "none"))
 	if(is.na(cv.option.num)) stop("Invalid cv option.") 
 
 	# check cv.alpha

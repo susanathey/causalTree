@@ -135,18 +135,26 @@ myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg,
             (*ct_eval) (k, ct.ytemp, xtree->response_est, xtree->controlMean, xtree->treatMean, 
              &(xtree->risk), ct.wtemp, ct.trtemp, ct.max_y, ct.propensity);
         } else if (split_Rule == 6) {
-            // CT_discrete
+            // CTD
             (*ct_eval) (k, ct.ytemp, xtree->response_est, xtree->controlMean, xtree->treatMean,
              &(xtree->risk), ct.wtemp, ct.trtemp, ct.max_y, split_alpha, xtrain_to_est_ratio);
         } else if (split_Rule == 7) {
-            // fitD
+            // fitD:
             (*ct_eval) (k, ct.ytemp, xtree->response_est, xtree->controlMean, xtree->treatMean, 
-             &(xtree->risk), ct.wtemp, ct.trtemp, ct.max_y);
+             &(xtree->risk), ct.wtemp, ct.trtemp, ct.max_y, split_alpha, xtrain_to_est_ratio);
         } else if (split_Rule == 8) {
             //tstatsD:
             (*ct_eval) (k, ct.ytemp, xtree->response_est, xtree->controlMean, xtree->treatMean, 
              &(xtree->risk), ct.wtemp, ct.trtemp, ct.max_y, split_alpha, bucketnum, bucketMax,
              xtrain_to_est_ratio);
+        } else if (split_Rule == 9) {
+            // user (set temporarily as CT)
+            (*ct_eval) (k, ct.ytemp, xtree->response_est, xtree->controlMean, xtree->treatMean,
+             &(xtree->risk), ct.wtemp, ct.trtemp, ct.max_y, split_alpha, xtrain_to_est_ratio);
+        } else if (split_Rule == 10) {
+            // userD (set temporarily as CTD)
+            (*ct_eval) (k, ct.ytemp, xtree->response_est, xtree->controlMean, xtree->treatMean,
+             &(xtree->risk), ct.wtemp, ct.trtemp, ct.max_y, split_alpha, xtrain_to_est_ratio);
         }
         
         xtree->complexity = xtree->risk;
@@ -172,7 +180,7 @@ myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg,
                 neighbor = findNeighbor(j, k);
                 matching_rundown(xtree, j, neighbor, cp, xpred, xpred2, xtemp);
             } else if (crossmeth == 3) {
-                //fit-honest: aloha need to change to cv.alpha, discriminate with split.alpha
+                //fit-honest: alpha need to change to cv.alpha, discriminate with split.alpha
                 fitH_rundown(xtree, j, cp, xpred, xtemp, k, cv_alpha, xtrain_to_est_ratio);
             } else if (crossmeth == 4) {
                 // fit-adaptive:
@@ -185,7 +193,13 @@ myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg,
             } else if (crossmeth == 6) {
                 //CT- dishonest
                 CTA_rundown(xtree, j, cp, xpred, xtemp, k, cv_alpha);
-            } 
+            } else if (crossmeth == 7) {
+                // user - honest (set as CT - honest temporarily)
+                userH_rundown(xtree, j, cp, xpred, xtemp, k, cv_alpha, xtrain_to_est_ratio, ct.propensity);
+            } else if (crossmeth == 8) {
+                // user - dishonest (set as CT - dishonest temporarily)
+                userA_rundown(xtree, j, cp, xpred, xtemp, k, cv_alpha);
+            }
 
 
 #if DEBUG > 1

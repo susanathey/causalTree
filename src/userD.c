@@ -1,6 +1,7 @@
 /*
- * The discrte version for CT
+ * The discrte version for user (set temporarily as CTD)
  */
+
 #include "causalTree.h"
 #include "causalTreeproto.h"
 
@@ -27,7 +28,7 @@ static double *tr_end_bucket, *con_end_bucket;
 
 
 int
-CTDinit(int n, double *y[], int maxcat, char **error,
+userDinit(int n, double *y[], int maxcat, char **error,
 		int *size, int who, double *wt, double *treatment, 
 		int bucketnum, int bucketMax, double *train_to_est_ratio)
 {
@@ -53,7 +54,7 @@ CTDinit(int n, double *y[], int maxcat, char **error,
 
 
 void
-CTDss(int n, double *y[], double *value, double *con_mean, double *tr_mean, double *risk, double *wt, double *treatment, 
+userDss(int n, double *y[], double *value, double *con_mean, double *tr_mean, double *risk, double *wt, double *treatment, 
 		double max_y, double alpha, double train_to_est_ratio)
 {
 	int i;
@@ -83,7 +84,7 @@ CTDss(int n, double *y[], double *value, double *con_mean, double *tr_mean, doub
 }
 
 void
-CTD(int n, double *y[], double *x, int nclass,
+userD(int n, double *y[], double *x, int nclass,
 		int edge, double *improve, double *split, int *csplit,
 		double myrisk, double *wt, double *treatment, int minsize, 
 		double alpha, int bucketnum, int bucketMax, double train_to_est_ratio)
@@ -111,7 +112,7 @@ CTD(int n, double *y[], double *x, int nclass,
 
 	double *cum_wt, *tmp_wt, *fake_x;
 	double tr_wt_sum, con_wt_sum, con_cum_wt, tr_cum_wt;
-	
+
 	// for overlap:
 	double tr_min, tr_max, con_min, con_max;
 	double left_bd, right_bd;
@@ -152,48 +153,48 @@ CTD(int n, double *y[], double *x, int nclass,
 		con_wt_sum = 0.;
 		con_cum_wt = 0.;
 		tr_cum_wt = 0.;  
-		
+
 		// find the abs max and min of x:
 		double max_abs_tmp = fabs(x[0]);
 		for (i = 0; i < n; i++) {
-		    if (max_abs_tmp < fabs(x[i])) {
-		        max_abs_tmp = fabs(x[i]);
-		    }
+			if (max_abs_tmp < fabs(x[i])) {
+				max_abs_tmp = fabs(x[i]);
+			}
 		}
-		
+
 		// set tr_min, con_min, tr_max, con_max to a large/small value
 		tr_min = max_abs_tmp;
 		tr_max = -max_abs_tmp;
 		con_min = max_abs_tmp;
 		con_max = -max_abs_tmp;
-		
+
 		for (i = 0; i < n; i++) {
 			if (treatment[i] == 0) {
 				con_wt_sum += wt[i];
-			    if (con_min > x[i]) {
-			        con_min = x[i];
-			    }
-			    if (con_max < x[i]) {
-			        con_max = x[i];
-			    }
+				if (con_min > x[i]) {
+					con_min = x[i];
+				}
+				if (con_max < x[i]) {
+					con_max = x[i];
+				}
 			} else {
 				tr_wt_sum += wt[i];
-			    if (tr_min > x[i]) {
-			        tr_min = x[i];
-			    }
-			    if (tr_max < x[i]) {
-			        tr_max = x[i];
-			    }
+				if (tr_min > x[i]) {
+					tr_min = x[i];
+				}
+				if (tr_max < x[i]) {
+					tr_max = x[i];
+				}
 			}
 			cum_wt[i] = 0.;
 			tmp_wt[i] = 0.;
 			fake_x[i] = 0.;
 		}
-		
+
 		// compute the left bound and right bound
 		left_bd = max(tr_min, con_min);
 		right_bd = min(tr_max, con_max);
-		
+
 		bucketTmp = min(round(trsum / (double)bucketnum), round(((double)n - trsum) / (double)bucketnum));
 		Numbuckets = max(minsize, min(bucketTmp, bucketMax));
 
@@ -210,7 +211,7 @@ CTD(int n, double *y[], double *x, int nclass,
 				fake_x[i] = (int)floor(Numbuckets * cum_wt[i]);
 			}
 		}
-        
+
 		n_bucket = (int *) ALLOC(Numbuckets + 1,  sizeof(int));
 		n_tr_bucket = (int *) ALLOC(Numbuckets + 1, sizeof(int));
 		n_con_bucket = (int *) ALLOC(Numbuckets + 1, sizeof(int));
@@ -222,7 +223,7 @@ CTD(int n, double *y[], double *x, int nclass,
 		trsqrsums_bucket = (double *) ALLOC(Numbuckets + 1, sizeof(double));
 		tr_end_bucket = (double *) ALLOC(Numbuckets + 1, sizeof(double));
 		con_end_bucket = (double *) ALLOC (Numbuckets + 1, sizeof(double));
-		
+
 
 		for (j = 0; j < Numbuckets + 1; j++) {
 			n_bucket[j] = 0;
@@ -283,8 +284,8 @@ CTD(int n, double *y[], double *x, int nclass,
 
 			left_tr_sqr_sum += trsqrsums_bucket[j];
 			right_tr_sqr_sum -= trsqrsums_bucket[j];
-            
-            cut_point = (tr_end_bucket[j] + con_end_bucket[j]) / 2.0;
+
+			cut_point = (tr_end_bucket[j] + con_end_bucket[j]) / 2.0;
 			if (left_n >= edge && right_n >= edge &&
 					(int) left_tr >= min_node_size &&
 					(int) left_wt - (int) left_tr >= min_node_size &&
@@ -444,7 +445,7 @@ CTD(int n, double *y[], double *x, int nclass,
 	}
 }
 
-double CTDpred(double *y, double wt, double treatment, double *yhat, double propensity) // pass in ct.which
+double userDpred(double *y, double wt, double treatment, double *yhat, double propensity) // pass in ct.which
 {
 	double ystar;
 	double temp;
