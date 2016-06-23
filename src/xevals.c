@@ -129,7 +129,7 @@ double userA_xpred(double *y, double wt, double treatment, double tr_mean, doubl
 //    res = 2 * ct.max_y * ct.max_y + effect_tr * effect_tr  -  2 *  effect_tr * effect_te;
 	//res = 2 * ct.max_y * ct.max_y + abs(effect_te)*(1.0 - sign(effect_tr) * sign(effect_te)) / 2.0;
 	//(x > 0) ? 1 : ((x < 0) ? -1 : 0)
- //  printf("userA pred abs fn\n");
+ ////  printf("userA pred abs fn\n");
    res = 2 * ct.max_y * ct.max_y + .99*(abs(effect_te)*(1.0 - ((effect_tr > 0) ? 1 : ((effect_tr < 0) ? -1 : 0)) * ((effect_te > 0) ? 1 : ((effect_te < 0) ? -1 : 0))) / 2.0) +
     .01*(effect_tr * effect_tr  -  2 *  effect_tr * effect_te);
     return res;
