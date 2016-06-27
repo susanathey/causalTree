@@ -53,7 +53,7 @@
 #include "causalTreeproto.h"
 
 SEXP
-causalTree2(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP method2, 
+causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP method2, 
            SEXP crossmeth2, SEXP crosshonest2, SEXP opt2,
            SEXP minsize2, SEXP p2, SEXP xvals2, SEXP xgrp2,
         SEXP ymat2, SEXP xmat2, SEXP wt2, SEXP treatment2, SEXP ny2, SEXP cost2, 
