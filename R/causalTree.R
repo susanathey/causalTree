@@ -306,7 +306,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
 		storage.mode(treatment) <- "double"
 		minsize <- as.integer(minsize) # minimum number of obs for treated and control cases in one leaf node
 
-		ctfit <- .Call(C_causalTree2,
+		ctfit <- .Call(C_causalTree,
 					   ncat = as.integer(cats * !isord),
 					   split_Rule = as.integer(split.Rule.int), # tot, ct, fit, tstats, totD, ctD, fitD, tstatsD
 					   bucketNum = as.integer(bucketNum), # if == 0, no discrete; else do discrete
