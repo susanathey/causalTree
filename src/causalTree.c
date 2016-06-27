@@ -362,7 +362,7 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
         
         if (xvals > 1) {
             myxval(xvals, cptable, xgrp, maxcat, &errmsg, minsize, savesort, split_Rule,
-                   crossmeth, split_alpha, cv_alpha, bucketnum, bucketMax);
+                   crossmeth, split_alpha, cv_alpha, bucketnum, bucketMax,gamma);
         }
     }
     /*
