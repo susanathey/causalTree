@@ -129,15 +129,15 @@ causalTree <- function(formula, data, weights, treatment, subset,
 			}
 		}
 	  #check for gamma for policy
-	  if(missing(split.gamma)) {
-	    # set default honest splitting alpha to 0.5
-	    split.gamma <- 0.5
-	  } else {
-	    # check split.alpha in [0, 1]
-	    if (split.gamma > 1 || split.gamma < 0) {
-	      stop("Invalid input for split.gamma. split.gamma should between 0 and 1.")
-	    }
-	  }
+	  # if(missing(split.gamma)) {
+	  #   # set default honest splitting alpha to 0.5
+	  #   split.gamma <- 0.5
+	  # } else {
+	  #   # check split.alpha in [0, 1]
+	  #   if (split.gamma > 1 || split.gamma < 0) {
+	  #     stop("Invalid input for split.gamma. split.gamma should between 0 and 1.")
+	  #   }
+	  # }
 	  
 	} else if (split.Rule.int %in% c(2, 3, 4, 6, 7, 8, 9, 10,11,12)){
 		# split.Honest = False
