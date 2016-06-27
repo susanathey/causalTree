@@ -90,10 +90,10 @@ causalTree <- function(formula, data, weights, treatment, subset,
 	}
 
 	split.Rule.int <- pmatch(split.Rule, c("TOT", "CT", "fit", "tstats", "TOTD", "CTD", 
-	                                       "fitD", "tstatsD", "user", "userD"))
+	                                       "fitD", "tstatsD", "user", "userD","policy","policyD"))
 	if (is.na(split.Rule.int)) stop("Invalid splitting rule.")
 	split.Rule <- c("TOT", "CT", "fit", "tstats", "TOTD", "CTD", "fitD", 
-	                "tstatsD", "user", "userD")[split.Rule.int]
+	                "tstatsD", "user", "userD","policy","policyD")[split.Rule.int]
 
 	## check the Split.Honest, for convenience
 	if (split.Rule.int %in% c(1, 5)) {
@@ -117,8 +117,8 @@ causalTree <- function(formula, data, weights, treatment, subset,
 	if(is.na(split.Honest.num)) 
 		stop("Invalid split.Honest input, split.Honest can be only TRUE or FALSE.")
 
-	if (split.Honest == TRUE && split.Rule.int %in% c(2, 3, 4, 6, 7, 8, 9, 10)) {
-		# ct, fit, tstats, ctd, fitd, tstatsd, user, userd:
+	if (split.Honest == TRUE && split.Rule.int %in% c(2, 3, 4, 6, 7, 8, 9, 10,11,12)) {
+		# ct, fit, tstats, ctd, fitd, tstatsd, user, userd,policy,policyD:
 		if(missing(split.alpha)) {
 			# set default honest splitting alpha to 0.5
 			split.alpha <- 0.5
@@ -128,11 +128,33 @@ causalTree <- function(formula, data, weights, treatment, subset,
 				stop("Invalid input for split.alpha. split.alpha should between 0 and 1.")
 			}
 		}
-	} else if (split.Rule.int %in% c(2, 3, 4, 6, 7, 8, 9, 10)){
+	  #check for gamma for policy
+	  if(missing(split.gamma)) {
+	    # set default honest splitting alpha to 0.5
+	    split.gamma <- 0.5
+	  } else {
+	    # check split.alpha in [0, 1]
+	    if (split.gamma > 1 || split.gamma < 0) {
+	      stop("Invalid input for split.gamma. split.gamma should between 0 and 1.")
+	    }
+	  }
+	  
+	} else if (split.Rule.int %in% c(2, 3, 4, 6, 7, 8, 9, 10,11,12)){
 		# split.Honest = False
 		if (split.alpha != 1) 
 			warning("For dishonest(adaptive) splitting, split.alpha =  1.");
 		split.alpha <- 1
+		#added gamma check for policy
+		if(missing(split.gamma)) {
+		  # set default honest splitting alpha to 0.5
+		  split.gamma <- 0.5
+		} else {
+		  # check split.alpha in [0, 1]
+		  if (split.gamma > 1 || split.gamma < 0) {
+		    stop("Invalid input for split.gamma. split.gamma should between 0 and 1.")
+		  }
+		}
+		
 	}
 
 
@@ -162,7 +184,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
 	if (is.na(cv.Honest.num)) 
 		stop ("Invalid cv.Honest. cv.Honest should be TRUE or FALSE.")
 
-	if (cv.option == "CT" || cv.option == "fit" || cv.option == "user") {
+	if (cv.option == "CT" || cv.option == "fit" || cv.option == "user" || cv.option == "policy") {
 		if (cv.Honest) {
 			# cv.Honest = T
 			cv.option <- paste(cv.option, 'H', sep = '')
@@ -171,7 +193,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
 		}
 	}
 
-	cv.option.num <- pmatch(cv.option, c("TOT", "matching", "fitH", "fitA", "CTH", "CTA", "userH", "userA", "none"))
+	cv.option.num <- pmatch(cv.option, c("TOT", "matching", "fitH", "fitA", "CTH", "CTA", "userH", "userA","policyH","policyA", "none"))
 	if(is.na(cv.option.num)) stop("Invalid cv option.") 
 
 	# check cv.alpha
@@ -184,7 +206,11 @@ causalTree <- function(formula, data, weights, treatment, subset,
 	if (missing(cv.alpha)) {
 		cv.alpha <- 0.5
 	}
-
+	
+	#for policy, set gamma (set for all presently)
+	if (missing(cv.gamma)) {
+	  cv.gamma <- 0.5
+	}
 	if (missing(HonestSampleSize)) {
 		# default should be the # of samples in training 
 		HonestSampleSize <- nobs
@@ -302,7 +328,8 @@ causalTree <- function(formula, data, weights, treatment, subset,
 					   as.double(xvar), # for model daa
 					   as.double(split.alpha),
 					   as.double(cv.alpha),
-					   as.integer(HonestSampleSize)
+					   as.integer(HonestSampleSize),
+					   as.double(cv.gamma)
 					   )
 
 		nsplit <- nrow(ctfit$isplit) # total number of splits, primary and surrogate

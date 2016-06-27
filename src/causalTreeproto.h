@@ -70,13 +70,17 @@ void userH_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp
                  double alpha, double xtrain_to_est_ratio, double propensity);
 void userA_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, int k, double alpha);
 
+void policyH_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, int k, 
+                   double alpha, double xtrain_to_est_ratio, double propensity);
+void policyA_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, int k, double alpha, double gamma);
+
 void surrogate(pNode me, int n1, int n2);
 
 
 
 void myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg, 
            int minsize, int *savesort, int split_Rule,
-           int crossmeth, double split_alpha, double cv_alpha, int bucketnum, int bucketMax);
+           int crossmeth, double split_alpha, double cv_alpha, int bucketnum, int bucketMax, double gamma);
 
 
 /* ---------------------- for xvalHelper --------------------- */

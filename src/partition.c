@@ -89,6 +89,14 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
 	        // userD (temporarily set as CTD)
 	        (*ct_eval) (n, ct.ytemp, me->response_est, me->controlMean, me->treatMean, 
           &(me->risk), ct.wtemp, ct.trtemp, ct.max_y, alpha, train_to_est_ratio);
+	    }else if (split_Rule == 11) {
+	      // policy (temporarily set as CTD)
+	      (*ct_eval) (n, ct.ytemp, me->response_est, me->controlMean, me->treatMean, 
+        &(me->risk), ct.wtemp, ct.trtemp, ct.max_y, alpha, train_to_est_ratio);
+	    }else if (split_Rule == 12) {
+	      // policyD (temporarily set as CTD)
+	      (*ct_eval) (n, ct.ytemp, me->response_est, me->controlMean, me->treatMean, 
+        &(me->risk), ct.wtemp, ct.trtemp, ct.max_y, alpha, train_to_est_ratio);
 	    }
 
 	    me->num_obs = n;

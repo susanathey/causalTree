@@ -7,7 +7,7 @@
 void
 myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg, 
        int minsize, int *savesort, int split_Rule,
-     int crossmeth, double split_alpha, double cv_alpha, int bucketnum, int bucketMax)
+     int crossmeth, double split_alpha, double cv_alpha, int bucketnum, int bucketMax, double gamma)
 {
     int i, j, k, ii, jj;
     int last;
@@ -155,6 +155,14 @@ myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg,
             // userD (set temporarily as CTD)
             (*ct_eval) (k, ct.ytemp, xtree->response_est, xtree->controlMean, xtree->treatMean,
              &(xtree->risk), ct.wtemp, ct.trtemp, ct.max_y, split_alpha, xtrain_to_est_ratio);
+        }else if (split_Rule == 11) {
+          // policy
+          (*ct_eval) (k, ct.ytemp, xtree->response_est, xtree->controlMean, xtree->treatMean,
+           &(xtree->risk), ct.wtemp, ct.trtemp, ct.max_y, split_alpha, xtrain_to_est_ratio);
+        }else if (split_Rule == 12) {
+          // policyD
+          (*ct_eval) (k, ct.ytemp, xtree->response_est, xtree->controlMean, xtree->treatMean,
+           &(xtree->risk), ct.wtemp, ct.trtemp, ct.max_y, split_alpha, xtrain_to_est_ratio);
         }
         
         xtree->complexity = xtree->risk;
@@ -199,6 +207,12 @@ myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg,
             } else if (crossmeth == 8) {
                 // user - dishonest (set as CT - dishonest temporarily)
                 userA_rundown(xtree, j, cp, xpred, xtemp, k, cv_alpha);
+            }else if (crossmeth == 9) {
+              // user - honest (set as CT - honest temporarily)
+              policyH_rundown(xtree, j, cp, xpred, xtemp, k, cv_alpha, xtrain_to_est_ratio, ct.propensity);
+            }else if (crossmeth == 10) {
+              // user - dishonest (set as CT - dishonest temporarily)
+              policyA_rundown(xtree, j, cp, xpred, xtemp, k, cv_alpha, gamma);
             }
 
 
