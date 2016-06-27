@@ -35,7 +35,7 @@ void
 R_init_causalTree(DllInfo * dll)
 {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
-    R_useDynamicSymbols(dll, FALSE);
+    R_useDynamicSymbols(dll, TRUE);//FALSE
 #if defined(R_VERSION) && R_VERSION >= R_Version(2, 16, 0)
     R_forceSymbols(dll, TRUE);
 #endif
