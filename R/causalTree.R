@@ -20,7 +20,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
 	temp$na.action <- na.action  
 	temp[[1L]] <- quote(stats::model.frame) 
 	m <- eval.parent(temp)
-
+  print(m)
 	Terms <- attr(m, "terms")
 	if (any(attr(Terms, "order") > 1L))
 		stop("Trees cannot handle interaction terms")
