@@ -31,7 +31,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
 	if (!length(wt)) wt <- rep(1, nrow(m))
 	offset <- model.offset(m)
 	X <- causalTree.matrix(m)
-
+	save("X",file="test.Rdata")
 	nobs <- nrow(X)
 	nvar <- ncol(X)
 	#treatment <- m$`(treatment)`
