@@ -20,7 +20,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
 	temp$na.action <- na.action  
 	temp[[1L]] <- quote(stats::model.frame) 
 	m <- eval.parent(temp)
-  print(m)
+  #print(m)
 	Terms <- attr(m, "terms")
 	if (any(attr(Terms, "order") > 1L))
 		stop("Trees cannot handle interaction terms")
@@ -31,7 +31,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
 	if (!length(wt)) wt <- rep(1, nrow(m))
 	offset <- model.offset(m)
 	X <- causalTree.matrix(m)
-	save("X",file="test.Rdata")
+	#save("X",file="test.Rdata")
 	nobs <- nrow(X)
 	nvar <- ncol(X)
 	#treatment <- m$`(treatment)`
@@ -306,6 +306,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
 		storage.mode(treatment) <- "double"
 		minsize <- as.integer(minsize) # minimum number of obs for treated and control cases in one leaf node
 ####
+		save.image("all.Rdata")
 		ctfit <- .Call(C_causalTree,
 					   ncat = as.integer(cats * !isord),
 					   split_Rule = as.integer(split.Rule.int), # tot, ct, fit, tstats, totD, ctD, fitD, tstatsD
