@@ -30,16 +30,18 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     int nleft, nright;
     int n;
     int min_node_size = minsize;
-
+    FILE* fptr;
+    
     me = splitnode;
     n = n2 - n1;                /* total number of observations */
     me->id = nodenum;
     
 //#ifdef DEBUG
-    FILE* fptr;
+    
     fptr=fopen("C:\\Users\\vikasr\\Documents\\debug_text.txt","w");
     fprintf(fptr,"test print\n");
     fclose(fptr);
+    printf("test print\n");
 //#endif
     
     if (nodenum > 1) {
