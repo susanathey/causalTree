@@ -39,6 +39,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     FILE* fptr;
     fptr=fopen("debug_text.txt","a");
     fprintf(fptr,"test print\n");
+    fclose(fptr);
 //#endif
     
     if (nodenum > 1) {
