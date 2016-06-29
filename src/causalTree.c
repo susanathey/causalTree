@@ -124,9 +124,10 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     NumHonest = asInteger(NumHonest2);
 
     int split_id, cv_id;
+    char getchar1;
     
     Rprintf("test print\n");
-    
+    getchar1=getchar();
     /*
      * initialize the splitting functions from the function table
      */
