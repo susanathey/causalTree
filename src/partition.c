@@ -13,7 +13,7 @@
 #include "node.h"
 #include "causalTreeproto.h"
 #include <stdio.h>
-#include <FILE.H>
+
 
 int
 partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
