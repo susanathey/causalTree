@@ -42,6 +42,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     fptr=fopen("C:\\Users\\vikasr\\Documents\\debug_text.txt","w");
     fprintf(fptr,"test print\n");
     fclose(fptr);
+    R_FlushConsole();
     Rprintf("test print\n");
 //#endif
     
