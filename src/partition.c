@@ -9,6 +9,7 @@
  * The vector who[n] indexes which observations are in this node, to speed
  *   up the routine.
  */
+#include <R.h>
 #include <stdio.h>
 #include "causalTree.h"
 #include "node.h"
