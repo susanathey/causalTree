@@ -34,9 +34,9 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     n = n2 - n1;                /* total number of observations */
     me->id = nodenum;
     
-#ifdef DEBUG
+//#ifdef DEBUG
     printf("test print\n");
-#endif
+//#endif
     
     if (nodenum > 1) {
         twt = 0;
