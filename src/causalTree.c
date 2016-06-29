@@ -47,6 +47,7 @@
 
 #define MAINRP
 #include <math.h>
+#include<stdio.h>
 #include "causalTree.h"
 #include "node.h"
 #include "func_table.h"
@@ -123,6 +124,8 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     NumHonest = asInteger(NumHonest2);
 
     int split_id, cv_id;
+    
+    Rprintf("test print\n");
     
     /*
      * initialize the splitting functions from the function table
