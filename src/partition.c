@@ -37,7 +37,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     
 //#ifdef DEBUG
     FILE* fptr;
-    fptr=fopen("debug_text.txt","a");
+    fptr=fopen("C:\\Users\\vikasr\\Documents\\debug_text.txt","w");
     fprintf(fptr,"test print\n");
     fclose(fptr);
 //#endif
