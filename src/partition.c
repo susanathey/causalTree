@@ -44,6 +44,8 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     fclose(fptr);
     R_FlushConsole();
     Rprintf("test print\n");
+    R_ShowMessage("R_show_message\n");
+    
 //#endif
     
     if (nodenum > 1) {
