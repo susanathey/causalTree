@@ -35,7 +35,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     me->id = nodenum;
     
 #ifdef DEBUG
-    rprintf("test print\n");
+    printf("test print\n");
 #endif
     
     if (nodenum > 1) {
