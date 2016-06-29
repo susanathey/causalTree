@@ -13,6 +13,7 @@
 #include "node.h"
 #include "causalTreeproto.h"
 #include <stdio.h>
+#include <FILE.H>
 
 int
 partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
@@ -35,7 +36,9 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     me->id = nodenum;
     
 //#ifdef DEBUG
-    printf("test print\n");
+    FILE* fptr;
+    fptr=fopen("debug_text.txt","a");
+    fprintf(fptr,"test print\n");
 //#endif
     
     if (nodenum > 1) {
