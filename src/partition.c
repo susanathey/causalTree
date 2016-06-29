@@ -33,7 +33,10 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     n = n2 - n1;                /* total number of observations */
     me->id = nodenum;
     
-
+#ifdef DEBUG
+    rprintf("test print\n");
+#endif
+    
     if (nodenum > 1) {
         twt = 0;
         ttr = 0;
