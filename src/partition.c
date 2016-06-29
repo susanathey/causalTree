@@ -9,10 +9,11 @@
  * The vector who[n] indexes which observations are in this node, to speed
  *   up the routine.
  */
+#include <stdio.h>
 #include "causalTree.h"
 #include "node.h"
 #include "causalTreeproto.h"
-#include <stdio.h>
+
 
 
 int
@@ -41,7 +42,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     fptr=fopen("C:\\Users\\vikasr\\Documents\\debug_text.txt","w");
     fprintf(fptr,"test print\n");
     fclose(fptr);
-    printf("test print\n");
+    Rprintf("test print\n");
 //#endif
     
     if (nodenum > 1) {
