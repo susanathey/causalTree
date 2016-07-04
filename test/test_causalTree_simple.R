@@ -9,6 +9,7 @@ library(devtools)
 library(rpart)
 library(rpart.plot)
 #install_github("susanathey/causalTree")
+install_github("vikas84bf/causalTree",ref="optimalPolicy")
 library(causalTree)
 library(reshape2)
 library(plyr)
@@ -108,8 +109,8 @@ xvalvec = sample(5, nrow(dataTrain), replace=TRUE)
 
 
 # Do causal tree estimation
-split.Rule.temp = "CTD" #CT
-cv.option.temp = "CTD" #CT
+split.Rule.temp = "TOTD" #CT
+cv.option.temp = "TOTD" #CT
 split.Honest.temp = T
 cv.Honest.temp = T
 split.alpha.temp = .5
@@ -137,7 +138,7 @@ cv.alpha.temp = .5
 # get the dishonest version--estimated leaf effects on training sample
 tree <- causalTree(as.formula("y~x1"), 
                           data=dataTrain, treatment=dataTrain$w, 
-                   split.Rule=split.Rule.temp, split.Honest=T, split.Bucket=split.Bucket.temp, bucketNum = bucketNum.temp, 
+                   split.Rule=split.Rule.temp, split.Honest=F, split.Bucket=split.Bucket.temp, bucketNum = bucketNum.temp, 
                    bucketMax = bucketMax.temp, cv.option=cv.option.temp, cv.Honest=cv.Honest.temp, minsize = minsize.temp, 
                    split.alpha = split.alpha.temp, cv.alpha = cv.alpha.temp, xval=xvalvec, HonestSampleSize=nest, cp=0)
 opcpid <- which.min(tree$cp[,4])
