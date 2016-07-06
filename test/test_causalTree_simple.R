@@ -84,10 +84,10 @@ ntest <- n - ntr - nest
 #simple X=binom, y=w*x
 X=X[,1]
 #X=w
-X <- rbinom(n, 1, propens)
-# X<-sample(2,n,replace=TRUE)
+# X <- rbinom(n, 1, propens)
+X<-sample(2,n,replace=TRUE)
 y=w*X
-X<-X+1
+# X<-X+1
 X<-factor(X)
 
 dataTrain <- data.frame(X[1:ntr], y[1:ntr], w[1:ntr], tau_true[1:ntr])
