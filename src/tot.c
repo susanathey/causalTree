@@ -209,6 +209,7 @@ void tot(int n, double *y[], double *x, int nclass, int edge, double *improve,
         best = 0;
         where = 0;
         while ((j = graycode()) < nclass) {
+          Rprintf("j=%d\n",j);
             tsplit[j] = LEFT;
             left_n += countn[j];
             right_n -= countn[j];
