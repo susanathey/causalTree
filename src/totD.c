@@ -339,7 +339,7 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
         left_sum = 0;
         right_sum = 0;
         left_n = 0;
-        best = -1;
+        best = 0;
         where = 0;
         while ((j = graycode()) < nclass) {
             tsplit[j] = LEFT;
@@ -361,7 +361,7 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
                     right_sum * right_sum / right_wt;
               Rprintf("temp=%f\n",temp);
               Rprintf("best=%f\n",best);
-              Rprintf("left_sum_fin=%f,left_wt=%f,right_sum_fin=%f,right_wt=%f\n",left_sum,left_wt,right_sum,right_wt);
+              Rprintf("left_sum_fin=%f,left_wt=%f,left_tr=%f,right_sum_fin=%f,right_wt=%f,right_tr=%f,min_node_size=%d\n",left_sum,left_wt,left_tr,right_sum,right_wt,right_tr,min_node_size);
                 if (temp > best) {
                     best = temp;
                   Rprintf("tot factor best:%f\n",best);

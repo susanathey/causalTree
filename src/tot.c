@@ -206,7 +206,7 @@ void tot(int n, double *y[], double *x, int nclass, int edge, double *improve,
         left_sum = 0;
         right_sum = 0;
         left_n = 0;
-        best = -1;
+        best = 0;
         where = 0;
         while ((j = graycode()) < nclass) {
           Rprintf("j=%d\n",j);
