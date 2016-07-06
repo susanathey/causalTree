@@ -110,7 +110,7 @@ xvalvec = sample(5, nrow(dataTrain), replace=TRUE)
 
 
 # Do causal tree estimation
-split.Rule.temp = "TOT" #CT
+split.Rule.temp = "TOTD" #CT
 cv.option.temp = "TOT" #CT
 split.Honest.temp = F
 cv.Honest.temp = F
