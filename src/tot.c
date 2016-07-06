@@ -116,6 +116,7 @@ void tot(int n, double *y[], double *x, int nclass, int edge, double *improve,
 
     
     if(nclass == 0) {
+      Rprintf("tot: inside cont. split\n");
         left_sum = 0;
         left_wt = 0;
         left_n = 0;
@@ -163,6 +164,7 @@ void tot(int n, double *y[], double *x, int nclass, int edge, double *improve,
         /*
          * Categorical Predictor
          */
+        Rprintf("tot: inside factor split!\n");
         for (i = 0; i < nclass; i++) {
             countn[i] = 0;
             wts[i] = 0;
