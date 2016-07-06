@@ -223,6 +223,7 @@ void tot(int n, double *y[], double *x, int nclass, int edge, double *improve,
                     right_sum * right_sum / right_wt;
                 Rprintf("temp=%f\n",temp);
                 Rprintf("best=%f\n",best);
+                Rprintf("left_sum=%f,left_wt=%f,right_sum=%f,right_wt=%f\n",left_sum,left_wt,right_sum,right_wt);
                 if (temp > best) {
                     best = temp;
                   Rprintf("tot factor best:%f\n",best);
