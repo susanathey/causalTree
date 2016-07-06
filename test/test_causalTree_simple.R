@@ -110,8 +110,8 @@ xvalvec = sample(5, nrow(dataTrain), replace=TRUE)
 
 
 # Do causal tree estimation
-split.Rule.temp = "CTD" #CT
-cv.option.temp = "CT" #CT
+split.Rule.temp = "TOT" #CT
+cv.option.temp = "TOT" #CT
 split.Honest.temp = F
 cv.Honest.temp = F
 split.alpha.temp = .5
@@ -165,7 +165,7 @@ tree_honest_prune_list[[1]] <- tree_honest_CT_prune
 split.Rule.temp = "tstats"
 cv.option.temp = "CT"
 split.Honest.temp = F
-cv.Honest.temp = T
+cv.Honest.temp = F
 split.alpha.temp = 1
 
 tree <- honest.causalTree(as.formula(paste("y~",paste(f))), 

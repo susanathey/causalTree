@@ -46,8 +46,8 @@ totDinit(int n, double *y[], int maxcat, char **error,
     }
     *size = 1;
     *train_to_est_ratio = n * 1.0 / ct.NumHonest;
-    if (bucketnum == 0) 
-      Rprintf("ERROR for tbuket!\n");
+    //if (bucketnum == 0) 
+      Rprintf("inside totDinit!\n");
     return 0;
 }
 
