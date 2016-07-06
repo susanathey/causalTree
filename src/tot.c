@@ -217,6 +217,7 @@ void tot(int n, double *y[], double *x, int nclass, int edge, double *improve,
             right_wt -= wts[j];
             left_sum += sums[j];
             right_sum -= sums[j];
+            Rprintf("j=%d,sums[j]=%f\n",j,sums[j]);
             if (left_n >= edge && right_n >= edge) {
               Rprintf("tot factor: inside >=edge if \n");
                 temp = left_sum * left_sum / left_wt +
