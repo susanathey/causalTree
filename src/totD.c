@@ -142,6 +142,7 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
     
     
     if(nclass == 0) {
+      Rprintf("tot: inside cont. split\n");
         cum_wt = (double *) ALLOC(n, sizeof(double));
         tmp_wt = (double *) ALLOC(n, sizeof(double));
         fake_x = (double *) ALLOC(n, sizeof(double));
@@ -294,6 +295,9 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
         /*
          * Categorical Predictor
          */
+        Rprintf("tot: inside factor split!\n");
+      Rprintf("nclass:%d\n",nclass);
+      
         for (i = 0; i < nclass; i++) {
             countn[i] = 0;
             wts[i] = 0;
@@ -345,6 +349,8 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
             right_wt -= wts[j];
             left_sum += sums[j];
             right_sum -= sums[j];
+            Rprintf("j=%d,sums[j]=%f\n",j,sums[j]);
+            Rprintf("left_sum=%f,right_sum=%f\n",left_sum,right_sum);
             if (left_n >= edge && right_n >= edge &&
                 (int) left_tr >= min_node_size &&
                 (int) left_wt - (int) left_tr >= min_node_size &&

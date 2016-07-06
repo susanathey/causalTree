@@ -22,7 +22,7 @@ pt <- 4 # number of covariates affecting treatment effects
 py <- 4 # number of covariates affecting outcomes but not treatment effects
 asym <- .5 # whether treatment effects are distributed asymmetrically across treated and control
 n <- 3000 # total size of the dataset
-propens <- .3 #treatment probability 0.5
+propens <- .5 #treatment probability 0.5
 sig = .01
 treatsize <- .5 # treatment effect size
 levsize <- 1
@@ -85,6 +85,7 @@ ntest <- n - ntr - nest
 X=X[,1]
 #X=w
 X <- rbinom(n, 1, propens)
+# X<-sample(2,n,replace=TRUE)
 y=w*X
 X<-X+1
 X<-factor(X)
@@ -111,8 +112,8 @@ xvalvec = sample(5, nrow(dataTrain), replace=TRUE)
 
 
 # Do causal tree estimation
-split.Rule.temp = "TOT" #CT
-cv.option.temp = "TOT" #CT
+split.Rule.temp = "TOTD" #tot,ct
+cv.option.temp = "TOT" #tot,ct
 split.Honest.temp = F
 cv.Honest.temp = F
 split.alpha.temp = .5
@@ -210,8 +211,8 @@ tree_honest_fit_prune <- tree_prune
 tree_honest_prune_list[[3]] <- tree_honest_fit_prune
 
 #honest TOT
-split.Rule.temp = "TOT"
-cv.option.temp = "TOT"
+split.Rule.temp = "CT"
+cv.option.temp = "CT"
 split.Honest.temp = F
 cv.Honest.temp = F
 split.alpha.temp = 1
