@@ -22,7 +22,7 @@ pt <- 4 # number of covariates affecting treatment effects
 py <- 4 # number of covariates affecting outcomes but not treatment effects
 asym <- .5 # whether treatment effects are distributed asymmetrically across treated and control
 n <- 3000 # total size of the dataset
-propens <- .5 #treatment probability
+propens <- .3 #treatment probability 0.5
 sig = .01
 treatsize <- .5 # treatment effect size
 levsize <- 1
@@ -86,6 +86,7 @@ X=X[,1]
 #X=w
 X <- rbinom(n, 1, propens)
 y=w*X
+X<-X+1
 X<-factor(X)
 
 dataTrain <- data.frame(X[1:ntr], y[1:ntr], w[1:ntr], tau_true[1:ntr])
