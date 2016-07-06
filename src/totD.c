@@ -351,11 +351,12 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
             right_sum -= sums[j];
             Rprintf("j=%d,sums[j]=%f\n",j,sums[j]);
             Rprintf("left_sum=%f,right_sum=%f\n",left_sum,right_sum);
-            if (left_n >= edge && right_n >= edge &&
-                (int) left_tr >= min_node_size &&
-                (int) left_wt - (int) left_tr >= min_node_size &&
-                (int) right_tr >= min_node_size &&
-                (int) right_wt - (int) right_tr >= min_node_size) {
+            //if (left_n >= edge && right_n >= edge &&
+            //  (int) left_tr >= min_node_size &&
+            //   (int) left_wt - (int) left_tr >= min_node_size &&
+            //   (int) right_tr >= min_node_size &&
+            //   (int) right_wt - (int) right_tr >= min_node_size)
+            if (left_n >= edge && right_n >= edge) {
                 temp = left_sum * left_sum / left_wt +
                     right_sum * right_sum / right_wt;
               Rprintf("temp=%f\n",temp);
