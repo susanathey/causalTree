@@ -165,6 +165,7 @@ void tot(int n, double *y[], double *x, int nclass, int edge, double *improve,
          * Categorical Predictor
          */
         Rprintf("tot: inside factor split!\n");
+        Rprintf("nclass:%d\n",nclass);
         for (i = 0; i < nclass; i++) {
             countn[i] = 0;
             wts[i] = 0;
@@ -220,6 +221,7 @@ void tot(int n, double *y[], double *x, int nclass, int edge, double *improve,
                     right_sum * right_sum / right_wt;
                 if (temp > best) {
                     best = temp;
+                  Rprintf("tot factor best:%f\n",best);
                     if ((left_sum / left_wt) > (right_sum / right_wt)) {
                         for (i = 0; i < nclass; i++) csplit[i] = -tsplit[i];
                     } else {
