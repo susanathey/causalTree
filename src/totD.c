@@ -45,7 +45,7 @@ totDinit(int n, double *y[], int maxcat, char **error,
         wttrsqrsums = wtsqrsums + maxcat;
     }
     *size = 1;
-    *train_to_est_ratio = n * 1.0 / ct.;
+    *train_to_est_ratio = n * 1.0 / ct.NumHonest;
     if (bucketnum == 0) 
       Rprintf("ERROR for tbuket!\n");
     return 0;
