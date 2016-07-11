@@ -13,7 +13,7 @@ install_github("vikas84bf/causalTree",ref="optimalPolicy")
 library(causalTree)
 library(reshape2)
 library(plyr)
-
+#
 
 # Generate data 
 # parameters for data generating
