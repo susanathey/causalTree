@@ -21,8 +21,8 @@ p <- 20 # number of total covariates
 pt <- 4 # number of covariates affecting treatment effects
 py <- 4 # number of covariates affecting outcomes but not treatment effects
 asym <- .5 # whether treatment effects are distributed asymmetrically across treated and control
-n <- 3000 # total size of the dataset
-propens <- .5 #treatment probability 0.5
+n <- 1000 # total size of the dataset
+propens <- .3 #treatment probability 0.5
 sig = .01
 treatsize <- .5 # treatment effect size
 levsize <- 1
@@ -73,7 +73,7 @@ for (ii in 1:p) {
 
 
 #name <- c( name,  "y", "w", "tau_true")
-name <- c("x1",  "y", "w", "tau_true")
+name <- c("x1","x2","y", "w", "tau_true")
 
 tau_true <- (1-2*w)*(y_ - y)
 
@@ -85,14 +85,26 @@ ntest <- n - ntr - nest
 X=X[,1]
 #X=w
 # X <- rbinom(n, 1, propens)
+# X2 <- rbinom(n, 1, propens)
 X<-sample(2,n,replace=TRUE)
+X2=sample(2,n,replace=TRUE)
 y=w*X
 # X<-X+1
 X<-factor(X)
+X2=X2+2
+# X2<-factor(X2)
 
-dataTrain <- data.frame(X[1:ntr], y[1:ntr], w[1:ntr], tau_true[1:ntr])
-dataEst <- data.frame(X[(ntr+1):(ntr+nest)], y[(ntr+1):(ntr+nest)], w[(ntr+1):(ntr+nest)], tau_true[(ntr+1):(ntr+nest)])
-dataTest <- data.frame(X[(ntr+nest+1):n], y[(ntr+nest+1):n], w[(ntr+nest+1):n], tau_true[(ntr+nest+1):n])
+X=rbind(X,X2)
+X=t(X)
+
+#dataTrain <- data.frame(X[1:ntr], y[1:ntr], w[1:ntr], tau_true[1:ntr])
+#dataEst <- data.frame(X[(ntr+1):(ntr+nest)], y[(ntr+1):(ntr+nest)], w[(ntr+1):(ntr+nest)], tau_true[(ntr+1):(ntr+nest)])
+#dataTest <- data.frame(X[(ntr+nest+1):n], y[(ntr+nest+1):n], w[(ntr+nest+1):n], tau_true[(ntr+nest+1):n])
+
+dataTrain <- data.frame(X[1:ntr,], y[1:ntr], w[1:ntr], tau_true[1:ntr])
+dataEst <- data.frame(X[(ntr+1):(ntr+nest),], y[(ntr+1):(ntr+nest)], w[(ntr+1):(ntr+nest)], tau_true[(ntr+1):(ntr+nest)])
+dataTest <- data.frame(X[(ntr+nest+1):n,], y[(ntr+nest+1):n], w[(ntr+nest+1):n], tau_true[(ntr+nest+1):n])
+
 
 names(dataTrain)=name
 names(dataEst)=name
@@ -103,7 +115,7 @@ tree_dishonest_prune_list <- vector(mode="list", length=4)
 
 # set global parameters
 minsize.temp = 25
-split.Bucket.temp = F
+split.Bucket.temp = T
 bucketNum.temp = 5
 bucketMax.temp = 100
 # preselect cross-validation groups to remove randomness in comparing methods
@@ -114,7 +126,7 @@ xvalvec = sample(5, nrow(dataTrain), replace=TRUE)
 # Do causal tree estimation
 split.Rule.temp = "TOTD" #tot,ct
 cv.option.temp = "TOT" #tot,ct
-split.Honest.temp = F
+split.Honest.temp = T
 cv.Honest.temp = F
 split.alpha.temp = .5
 cv.alpha.temp = .5
@@ -139,7 +151,7 @@ cv.alpha.temp = .5
 
 
 # get the dishonest version--estimated leaf effects on training sample
-tree <- causalTree(as.formula("y~x1"), 
+tree <- causalTree(as.formula("y~x1+x2"), 
                           data=dataTrain, treatment=dataTrain$w, 
                    split.Rule=split.Rule.temp, split.Honest=F, split.Bucket=split.Bucket.temp, bucketNum = bucketNum.temp, 
                    bucketMax = bucketMax.temp, cv.option=cv.option.temp, cv.Honest=cv.Honest.temp, minsize = minsize.temp, 
