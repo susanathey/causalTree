@@ -88,14 +88,25 @@ X=X[,1]
 # X2 <- rbinom(n, 1, propens)
 X<-sample(2,n,replace=TRUE)
 X2=sample(2,n,replace=TRUE)
-y=w*X
+y=w*(X+X2)
 # X<-X+1
-X<-factor(X)
+#X<-factor(X)
 X2=X2+2
-# X2<-factor(X2)
+X2<-factor(X2)
 
-X=rbind(X,X2)
-X=t(X)
+#X=rbind(X,X2)
+#X=t(X)
+X=data.frame(X,X2)
+
+for (tmp1 in 1:ncol(X)){
+  xtmp<-X[,tmp1]
+  unxtmp<-unique(xtmp)
+  if(length(unxtmp)<bucketMax.temp) #convert to factor
+  X[,tmp1]<-factor(X[,tmp1])
+}
+
+#loop through X, if numel(unique(X))< no.buckets, convert that X dim to factor
+
 
 #dataTrain <- data.frame(X[1:ntr], y[1:ntr], w[1:ntr], tau_true[1:ntr])
 #dataEst <- data.frame(X[(ntr+1):(ntr+nest)], y[(ntr+1):(ntr+nest)], w[(ntr+1):(ntr+nest)], tau_true[(ntr+1):(ntr+nest)])
@@ -115,7 +126,7 @@ tree_dishonest_prune_list <- vector(mode="list", length=4)
 
 # set global parameters
 minsize.temp = 25
-split.Bucket.temp = T
+split.Bucket.temp = F
 bucketNum.temp = 5
 bucketMax.temp = 100
 # preselect cross-validation groups to remove randomness in comparing methods
@@ -126,7 +137,7 @@ xvalvec = sample(5, nrow(dataTrain), replace=TRUE)
 # Do causal tree estimation
 split.Rule.temp = "TOTD" #tot,ct
 cv.option.temp = "TOT" #tot,ct
-split.Honest.temp = T
+split.Honest.temp = F
 cv.Honest.temp = F
 split.alpha.temp = .5
 cv.alpha.temp = .5
