@@ -98,15 +98,14 @@ X2<-factor(X2)
 #X=t(X)
 X=data.frame(X,X2)
 
+#loop through X, if numel(unique(X))< no.buckets, convert that X dim to factor (above)
+#best to do it here at the top level
 for (tmp1 in 1:ncol(X)){
   xtmp<-X[,tmp1]
   unxtmp<-unique(xtmp)
   if(length(unxtmp)<bucketMax.temp) #convert to factor
   X[,tmp1]<-factor(X[,tmp1])
 }
-
-#loop through X, if numel(unique(X))< no.buckets, convert that X dim to factor
-
 
 #dataTrain <- data.frame(X[1:ntr], y[1:ntr], w[1:ntr], tau_true[1:ntr])
 #dataEst <- data.frame(X[(ntr+1):(ntr+nest)], y[(ntr+1):(ntr+nest)], w[(ntr+1):(ntr+nest)], tau_true[(ntr+1):(ntr+nest)])

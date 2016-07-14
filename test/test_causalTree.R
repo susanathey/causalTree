@@ -78,6 +78,20 @@ ntr <- round(.333*n)
 nest <- round(.333*n)
 ntest <- n - ntr - nest
 
+# set global parameters
+minsize.temp = 25
+split.Bucket.temp = T
+bucketNum.temp = 5
+bucketMax.temp = 100
+
+X<-data.frame(X)
+for (tmp1 in 1:ncol(X)){
+  xtmp<-X[,tmp1]
+  unxtmp<-unique(xtmp)
+  if(length(unxtmp)<bucketMax.temp) #convert to factor
+    X[,tmp1]<-factor(X[,tmp1])
+}
+
 dataTrain <- data.frame(X[1:ntr,], y[1:ntr], w[1:ntr], tau_true[1:ntr])
 dataEst <- data.frame(X[(ntr+1):(ntr+nest),], y[(ntr+1):(ntr+nest)], w[(ntr+1):(ntr+nest)], tau_true[(ntr+1):(ntr+nest)])
 dataTest <- data.frame(X[(ntr+nest+1):n,], y[(ntr+nest+1):n], w[(ntr+nest+1):n], tau_true[(ntr+nest+1):n])
@@ -89,11 +103,6 @@ names(dataTest)=name
 tree_honest_prune_list <- vector(mode="list", length=4)
 tree_dishonest_prune_list <- vector(mode="list", length=4)
 
-# set global parameters
-minsize.temp = 25
-split.Bucket.temp = T
-bucketNum.temp = 5
-bucketMax.temp = 100
 # preselect cross-validation groups to remove randomness in comparing methods
 xvalvec = sample(5, nrow(dataTrain), replace=TRUE)
 #xvalvec=5
@@ -109,21 +118,21 @@ cv.alpha.temp = .5
 
 
 
-#This function is a wrapper for honest causal tree
-tree <- honest.causalTree(as.formula(paste("y~",paste(f))), 
-                  data=dataTrain, treatment=dataTrain$w, 
-                  est_data=dataEst, est_treatment=dataEst$w,
-                  split.Rule=split.Rule.temp, split.Honest=T, split.Bucket=split.Bucket.temp, bucketNum = bucketNum.temp, 
-                  bucketMax = bucketMax.temp, cv.option=cv.option.temp, cv.Honest=cv.Honest.temp, minsize = minsize.temp, 
-                  split.alpha = split.alpha.temp, cv.alpha = cv.alpha.temp, xval=xvalvec, HonestSampleSize=nest, cp=0)
-#You can still prune as usual; the cptable is the one from training the tree
-opcpid <- which.min(tree$cp[,4])
-opcp <- tree$cp[opcpid,1]
-tree_prune <- prune(tree, cp = opcp) 
-
-# save the results
-tree_honest_CT <- tree
-tree_honest_CT_prune <- tree_prune
+# #This function is a wrapper for honest causal tree
+# tree <- honest.causalTree(as.formula(paste("y~",paste(f))), 
+#                   data=dataTrain, treatment=dataTrain$w, 
+#                   est_data=dataEst, est_treatment=dataEst$w,
+#                   split.Rule=split.Rule.temp, split.Honest=T, split.Bucket=split.Bucket.temp, bucketNum = bucketNum.temp, 
+#                   bucketMax = bucketMax.temp, cv.option=cv.option.temp, cv.Honest=cv.Honest.temp, minsize = minsize.temp, 
+#                   split.alpha = split.alpha.temp, cv.alpha = cv.alpha.temp, xval=xvalvec, HonestSampleSize=nest, cp=0)
+# #You can still prune as usual; the cptable is the one from training the tree
+# opcpid <- which.min(tree$cp[,4])
+# opcp <- tree$cp[opcpid,1]
+# tree_prune <- prune(tree, cp = opcp) 
+# 
+# # save the results
+# tree_honest_CT <- tree
+# tree_honest_CT_prune <- tree_prune
 
 
 # get the dishonest version--estimated leaf effects on training sample
