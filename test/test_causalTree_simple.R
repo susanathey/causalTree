@@ -134,30 +134,30 @@ xvalvec = sample(5, nrow(dataTrain), replace=TRUE)
 
 
 # Do causal tree estimation
-split.Rule.temp = "TOTD" #tot,ct
+split.Rule.temp = "TOT" #tot,ct
 cv.option.temp = "TOT" #tot,ct
-split.Honest.temp = F
-cv.Honest.temp = F
+split.Honest.temp = T
+cv.Honest.temp = T
 split.alpha.temp = .5
 cv.alpha.temp = .5
 
 
 
 #This function is a wrapper for honest causal tree
-# tree <- honest.causalTree(as.formula(paste("y~",paste(f))), 
-#                   data=dataTrain, treatment=dataTrain$w, 
-#                   est_data=dataEst, est_treatment=dataEst$w,
-#                   split.Rule=split.Rule.temp, split.Honest=T, split.Bucket=split.Bucket.temp, bucketNum = bucketNum.temp, 
-#                   bucketMax = bucketMax.temp, cv.option=cv.option.temp, cv.Honest=cv.Honest.temp, minsize = minsize.temp, 
-#                   split.alpha = split.alpha.temp, cv.alpha = cv.alpha.temp, xval=xvalvec, HonestSampleSize=nest, cp=0)
-# #You can still prune as usual; the cptable is the one from training the tree
-# opcpid <- which.min(tree$cp[,4])
-# opcp <- tree$cp[opcpid,1]
-# tree_prune <- prune(tree, cp = opcp) 
-# 
-# # save the results
-# tree_honest_CT <- tree
-# tree_honest_CT_prune <- tree_prune
+tree <- honest.causalTree(as.formula("y~x1+x2"),
+                  data=dataTrain, treatment=dataTrain$w,
+                  est_data=dataEst, est_treatment=dataEst$w,
+                  split.Rule=split.Rule.temp, split.Honest=T, split.Bucket=split.Bucket.temp, bucketNum = bucketNum.temp,
+                  bucketMax = bucketMax.temp, cv.option=cv.option.temp, cv.Honest=cv.Honest.temp, minsize = minsize.temp,
+                  split.alpha = split.alpha.temp, cv.alpha = cv.alpha.temp, xval=xvalvec, HonestSampleSize=nest, cp=0)
+#You can still prune as usual; the cptable is the one from training the tree
+opcpid <- which.min(tree$cp[,4])
+opcp <- tree$cp[opcpid,1]
+tree_prune <- prune(tree, cp = opcp)
+
+# save the results
+tree_honest_CT <- tree
+tree_honest_CT_prune <- tree_prune
 
 
 # get the dishonest version--estimated leaf effects on training sample
