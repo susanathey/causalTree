@@ -9,9 +9,13 @@
  * The vector who[n] indexes which observations are in this node, to speed
  *   up the routine.
  */
+#include <R.h>
+#include <stdio.h>
 #include "causalTree.h"
 #include "node.h"
 #include "causalTreeproto.h"
+
+
 
 int
 partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
@@ -28,12 +32,23 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     int nleft, nright;
     int n;
     int min_node_size = minsize;
-
+    FILE* fptr;
+    
     me = splitnode;
     n = n2 - n1;                /* total number of observations */
     me->id = nodenum;
     
-
+//#ifdef DEBUG
+    
+    fptr=fopen("C:\\Users\\vikasr\\Documents\\debug_text.txt","w");
+    fprintf(fptr,"test print\n");
+    fclose(fptr);
+    R_FlushConsole();
+    //Rprintf("test print\n");
+    //R_ShowMessage("R_show_message\n");
+    
+//#endif
+    
     if (nodenum > 1) {
         twt = 0;
         ttr = 0;
@@ -89,6 +104,14 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
 	        // userD (temporarily set as CTD)
 	        (*ct_eval) (n, ct.ytemp, me->response_est, me->controlMean, me->treatMean, 
           &(me->risk), ct.wtemp, ct.trtemp, ct.max_y, alpha, train_to_est_ratio);
+	    }else if (split_Rule == 11) {
+	      // policy (temporarily set as CTD)
+	      (*ct_eval) (n, ct.ytemp, me->response_est, me->controlMean, me->treatMean, 
+        &(me->risk), ct.wtemp, ct.trtemp, ct.max_y, alpha, train_to_est_ratio);
+	    }else if (split_Rule == 12) {
+	      // policyD (temporarily set as CTD)
+	      (*ct_eval) (n, ct.ytemp, me->response_est, me->controlMean, me->treatMean, 
+        &(me->risk), ct.wtemp, ct.trtemp, ct.max_y, alpha, train_to_est_ratio);
 	    }
 
 	    me->num_obs = n;

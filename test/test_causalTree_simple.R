@@ -9,10 +9,11 @@ library(devtools)
 library(rpart)
 library(rpart.plot)
 #install_github("susanathey/causalTree")
+install_github("vikas84bf/causalTree",ref="optimalPolicy")
 library(causalTree)
 library(reshape2)
 library(plyr)
-
+#
 
 # Generate data 
 # parameters for data generating
@@ -20,8 +21,8 @@ p <- 20 # number of total covariates
 pt <- 4 # number of covariates affecting treatment effects
 py <- 4 # number of covariates affecting outcomes but not treatment effects
 asym <- .5 # whether treatment effects are distributed asymmetrically across treated and control
-n <- 3000 # total size of the dataset
-propens <- .5 #treatment probability
+n <- 1000 # total size of the dataset
+propens <- .3 #treatment probability 0.5
 sig = .01
 treatsize <- .5 # treatment effect size
 levsize <- 1
@@ -70,7 +71,9 @@ for (ii in 1:p) {
   if (ii>1) {name <- c(name, nextx)}
 }
 
-name <- c( name,  "y", "w", "tau_true")
+
+#name <- c( name,  "y", "w", "tau_true")
+name <- c("x1","x2","y", "w", "tau_true")
 
 tau_true <- (1-2*w)*(y_ - y)
 
@@ -78,23 +81,40 @@ ntr <- round(.333*n)
 nest <- round(.333*n)
 ntest <- n - ntr - nest
 
-# set global parameters
-minsize.temp = 25
-split.Bucket.temp = T
-bucketNum.temp = 5
-bucketMax.temp = 100
+#simple X=binom, y=w*x
+X=X[,1]
+#X=w
+# X <- rbinom(n, 1, propens)
+# X2 <- rbinom(n, 1, propens)
+X<-sample(2,n,replace=TRUE)
+X2=sample(2,n,replace=TRUE)
+y=w*(X+X2)
+# X<-X+1
+#X<-factor(X)
+X2=X2+2
+X2<-factor(X2)
 
-X<-data.frame(X)
+#X=rbind(X,X2)
+#X=t(X)
+X=data.frame(X,X2)
+
+#loop through X, if numel(unique(X))< no.buckets, convert that X dim to factor (above)
+#best to do it here at the top level
 for (tmp1 in 1:ncol(X)){
   xtmp<-X[,tmp1]
   unxtmp<-unique(xtmp)
   if(length(unxtmp)<bucketMax.temp) #convert to factor
-    X[,tmp1]<-factor(X[,tmp1])
+  X[,tmp1]<-factor(X[,tmp1])
 }
+
+#dataTrain <- data.frame(X[1:ntr], y[1:ntr], w[1:ntr], tau_true[1:ntr])
+#dataEst <- data.frame(X[(ntr+1):(ntr+nest)], y[(ntr+1):(ntr+nest)], w[(ntr+1):(ntr+nest)], tau_true[(ntr+1):(ntr+nest)])
+#dataTest <- data.frame(X[(ntr+nest+1):n], y[(ntr+nest+1):n], w[(ntr+nest+1):n], tau_true[(ntr+nest+1):n])
 
 dataTrain <- data.frame(X[1:ntr,], y[1:ntr], w[1:ntr], tau_true[1:ntr])
 dataEst <- data.frame(X[(ntr+1):(ntr+nest),], y[(ntr+1):(ntr+nest)], w[(ntr+1):(ntr+nest)], tau_true[(ntr+1):(ntr+nest)])
 dataTest <- data.frame(X[(ntr+nest+1):n,], y[(ntr+nest+1):n], w[(ntr+nest+1):n], tau_true[(ntr+nest+1):n])
+
 
 names(dataTrain)=name
 names(dataEst)=name
@@ -103,14 +123,19 @@ names(dataTest)=name
 tree_honest_prune_list <- vector(mode="list", length=4)
 tree_dishonest_prune_list <- vector(mode="list", length=4)
 
+# set global parameters
+minsize.temp = 25
+split.Bucket.temp = F
+bucketNum.temp = 5
+bucketMax.temp = 100
 # preselect cross-validation groups to remove randomness in comparing methods
 xvalvec = sample(5, nrow(dataTrain), replace=TRUE)
 #xvalvec=5
 
 
 # Do causal tree estimation
-split.Rule.temp = "CT"
-cv.option.temp = "CT"
+split.Rule.temp = "TOT" #tot,ct
+cv.option.temp = "TOT" #tot,ct
 split.Honest.temp = T
 cv.Honest.temp = T
 split.alpha.temp = .5
@@ -118,27 +143,27 @@ cv.alpha.temp = .5
 
 
 
-# #This function is a wrapper for honest causal tree
-# tree <- honest.causalTree(as.formula(paste("y~",paste(f))), 
-#                   data=dataTrain, treatment=dataTrain$w, 
-#                   est_data=dataEst, est_treatment=dataEst$w,
-#                   split.Rule=split.Rule.temp, split.Honest=T, split.Bucket=split.Bucket.temp, bucketNum = bucketNum.temp, 
-#                   bucketMax = bucketMax.temp, cv.option=cv.option.temp, cv.Honest=cv.Honest.temp, minsize = minsize.temp, 
-#                   split.alpha = split.alpha.temp, cv.alpha = cv.alpha.temp, xval=xvalvec, HonestSampleSize=nest, cp=0)
-# #You can still prune as usual; the cptable is the one from training the tree
-# opcpid <- which.min(tree$cp[,4])
-# opcp <- tree$cp[opcpid,1]
-# tree_prune <- prune(tree, cp = opcp) 
-# 
-# # save the results
-# tree_honest_CT <- tree
-# tree_honest_CT_prune <- tree_prune
+#This function is a wrapper for honest causal tree
+tree <- honest.causalTree(as.formula("y~x1+x2"),
+                  data=dataTrain, treatment=dataTrain$w,
+                  est_data=dataEst, est_treatment=dataEst$w,
+                  split.Rule=split.Rule.temp, split.Honest=T, split.Bucket=split.Bucket.temp, bucketNum = bucketNum.temp,
+                  bucketMax = bucketMax.temp, cv.option=cv.option.temp, cv.Honest=cv.Honest.temp, minsize = minsize.temp,
+                  split.alpha = split.alpha.temp, cv.alpha = cv.alpha.temp, xval=xvalvec, HonestSampleSize=nest, cp=0)
+#You can still prune as usual; the cptable is the one from training the tree
+opcpid <- which.min(tree$cp[,4])
+opcp <- tree$cp[opcpid,1]
+tree_prune <- prune(tree, cp = opcp)
+
+# save the results
+tree_honest_CT <- tree
+tree_honest_CT_prune <- tree_prune
 
 
 # get the dishonest version--estimated leaf effects on training sample
-tree <- causalTree(as.formula(paste("y~",paste(f))), 
+tree <- causalTree(as.formula("y~x1+x2"), 
                           data=dataTrain, treatment=dataTrain$w, 
-                   split.Rule=split.Rule.temp, split.Honest=T, split.Bucket=split.Bucket.temp, bucketNum = bucketNum.temp, 
+                   split.Rule=split.Rule.temp, split.Honest=F, split.Bucket=split.Bucket.temp, bucketNum = bucketNum.temp, 
                    bucketMax = bucketMax.temp, cv.option=cv.option.temp, cv.Honest=cv.Honest.temp, minsize = minsize.temp, 
                    split.alpha = split.alpha.temp, cv.alpha = cv.alpha.temp, xval=xvalvec, HonestSampleSize=nest, cp=0)
 opcpid <- which.min(tree$cp[,4])
@@ -164,7 +189,7 @@ tree_honest_prune_list[[1]] <- tree_honest_CT_prune
 split.Rule.temp = "tstats"
 cv.option.temp = "CT"
 split.Honest.temp = F
-cv.Honest.temp = T
+cv.Honest.temp = F
 split.alpha.temp = 1
 
 tree <- honest.causalTree(as.formula(paste("y~",paste(f))), 
@@ -208,8 +233,8 @@ tree_honest_fit_prune <- tree_prune
 tree_honest_prune_list[[3]] <- tree_honest_fit_prune
 
 #honest TOT
-split.Rule.temp = "TOT"
-cv.option.temp = "TOT"
+split.Rule.temp = "CT"
+cv.option.temp = "CT"
 split.Honest.temp = F
 cv.Honest.temp = F
 split.alpha.temp = 1

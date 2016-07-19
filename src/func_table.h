@@ -124,6 +124,31 @@ extern void userD(int n, double *y[], double *x, int nclass,
 extern double userDpred(double *y, double wt, double treatment, double *yhat, 
                       double propensity); 
 
+///// adding policy
+extern int policyinit(int n, double *y[], int maxcat, char **error,
+                    int *size, int who, double *wt, double *treatment, int bucketnum, 
+                    int bucketMax, double *train_to_est_ratio);
+extern void policyss(int n, double *y[], double *value, double *tr_mean, double *con_mean, double *risk, 
+                   double *wt, double *treatment, double max_y, double alpha, double train_to_est_ratio);
+extern void policy(int n, double *y[], double *x, int nclass,int edge, double *improve, double *split, 
+                 int *csplit, double myrisk, double *wt, double *treatment, int minsize, double alpha,
+                 double train_to_est_ratio);
+extern double policypred(double *y, double wt, double treatment, double *yhat, double propensity);
+
+extern int policyDinit(int n, double *y[], int maxcat, char **error, int *size,
+                     int who, double *wt, double *treatment, int bucketnum, int bucketMax,
+                     double *train_to_est_ratio);
+
+extern void policyDss(int n, double *y[], double *value, double *tr_mean, double *con_mean, double *risk, double *wt, 
+                    double *treatment, double max_y, double alpha, double train_to_est_ratio);
+extern void policyD(int n, double *y[], double *x, int nclass,
+                  int edge, double *improve, double *split, int *csplit,
+                  double myrisk, double *wt, double *treatment, int minsize, double alpha, int bucketnum,
+                  int bucketMax, double train_to_est_ratio);
+extern double policyDpred(double *y, double wt, double treatment, double *yhat, 
+                        double propensity); 
+
+
 /* ------------------------------------------------------ --------------------------- */
 extern double tot_xpred(double *y, double wt, double treatment, double *yhat, double propensity); 
 extern double matching_xpred(double *y1, double *y2, double wt1, double wt2, double treatment1,
@@ -141,6 +166,14 @@ extern double userH_xpred(double *y, double wt, double treatment, double tr_mean
                         double propensity);
 extern double userA_xpred(double *y, double wt, double treatment, double tr_mean, double con_mean,
                         double tree_tr_mean, double tree_con_mean, double alpha);
+
+///// adding policy
+extern double policyH_xpred(double *y, double wt, double treatment, double tr_mean, double con_mean,
+                          double trs, double cons, double alpha, double xtrain_to_est_ratio,
+                          double propensity);
+extern double policyA_xpred(double *y, double wt, double treatment, double tr_mean, double con_mean,
+                          double tree_tr_mean, double tree_con_mean, double alpha, double gamma);
+
 
 //extern double totxeval(int *unique_leaf, int **val_leaf_mat, int cp_id, int t, int *sorts, double *wt, 
 //                      double *treatment,  double *y[], double propensity, int k, int nobs, 
@@ -190,6 +223,8 @@ static struct {
     {tstatsDinit, tstatsD, tstatsDss, tstatsDpred},
     {userinit, user, userss, userpred},
     {userDinit, userD, userDss, userDpred},
+    {policyinit, policy, policyss, policypred},
+    {policyDinit, policyD, policyDss, policyDpred},
 };
 
 static struct {
@@ -204,7 +239,9 @@ static struct {
     {CTA_xpred},
     {userH_xpred},
     {userA_xpred},
+    {policyH_xpred},
+    {policyA_xpred},
 };
 
-#define NUM_SPLIT_RULE 10
-#define NUM_CROSSMETH 9
+#define NUM_SPLIT_RULE 12
+#define NUM_CROSSMETH 11
