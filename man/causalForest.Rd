@@ -5,7 +5,7 @@
   Causal Effect Regression and Estimation Forests (Tree Ensembles)
 }
 \description{
-  Fit a user selected number of \code{causalTree} models to get an ensemble of \code{rpart} objects
+  Build a random forest by fitting a user selected number of \code{causalTree} models to get an ensemble of \code{rpart} objects.
 }
 \usage{
 causalForest(formula, data, treatment,  
@@ -40,11 +40,8 @@ causalForest(formula, data, treatment,
 for a discussion.  Note further that \code{split.Rule} and \code{cv.option} can mix and match.} 
     
         
-    \item{split.Honest}{boolean option, \code{TRUE} or \code{FALSE}, used for \code{split.Rule} as \code{"CT"} or \code{"fit"}. If set as \code{TRUE}, do honest splitting, with default \code{split.alpha} = 0.5; if set as \code{FALSE}, do adaptive splitting with \code{split.alpha} = 1.  The user choice of \code{split.alpha} will be ignored if \code{split.Honest} is set as \code{FALSE}, but will be respected
-if set to \code{TRUE}.  For \code{split.Rule}=\code{"TOT"}, there is no honest splitting option and
-the parameter \code{split.alpha} does not matter.  For \code{split.Rule}=\code{"tstats"}, a value of \code{TRUE} enables use of \code{split.alpha} in calculating the risk function, which determines the order of pruning in cross-validation. Note also that causalTree function
-returns the estimates from the training data, no matter what the value of \code{split.Honest} is; the tree must be re-estimated to get the honest estimates using \code{estimate.causalTree}. The wrapper function \code{honest.CausalTree}
-does honest estimation in one step and returns a tree.}
+    \item{split.Honest}{boolean option, \code{TRUE} or \code{FALSE}, note that the forest code always calls the honest version of causal tree irrespective of the value of this flag.
+}
 
     \item{split.Bucket}{boolean option, \code{TRUE} or \code{FALSE}, used to specify whether to apply the discrete method in splitting the tree. If set as \code{TRUE}, in splitting a node, the observations in a leaf will be be partitioned into buckets, with each bucket containing \code{bucketNum} treated and \code{bucketNum} control units, and where observations are ordered prior to partitioning. Splitting will take place by bucket.  }
     
@@ -78,7 +75,7 @@ dataset.  Unit-specific propensity scores are not supported; however, the user m
   
   \item{sample.size.total}{Sample size used to build each tree in the forest (sampled randomly with replacement)}
   
-  \item{sample.size.train.frac}{Fraction of the sample size used for building each tree (training)}
+  \item{sample.size.train.frac}{Fraction of the sample size used for building each tree (training). For eexample,  if the sample.size.total is 1000 and frac =0.5 then, 500 samples will be used to build the tree and the other 500 samples will be used the evaluate the tree. }
   
   \item{mtry}{Number of data features used to build a tree (This variable is not used presently)}
   
@@ -88,13 +85,14 @@ dataset.  Unit-specific propensity scores are not supported; however, the user m
     
   \item{\dots}{arguments to \code{\link{rpart.control}} may also be
     specified in the call to \code{causalForest}.  They are checked against the
-    list of valid arguments.  An example of a commonly set parameter would be \code{xval}, which sets the number of cross-validation samples.
+    list of valid arguments.
 	The parameter \code{minsize} is implemented differently in \code{causalTree} than in {rpart}; we require a minimum of \code{minsize}
 	treated observations and a minimum of \code{minsize} control observations in each leaf.}
 }
 
 \details{
-CausalForest builds an ensemble of CausalTrees, by repeated random sampling of the data with replacement. For prediction, the average value over all tree predictions is used.
+CausalForest builds an ensemble of CausalTrees (See Athey and Imbens, \emph{Recursive Partitioning for Heterogeneous Causal
+Effects} (2016)), by repeated random sampling of the data with replacement. A causal forest object is a list of trees. To predict, call R's predict function with new test data and the causalForest object (estimated on the training data) obtained after calling the causalForest function. During the prediction phase, the average value over all tree predictions is returned as the final prediction.
  CausalTree differs from \code{rpart} function from \pkg{rpart} package in splitting rules and cross validation methods. Please check Athey and Imbens, \emph{Recursive Partitioning for Heterogeneous Causal
 Effects} (2016) and Stefan Wager and Susan Athey, \emph{Estimation and Inference of Heterogeneous Treatment Effects using Random Forests
 } for more details.
@@ -116,6 +114,7 @@ Wager,S and Athey, S (2015) \emph{Estimation and Inference of Heterogeneous Trea
 }
 
 \seealso{
+  \code{\link{causalTree}}
   \code{\link{honest.causalTree}},
   \code{\link{rpart.control}}, \code{\link{rpart.object}},
   \code{\link{summary.rpart}}, \code{\link{rpart.plot}}
