@@ -46,6 +46,8 @@ totDinit(int n, double *y[], int maxcat, char **error,
     }
     *size = 1;
     *train_to_est_ratio = n * 1.0 / ct.NumHonest;
+    //if (bucketnum == 0) 
+      Rprintf("inside totDinit!\n");
     return 0;
 }
 
@@ -140,6 +142,7 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
     
     
     if(nclass == 0) {
+      Rprintf("totd: inside cont. split\n");
         cum_wt = (double *) ALLOC(n, sizeof(double));
         tmp_wt = (double *) ALLOC(n, sizeof(double));
         fake_x = (double *) ALLOC(n, sizeof(double));
@@ -292,6 +295,9 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
         /*
          * Categorical Predictor
          */
+        Rprintf("totd: inside factor split!\n");
+      Rprintf("nclass:%d\n",nclass);
+      
         for (i = 0; i < nclass; i++) {
             countn[i] = 0;
             wts[i] = 0;
@@ -331,7 +337,7 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
          */
         left_wt = 0;
         left_sum = 0;
-        //right_sum = 0;
+        right_sum = 0;
         left_n = 0;
         best = 0;
         where = 0;
@@ -343,15 +349,22 @@ void totD(int n, double *y[], double *x, int nclass, int edge, double *improve,
             right_wt -= wts[j];
             left_sum += sums[j];
             right_sum -= sums[j];
-            if (left_n >= edge && right_n >= edge &&
-                (int) left_tr >= min_node_size &&
-                (int) left_wt - (int) left_tr >= min_node_size &&
-                (int) right_tr >= min_node_size &&
-                (int) right_wt - (int) right_tr >= min_node_size) {
+            Rprintf("j=%d,sums[j]=%f\n",j,sums[j]);
+            Rprintf("left_sum=%f,right_sum=%f\n",left_sum,right_sum);
+            //if (left_n >= edge && right_n >= edge &&
+            //  (int) left_tr >= min_node_size &&
+            //   (int) left_wt - (int) left_tr >= min_node_size &&
+            //   (int) right_tr >= min_node_size &&
+            //   (int) right_wt - (int) right_tr >= min_node_size)
+            if (left_n >= edge && right_n >= edge) {
                 temp = left_sum * left_sum / left_wt +
                     right_sum * right_sum / right_wt;
+              Rprintf("temp=%f\n",temp);
+              Rprintf("best=%f\n",best);
+              Rprintf("left_sum_fin=%f,left_wt=%f,left_tr=%f,right_sum_fin=%f,right_wt=%f,right_tr=%f,min_node_size=%d\n",left_sum,left_wt,left_tr,right_sum,right_wt,right_tr,min_node_size);
                 if (temp > best) {
                     best = temp;
+                  Rprintf("tot factor best:%f\n",best);
                     if ((left_sum / left_wt) > (right_sum / right_wt)) {
                         for (i = 0; i < nclass; i++) csplit[i] = -tsplit[i];
                     } else {

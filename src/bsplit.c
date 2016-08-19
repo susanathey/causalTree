@@ -104,6 +104,15 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
             (*ct_choose) (k, ytemp, xtemp, nc, ct.min_node, &improve, 
              &split, ct.csplit, me->risk, wtemp, trtemp, minsize, alpha,
              bucketnum, bucketMax, train_to_est_ratio);
+        }else if (split_Rule == 11) {
+          // policy
+          (*ct_choose) (k, ytemp, xtemp, nc, ct.min_node, &improve, 
+           &split, ct.csplit, me->risk, wtemp, trtemp, minsize, alpha, train_to_est_ratio);
+        }else if (split_Rule == 12) {
+          // policyD
+          (*ct_choose) (k, ytemp, xtemp, nc, ct.min_node, &improve, 
+           &split, ct.csplit, me->risk, wtemp, trtemp, minsize, alpha,
+           bucketnum, bucketMax, train_to_est_ratio);
         }
 
         /*

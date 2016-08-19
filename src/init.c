@@ -23,7 +23,7 @@ SEXP honest_estimate_causalTree(SEXP dimx, SEXP nnode,
 
 static const R_CallMethodDef CallEntries[] = {
     {"init_ctcallback", (DL_FUNC) &init_ctcallback, 5},
-    {"causalTree", (DL_FUNC) &causalTree, 22},
+    {"causalTree", (DL_FUNC) &causalTree, 23},
     {"pred_causalTree", (DL_FUNC) &pred_causalTree, 12},
     {"estimate_causalTree", (DL_FUNC) &estimate_causalTree, 12},
     {"honest_estimate_causalTree", (DL_FUNC) &honest_estimate_causalTree, 19},
@@ -35,7 +35,7 @@ void
 R_init_causalTree(DllInfo * dll)
 {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
-    R_useDynamicSymbols(dll, FALSE);
+    R_useDynamicSymbols(dll, TRUE);//FALSE
 #if defined(R_VERSION) && R_VERSION >= R_Version(2, 16, 0)
     R_forceSymbols(dll, TRUE);
 #endif
