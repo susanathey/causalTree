@@ -5,8 +5,8 @@ library(devtools)
 #install.packages("plyr", dependencies=TRUE, repos='http://cran.us.r-project.org')
 library(rpart)
 library(rpart.plot)
-install_github("susanathey/causalTree", ref="forestCode")
-# install_github("swager/randomForestCI")
+# install_github("susanathey/causalTree", ref="forestCode")
+install_github("swager/randomForestCI")
 
 library("causalTree")
 library("randomForestCI")
@@ -129,14 +129,14 @@ ptpredtrain <- predict(pt, newdata=dataTrain, type="vector")
 print(c("mean of ATE treatment effect from propensity tree on Training data", round(mean(ptpredtrain),5)))
 plot(dataTest$tau_true,ptpredtest)
 
-
+ncov_sample<-floor(p/3) #number of covariates (randomly sampled) to use to build tree
 # now estimate a causalForest
 cf <- causalForest(as.formula(paste("y~",f)), data=dataTrain, treatment=dataTrain$w, 
                          split.Rule="CT", split.Honest=T,  split.Bucket=F, bucketNum = 5,
                          bucketMax = 100, cv.option="CT", cv.Honest=T, minsize = 2L, 
                         split.alpha = 0.5, cv.alpha = 0.5,
                          sample.size.total = floor(nrow(dataTrain) / 2), sample.size.train.frac = .5,
-                         mtry = ceiling(ncol(dataTrain)/3), nodesize = 3, num.trees= 5) 
+                         mtry = ceiling(ncol(dataTrain)/3), nodesize = 3, num.trees= 5,ncolx=p,ncov_sample) 
 
 cfpredtest <- predict(cf, newdata=dataTest, type="vector")
 plot(dataTest$tau_true,cfpredtest)

@@ -9,7 +9,7 @@ library(devtools)
 library(rpart)
 library(rpart.plot)
 #install_github("susanathey/causalTree")
-install_github("vikas84bf/causalTree",ref="optimalPolicy")
+# install_github("vikas84bf/causalTree",ref="optimalPolicy")
 library(causalTree)
 library(reshape2)
 library(plyr)
@@ -87,11 +87,12 @@ X=X[,1]
 # X <- rbinom(n, 1, propens)
 # X2 <- rbinom(n, 1, propens)
 X<-sample(2,n,replace=TRUE)
-X2=sample(2,n,replace=TRUE)
-y=w*(X+X2)
+X2<-sample(2,n,replace=TRUE)
+w<-w*0+1
+y<-w*(X+X2)
 # X<-X+1
 #X<-factor(X)
-X2=X2+2
+X2<-X2+2
 X2<-factor(X2)
 
 #X=rbind(X,X2)

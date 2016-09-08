@@ -30,7 +30,7 @@ causalForest <- function(formula, data, treatment,
                          
                          sample.size.total = floor(nrow(data) / 10), sample.size.train.frac = .5,
                          mtry = ceiling(ncol(data)/3), nodesize = 1, num.trees=nrow(data),
-                         cost=F, weights=F) {
+                         cost=F, weights=F,ncolx,ncov_sample) {
   
   # do not implement subset option of causalTree, that is inherited from rpart but have not implemented it here yet
 
@@ -53,9 +53,21 @@ causalForest <- function(formula, data, treatment,
     train.idx <- full.idx[1:train.size]
     reestimation.idx <- full.idx[(train.size+1):sample.size]
     
+    #randomize over the covariates for splitting (both train and reestimation)
+    cov_sample<-sample.int(ncov_sample)
+    
+    #need to store this var subset for each tree (need it during testing)
+    causalForest.hon$cov_sample[[tree.index]]<-cov_sample
+    
     dataTree <- data.frame(data[train.idx,])
     dataEstim <- data.frame(data[reestimation.idx,])
 
+    #pick relevant covariates for tree
+    dataTree <- dataTree[,c(cov_sample,(ncolx+1):ncol(dataTree))]
+    dataEstim <- dataEstim[,c(cov_sample,(ncolx+1):ncol(dataEstim))]
+    
+    #save rdata for testing
+    
     tree.honest <- honest.causalTree(formula=formula, data = dataTree, 
                                      treatment = treatmentdf[train.idx,], 
                                      est_data=dataEstim, est_treatment=treatmentdf[reestimation.idx,],
