@@ -3,7 +3,7 @@ init.causalForest <- function(formula, data, treatment, weights=F, cost=F, num.t
   trees <- vector("list", num.trees)
   inbag <- matrix(0, num.obs, num.trees) 
   cov_sample <- matrix(0,num.trees,ncov_sample)
-  nameall_sample <- matrix(0,num.trees,ncov_sample)
+  nameall_sample <- matrix(0,num.trees,ncov_sample+3)#3 end cols for y,w,tau_true
   fsample<-vector("list",num.trees)
   causalForestobj <- list(trees = trees, formula=formula, data=data, treatment=treatment, weights=weights, cost=cost, ntree = num.trees, inbag = inbag,cov_sample=cov_sample, fsample=fsample,nameall_sample=nameall_sample) 
   class(causalForestobj) <- "causalForest" 
