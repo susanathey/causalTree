@@ -85,11 +85,12 @@ causalForest <- function(formula, data, treatment,
   }
   nameall_sample <- c( name,  "y", "w", "tau_true")
 
-    
+    print(cov_sample)
+    print(length(causalForest.hon$cov_sample[tree.index,]))
     #store this var subset for each tree (need it during testing/predict stage)
-    causalForest.hon$cov_sample[[tree.index]]<-cov_sample
+    causalForest.hon$cov_sample[tree.index,]<-cov_sample
     #also store the formula & colnames of X for each tree (need it during testing/predict stage)
-    causalForest.hon$nameall_sample[[tree.index]]<-nameall_sample
+    causalForest.hon$nameall_sample[tree.index,]<-nameall_sample
     causalForest.hon$fsample[[tree.index]]<-fsample
     
     dataTree <- data.frame(data[train.idx,])
@@ -106,9 +107,14 @@ causalForest <- function(formula, data, treatment,
     
     
     
-    #save rdata for debug here, if needed
     
-    tree.honest <- honest.causalTree(formula=fsample, data = dataTree, 
+    #save rdata for debug here, if needed
+    print("before honest.causaltree call")    
+    print(names(dataTree))
+    print(names(dataEstim))
+    formula<-fsample
+    print(formula)
+    tree.honest <- honest.causalTree(formula, data = dataTree, 
                                      treatment = treatmentdf[train.idx,], 
                                      est_data=dataEstim, est_treatment=treatmentdf[reestimation.idx,],
                                      split.Rule="CT", split.Honest=T, split.Bucket=split.Bucket, 
