@@ -130,6 +130,7 @@ print(c("mean of ATE treatment effect from propensity tree on Training data", ro
 plot(dataTest$tau_true,ptpredtest)
 
 ncov_sample<-floor(p/3) #number of covariates (randomly sampled) to use to build tree
+# ncov_sample<-p #use this line if all covariates need to be used in all trees
 ncolx<-p
 # now estimate a causalForest
 cf <- causalForest(as.formula(paste("y~",f)), data=dataTrain, treatment=dataTrain$w, 
