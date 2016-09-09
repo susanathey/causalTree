@@ -132,7 +132,7 @@ plot(dataTest$tau_true,ptpredtest)
 ncov_sample<-floor(p/3) #number of covariates (randomly sampled) to use to build tree
 ncolx<-p
 # now estimate a causalForest
-cf <- causalForest(as.formula(paste("y~",fsample)), data=dataTrain, treatment=dataTrain$w, 
+cf <- causalForest(as.formula(paste("y~",f)), data=dataTrain, treatment=dataTrain$w, 
                          split.Rule="CT", split.Honest=T,  split.Bucket=F, bucketNum = 5,
                          bucketMax = 100, cv.option="CT", cv.Honest=T, minsize = 2L, 
                         split.alpha = 0.5, cv.alpha = 0.5,

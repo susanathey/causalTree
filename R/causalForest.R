@@ -17,8 +17,8 @@ predict.causalForest <- function(forest, newdata, predict.all = FALSE, type="vec
     predict(tree.fit, newdata=newdata, type="vector")
   })
   
-  #replace sapply with a loop
-  
+  #replace sapply with a loop if needed
+  print(dim(individual))
   aggregate <- rowMeans(individual)
   if (predict.all) {
     list(aggregate = aggregate, individual = individual)
@@ -85,8 +85,7 @@ causalForest <- function(formula, data, treatment,
   }
   nameall_sample <- c( name,  "y", "w", "tau_true")
 
-    print(cov_sample)
-    print(length(causalForest.hon$cov_sample[tree.index,]))
+    
     #store this var subset for each tree (need it during testing/predict stage)
     causalForest.hon$cov_sample[tree.index,]<-cov_sample
     #also store the formula & colnames of X for each tree (need it during testing/predict stage)
@@ -109,11 +108,7 @@ causalForest <- function(formula, data, treatment,
     
     
     #save rdata for debug here, if needed
-    print("before honest.causaltree call")    
-    print(names(dataTree))
-    print(names(dataEstim))
-    formula<-fsample
-    print(formula)
+    formula<-paste("y~",fsample,sep="")
     tree.honest <- honest.causalTree(formula, data = dataTree, 
                                      treatment = treatmentdf[train.idx,], 
                                      est_data=dataEstim, est_treatment=treatmentdf[reestimation.idx,],
