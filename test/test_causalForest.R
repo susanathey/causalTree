@@ -5,7 +5,7 @@ library(devtools)
 #install.packages("plyr", dependencies=TRUE, repos='http://cran.us.r-project.org')
 library(rpart)
 library(rpart.plot)
-install_github("susanathey/causalTree", ref="modVR1",force=TRUE)
+# install_github("susanathey/causalTree", ref="modVR1",force=TRUE)
 # install_github("swager/randomForestCI")
 
 library("causalTree")
@@ -153,10 +153,15 @@ cfvar <- infJack(cfpredtrainall$individual, cf$inbag, calibrate = TRUE)
 plot(cfvar)
 
 # now estimate a propensityForest
+
+ncov_sample<-floor(p/3) #number of covariates (randomly sampled) to use to build tree
+# ncov_sample<-p #use this line if all covariates need to be used in all trees
+ncolx<-p
+
 pf <- propensityForest(as.formula(paste("y~",f)), data=dataTrain, treatment=dataTrain$w, 
                    split.Bucket=F, 
                    sample.size.total = floor(nrow(dataTrain) / 2), 
-                   mtry = ceiling(ncol(dataTrain)/3), nodesize = 25, num.trees=num.trees.temp) 
+                   mtry = ceiling(ncol(dataTrain)/3), nodesize = 25, num.trees=5,ncolx=ncolx,ncov_sample=ncov_sample) 
 
 pfpredtest <- predict(pf, newdata=dataTest, type="vector")
 plot(dataTest$tau_true,pfpredtest)
