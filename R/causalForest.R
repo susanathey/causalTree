@@ -66,8 +66,6 @@ causalForest <- function(formula, data, treatment,
   nextx<-""
   if (ncov_sample>1) {
   for (ii in 1:(ncov_sample-1)) {
-  if (ncov_sample>1) {
-  for (ii in 1:(ncov_sample-1)) {
   nextx <- paste("x",cov_sample[ii], sep="")
   if (ii==1) {name <- nextx}
   if (ii>1) {name <- c(name, nextx)}
