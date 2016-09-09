@@ -1,8 +1,11 @@
-init.causalForest <- function(formula, data, treatment, weights=F, cost=F, num.trees) { 
+init.causalForest <- function(formula, data, treatment, weights=F, cost=F, num.trees,ncov_sample) { 
   num.obs <- nrow(data)
   trees <- vector("list", num.trees)
   inbag <- matrix(0, num.obs, num.trees) 
-  causalForestobj <- list(trees = trees, formula=formula, data=data, treatment=treatment, weights=weights, cost=cost, ntree = num.trees, inbag = inbag) 
+  cov_sample <- matrix(0,num.trees,ncov_sample)
+  nameall_sample <- matrix(0,num.trees,ncov_sample)
+  fsample<-vector("list",num.trees)
+  causalForestobj <- list(trees = trees, formula=formula, data=data, treatment=treatment, weights=weights, cost=cost, ntree = num.trees, inbag = inbag,cov_sample=cov_sample, fsample=fsample,nameall_sample=nameall_sample) 
   class(causalForestobj) <- "causalForest" 
   return(causalForestobj)
 } 
@@ -13,6 +16,8 @@ predict.causalForest <- function(forest, newdata, predict.all = FALSE, type="vec
   individual <- sapply(forest$trees, function(tree.fit) {
     predict(tree.fit, newdata=newdata, type="vector")
   })
+  
+  #replace sapply with a loop
   
   aggregate <- rowMeans(individual)
   if (predict.all) {
@@ -35,7 +40,7 @@ causalForest <- function(formula, data, treatment,
   # do not implement subset option of causalTree, that is inherited from rpart but have not implemented it here yet
 
   num.obs <-nrow(data)
-  causalForest.hon <- init.causalForest(formula=formula, data=data, treatment=treatment, weights=weights, cost=cost, num.trees=num.trees)
+  causalForest.hon <- init.causalForest(formula=formula, data=data, treatment=treatment, weights=weights, cost=cost, num.trees=num.trees,ncov_sample=ncov_sample)
   sample.size <- min(sample.size.total, num.obs)
   train.size <- round(sample.size.train.frac*sample.size)
   est.size <- sample.size - train.size
@@ -54,21 +59,58 @@ causalForest <- function(formula, data, treatment,
     reestimation.idx <- full.idx[(train.size+1):sample.size]
     
     #randomize over the covariates for splitting (both train and reestimation)
-    cov_sample<-sample.int(ncov_sample)
+    cov_sample<-sample.int(ncolx)
+    cov_sample<-cov_sample[1:ncov_sample]
+    #modify the y=f(x) equation accordingly for this tree
+  fsample<-""
+  nextx<-""
+  if (ncov_sample>1) {
+  for (ii in 1:(ncov_sample-1)) {
+  if (ncov_sample>1) {
+  for (ii in 1:(ncov_sample-1)) {
+  nextx <- paste("x",cov_sample[ii], sep="")
+  if (ii==1) {name <- nextx}
+  if (ii>1) {name <- c(name, nextx)}
+  fsample <- paste(fsample, nextx, "+", sep="")
+  }
+  fsample <- paste(fsample, "x", cov_sample[ii+1], sep="")
+  } else if (ncov_sample==1) {
+  fsample <- "x1"
+  }
+  #modify the colnames
     
-    #need to store this var subset for each tree (need it during testing)
+    nameall_sample<-c()
+  for (ii in 1:ncov_sample) {
+  nextx <- paste("x",cov_sample[ii], sep="")
+  if (ii==1) {name <- nextx}
+  if (ii>1) {name <- c(name, nextx)}
+  }
+  nameall_sample <- c( name,  "y", "w", "tau_true")
+
+    
+    #store this var subset for each tree (need it during testing/predict stage)
     causalForest.hon$cov_sample[[tree.index]]<-cov_sample
+    #also store the formula & colnames of X for each tree (need it during testing/predict stage)
+    causalForest.hon$nameall_sample[[tree.index]]<-nameall_sample
+    causalForest.hon$fsample[[tree.index]]<-fsample
     
     dataTree <- data.frame(data[train.idx,])
     dataEstim <- data.frame(data[reestimation.idx,])
+    
 
     #pick relevant covariates for tree
     dataTree <- dataTree[,c(cov_sample,(ncolx+1):ncol(dataTree))]
     dataEstim <- dataEstim[,c(cov_sample,(ncolx+1):ncol(dataEstim))]
     
-    #save rdata for testing
+    #change colnames to reflect the sampled cols
+    names(dataTree)=nameall_sample
+    names(dataEstim)=nameall_sample
     
-    tree.honest <- honest.causalTree(formula=formula, data = dataTree, 
+    
+    
+    #save rdata for debug here, if needed
+    
+    tree.honest <- honest.causalTree(formula=fsample, data = dataTree, 
                                      treatment = treatmentdf[train.idx,], 
                                      est_data=dataEstim, est_treatment=treatmentdf[reestimation.idx,],
                                      split.Rule="CT", split.Honest=T, split.Bucket=split.Bucket, 
