@@ -487,7 +487,7 @@ In this section, we provide an example which illustrates how a \texttt{causalFor
 +    bucketMax = 100, cv.option="CT", cv.Honest=T, minsize = 2L,
 +    split.alpha = 0.5, cv.alpha = 0.5,
 +    sample.size.total = floor(nrow(dataTrain) / 2), sample.size.train.frac = .5,
-+    mtry = ceiling(ncol(dataTrain)/3), nodesize = 3, num.trees= 5)
++    mtry = ceiling(ncol(dataTrain)/3), nodesize = 3, num.trees= 5,ncolx=ncolx,ncov_sample=ncov_sample)
 >cfpredtest <- predict(cf, newdata=dataTest, type="vector")
 >plot(dataTest$tau_true,cfpredtest)
 \end{Sinput}
@@ -516,8 +516,8 @@ An example call to the \texttt{propensityForest} function is shown below.
 +        data=dataTrain, treatment=dataTrain$w,
 +        split.Bucket=F,
 +        sample.size.total = floor(nrow(dataTrain) / 2),
-+        mtry = ceiling(ncol(dataTrain)/3), 
-+        nodesize = 25, num.trees=num.trees.temp)
++        mtry = ceiling(ncol(dataTrain)/3),
++        nodesize = 25, num.trees=5,ncolx=ncolx,ncov_sample=ncov_sample)
 >pfpredtest <- predict(pf, newdata=dataTest, type="vector")
 \end{Sinput}
 \end{Schunk}

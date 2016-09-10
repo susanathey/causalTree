@@ -10,4 +10,10 @@ L.~Breiman, J.H. Friedman, R.A. Olshen, , and C.J Stone.
 \newblock {\em Classification and Regression Trees}.
 \newblock Wadsworth, Belmont, Ca, 1983.
 
+\bibitem{wager2015forest}
+Stefan Wager and Susan Athey.
+\newblock Estimation and inference of heterogeneous treatment effects using
+  random forests.
+\newblock {\em arXiv preprint arXiv:1510.04342}, 2015.
+
 \end{thebibliography}
