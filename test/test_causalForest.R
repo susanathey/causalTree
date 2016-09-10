@@ -131,7 +131,7 @@ plot(dataTest$tau_true,ptpredtest)
 
 ncov_sample<-floor(p/3) #number of covariates (randomly sampled) to use to build tree
 # ncov_sample<-p #use this line if all covariates need to be used in all trees
-ncolx<-p
+ncolx<-p #total number of covariates
 # now estimate a causalForest
 cf <- causalForest(as.formula(paste("y~",f)), data=dataTrain, treatment=dataTrain$w, 
                          split.Rule="CT", split.Honest=T,  split.Bucket=F, bucketNum = 5,
@@ -156,7 +156,7 @@ plot(cfvar)
 
 ncov_sample<-floor(p/3) #number of covariates (randomly sampled) to use to build tree
 # ncov_sample<-p #use this line if all covariates need to be used in all trees
-ncolx<-p
+ncolx<-p #total number of covariates
 
 pf <- propensityForest(as.formula(paste("y~",f)), data=dataTrain, treatment=dataTrain$w, 
                    split.Bucket=F, 
