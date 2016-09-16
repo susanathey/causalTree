@@ -107,7 +107,7 @@ honest.rparttree <-
         ##   standalone debugging.
 	init <- if (missing(parms))
             get(paste("causalTree", method, sep = "."),
-	              envir = environment())(Y, offset, ,)
+	              envir = environment())(Y, offset)
 	            # envir = environment())(Y, offset, , wt)
         else
             get(paste("causalTree", method, sep = "."),
