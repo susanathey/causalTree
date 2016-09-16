@@ -52,7 +52,7 @@ honest.rparttree <-
     if (any(est_wts < 0)) stop("negative weights not allowed")
     if (!length(est_wts)) est_wts <- rep(1, nrow(m2))
     est_offset <- model.offset(m2)
-    est_X <- rpart.matrix(m2)
+    est_X <- causalTree.matrix(m2)
     est_nobs <- nrow(est_X)
     est_nvar <- ncol(est_X)
     
@@ -139,7 +139,7 @@ honest.rparttree <-
                  domain = NA)
     }
 
-    controls <- rpart.control(...)
+    controls <- causalTree.control(...)
     if (!missing(control)) controls[names(control)] <- control
 
     xval <- controls$xval
