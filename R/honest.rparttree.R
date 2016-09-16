@@ -107,10 +107,13 @@ honest.rparttree <-
         ##   standalone debugging.
 	init <- if (missing(parms))
             get(paste("causalTree", method, sep = "."),
-                envir = environment())(Y, offset, , wt)
+	              envir = environment())(Y, offset, ,)
+	            # envir = environment())(Y, offset, , wt)
         else
             get(paste("causalTree", method, sep = "."),
-                envir = environment())(Y, offset, parms, wt)
+                envir = environment())(Y, offset, parms)
+                # envir = environment())(Y, offset, parms, wt)
+	            
         ## avoid saving environment on fitted objects
         ns <- asNamespace("causalTree")
         if (!is.null(init$print)) environment(init$print) <- ns
