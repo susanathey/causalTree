@@ -23,8 +23,11 @@
  *  Output
  *      where       : the "final" row in nodes for each observation
  */
-#include "rpart.h"
-#include "rpartproto.h"
+//#include "rpart.h"
+//#include "rpartproto.h"
+
+#include "causalTree.h"
+#include "causalTreeproto.h"
 
 static void
 honest_estimate_rparttree0(const int *dimx, int nnode, int nsplit, const int *dimc,
