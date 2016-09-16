@@ -106,13 +106,13 @@ honest.rparttree <-
         ##   lock in the rpart package otherwise, so that we can still do
         ##   standalone debugging.
 	init <- if (missing(parms))
-            get(paste("rpart", method, sep = "."),
+            get(paste("causalTree", method, sep = "."),
                 envir = environment())(Y, offset, , wt)
         else
-            get(paste("rpart", method, sep = "."),
+            get(paste("causalTree", method, sep = "."),
                 envir = environment())(Y, offset, parms, wt)
         ## avoid saving environment on fitted objects
-        ns <- asNamespace("rpart")
+        ns <- asNamespace("causalTree")
         if (!is.null(init$print)) environment(init$print) <- ns
         if (!is.null(init$summary)) environment(init$summary) <- ns
         if (!is.null(init$text)) environment(init$text) <- ns
