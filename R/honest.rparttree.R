@@ -28,7 +28,8 @@ honest.rparttree <-
     if (any(wt < 0)) stop("negative weights not allowed")
     if (!length(wt)) wt <- rep(1, nrow(m))
     offset <- model.offset(m)
-    X <- rpart.matrix(m)
+    # X <- rpart.matrix(m)
+    X <- causalTree.matrix(m)
     nobs <- nrow(X)
     nvar <- ncol(X)
 ###
