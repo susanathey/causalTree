@@ -73,7 +73,7 @@ causalForest <- function(formula, data, treatment,
   }
   fsample <- paste(fsample, "x", cov_sample[ii+1], sep="")
   } else if (ncov_sample==1) {
-  fsample <- "x1"
+  fsample <- paste("x",cov_sample[1], sep="")
   }
   #modify the colnames
     
@@ -83,7 +83,7 @@ causalForest <- function(formula, data, treatment,
   if (ii==1) {name <- nextx}
   if (ii>1) {name <- c(name, nextx)}
   }
-  nameall_sample <- c( name,  "y", "w", "tau_true")
+  nameall_sample <- c( name,  "y", "w") #, "tau_true")
 
     
     #store this var subset for each tree (need it during testing/predict stage)
