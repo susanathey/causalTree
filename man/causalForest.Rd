@@ -25,7 +25,7 @@ causalForest(formula, data, treatment,
   }
   
   \item{data}{an optional data frame that includes the variables
-    named in the formula.} 
+    named in the formula. Note that the last 2 columns of the data frame must be the output vector and treatment vector, rest of the columns are covariates} 
   
   \item{weights}{optional case weights.}
   
