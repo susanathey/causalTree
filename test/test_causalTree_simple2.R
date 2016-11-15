@@ -1,5 +1,6 @@
+# add model 11 from bayestree_tests
 # This program tests out the features of the causalTree package
-
+rm(list=ls())
 #install.packages("devtools")
 library(devtools)
 #install.packages("rpart", dependencies=TRUE, repos='http://cran.us.r-project.org')
@@ -23,7 +24,7 @@ p <- 20 # number of total covariates
 pt <- 2 #4 # number of covariates affecting treatment effects
 py <- 4 # number of covariates affecting outcomes but not treatment effects
 asym <- .5 # whether treatment effects are distributed asymmetrically across treated and control
-n <- 1000 # total size of the dataset
+n <- 100 # total size of the dataset
 propens <- .3 #treatment probability 0.5
 sig = .01
 treatsize <- .5 # treatment effect size
@@ -80,33 +81,57 @@ name <- c( name,  "y", "w", "tau_true")
 
 tau_true <- (1-2*w)*(y_ - y)
 
-ntr <- round(.333*n)
-nest <- round(.333*n)
+ntr <- round(.8*n)
+nest <- round(.1*n)
 ntest <- n - ntr - nest
 
 ###
-# simple X=binom, y=w*x
-X=X[,1]
-#X=w
-# X <- rbinom(n, 1, propens)
-# X2 <- rbinom(n, 1, propens)
-X<-sample(2,n,replace=TRUE)
-X2<-sample(2,n,replace=TRUE)
-# w<-w*0+1
-y<-w*(X+X2)
-# X<-X+1
-#X<-factor(X)
-X2<-X2+2
-X2<-factor(X2)
+# # simple X=binom, y=w*x
+# X=X[,1]
+# #X=w
+# # X <- rbinom(n, 1, propens)
+# # X2 <- rbinom(n, 1, propens)
+# X<-sample(2,n,replace=TRUE)
+# X2<-sample(2,n,replace=TRUE)
+# # w<-w*0+1
+# y<-w*(X+X2)
+# # X<-X+1
+# #X<-factor(X)
+# X2<-X2+2
+# X2<-factor(X2)
+# 
+# #X=rbind(X,X2)
+# #X=t(X)
+# X=data.frame(X,X2)
+# ###
 
-#X=rbind(X,X2)
-#X=t(X)
-X=data.frame(X,X2)
+#model 11 from bayestree_tests
+###
+xv<-X*0
+xv<-xv[,1:2]
+X<-sample(2,nrow(xv),replace=TRUE,prob=c(0.6,0.4))
+X2<-sample(2,nrow(xv),replace=TRUE,prob=c(0.6,0.4))
+X2<-X2+2
+X<-X-1.5
+w <- rbinom(nrow(xv), 1, 0.5)
+# w <- (w-0.5)*2 #-1 or 1
+# w_ <- -w
+w_ <-1-w #0 or 1
+# w<-w*0
+# w_<-w*0+1
+yvpo<-0*xv[,1:2]
+yvpo[,1]<-w*X
+yvpo[,2]<-w_*X
+yvpo_clean<-yvpo
+xv[,1]<-X
+xv[,2]<-X #X2
+y<-yvpo[,1]
+X<-xv
+name<-cbind("x1","x2","y","w","tau_true")
 ###
 
-
 # set global parameters
-minsize.temp = 25
+minsize.temp = 1 #25
 split.Bucket.temp = F
 bucketNum.temp = 5
 bucketMax.temp = 100
@@ -145,18 +170,18 @@ tree_dishonest_prune_list <- vector(mode="list", length=4)
 # Do causal tree estimation
 split.Rule.temp = "policy" #tot,ct
 cv.option.temp = "CT" #tot,ct
-split.Honest.temp = T
-cv.Honest.temp = T
+split.Honest.temp = F
+cv.Honest.temp = F
 split.alpha.temp = .5
 cv.alpha.temp = .5
 
 
 
-#This function is a wrapper for honest causal tree
+#This function is a wrapper for honest causal tree, for now, est data=traindata (otherwise dataEst)
 tree <- honest.causalTree(as.formula("y~x1+x2"),
                   data=dataTrain, treatment=dataTrain$w,
                   est_data=dataEst, est_treatment=dataEst$w,
-                  split.Rule=split.Rule.temp, split.Honest=T, split.Bucket=split.Bucket.temp, bucketNum = bucketNum.temp,
+                  split.Rule=split.Rule.temp, split.Honest=split.Honest.temp, split.Bucket=split.Bucket.temp, bucketNum = bucketNum.temp,
                   bucketMax = bucketMax.temp, cv.option=cv.option.temp, cv.Honest=cv.Honest.temp, minsize = minsize.temp,
                   split.alpha = split.alpha.temp, cv.alpha = cv.alpha.temp, xval=xvalvec, HonestSampleSize=nest, cp=0)
 #You can still prune as usual; the cptable is the one from training the tree
