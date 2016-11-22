@@ -80,6 +80,8 @@ EXTERN struct {
     double propensity;          /* propensity score used in this causal Tree */
     int NumHonest;              /* NumHonest for CT-H cross-validation function*/
     int NumXval;                /* number of cross validation data sets */
+    double ntreats;             /* no. of unique treat values, to be used with optimal policy option for now */
+    double alpha_multi[20];
 } ct;
 
 EXTERN struct cptable *cptable_tail;
@@ -88,6 +90,13 @@ EXTERN void (*ct_choose) ();    /*set to the splitting function */
 EXTERN void (*ct_eval) ();      /*set to the evaluation routine */
 EXTERN double (*ct_error) ();   /*set to the prediction error routine */
 EXTERN double (*ct_xeval) ();
+
+EXTERN int (*ct_init_multi) ();       /*called to initialize a splitting function */
+EXTERN void (*ct_choose_multi) ();    /*set to the splitting function */
+EXTERN void (*ct_eval_multi) ();      /*set to the evaluation routine */
+EXTERN double (*ct_error_multi) ();   /*set to the prediction error routine */
+EXTERN double (*ct_xeval_multi) ();
+
 EXTERN int nodesize;
 
 /*

@@ -223,12 +223,11 @@ static struct {
     {tstatsDinit, tstatsD, tstatsDss, tstatsDpred},
     {userinit, user, userss, userpred},
     {userDinit, userD, userDss, userDpred},
-    {policyinit, policy, policyss, policypred},
+    //{policyinit, policy, policyss, policypred},
     {policyDinit, policyD, policyDss, policyDpred},
 };
 
 static struct {
-
     double (* xeval)();
 } cv_func_table[] = {
     {tot_xpred},
@@ -240,8 +239,24 @@ static struct {
     {userH_xpred},
     {userA_xpred},
     {policyH_xpred},
-    {policyA_xpred},
+    //{policyA_xpred},
 };
+
+//function table for multi treats: policy option only
+static struct {
+  int (*init_split_multi) ();
+  void (*choose_split_multi) ();
+  void (*eval_multi) ();
+  double (*error_multi) ();
+} split_func_table_multi[] = {
+  {policyinit, policy, policyss, policypred},
+};
+
+static struct { //only the adaptive version of cv for now
+  double (* xeval_multi)();
+} cv_func_table_multi[] = {
+  {policyA_xpred},
+}; 
 
 #define NUM_SPLIT_RULE 12
 #define NUM_CROSSMETH 11

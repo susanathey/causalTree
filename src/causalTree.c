@@ -58,7 +58,7 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
            SEXP crossmeth2, SEXP crosshonest2, SEXP opt2,
            SEXP minsize2, SEXP p2, SEXP xvals2, SEXP xgrp2,
         SEXP ymat2, SEXP xmat2, SEXP wt2, SEXP treatment2, SEXP ny2, SEXP cost2, 
-        SEXP xvar2, SEXP split_alpha2, SEXP cv_alpha2, SEXP NumHonest2, SEXP gamma2)
+        SEXP xvar2, SEXP split_alpha2, SEXP cv_alpha2, SEXP NumHonest2, SEXP gamma2, SEXP ntreats2)
 {
     pNode tree;          /* top node of the tree */
     char *errmsg;
@@ -89,7 +89,7 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     double gamma;
     int NumHonest;
     double train_to_est_ratio = 0.;
-    
+    double ntreats;
     /*
      * Return objects for R -- end in "3" to avoid overlap with internal names
      */
@@ -122,7 +122,7 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     bucketnum  = asInteger(bucketnum2);
     bucketMax = asInteger(bucketMax2);
     NumHonest = asInteger(NumHonest2);
-
+    ntreats = asReal(ntreats2);
     int split_id, cv_id;
     char getchar1;
     
@@ -147,7 +147,13 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
         error(_("Invalid value for 'split.Rule' or 'cv.option' "));
     }
     
-    
+    //for optimal policy, re-assign the split and pred rules
+    if (split_Rule == 11){
+    ct_init = split_func_table_multi[0].init_split;
+    ct_choose = split_func_table_multi[0].choose_split;
+    ct_eval = split_func_table_multi[0].eval;
+    ct_xeval = cv_func_table_multi[0].xeval;
+    }
     
     /*
      * set some other parameters
@@ -275,10 +281,17 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
         temp2 += treatment[i];
     }
     
+    ct.ntreats = ntreats;    
     train_to_est_ratio = 100;
+    if((split_Rule == 11))
+    {
+      i = (*ct_init_multi) (n, ct.ydata, maxcat, &errmsg, &ct.num_resp, 1, wt, treatment,
+           bucketnum, bucketMax, &train_to_est_ratio);
+    }
+    else{
     i = (*ct_init) (n, ct.ydata, maxcat, &errmsg, &ct.num_resp, 1, wt, treatment,
          bucketnum, bucketMax, &train_to_est_ratio);
-    
+    }
 
     
     if (i > 0)
@@ -336,16 +349,24 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
          &(tree->risk), wt, treatment, ct.max_y, split_alpha, train_to_est_ratio);
     }else if (split_Rule == 11) {
       // policy
-      (*ct_eval) (n, ct.ydata, tree->response_est, tree->controlMean, tree->treatMean, 
-       &(tree->risk), wt, treatment, ct.max_y, split_alpha, train_to_est_ratio);
+      (*ct_eval_multi) (n, ct.ydata, tree->response_est, tree->controlMean, tree->treatMean, 
+       &(tree->risk_multi), wt, treatment, ct.max_y, split_alpha, train_to_est_ratio);
     } else if (split_Rule == 12) {
       // policyD
       (*ct_eval) (n, ct.ydata, tree->response_est, tree->controlMean, tree->treatMean, 
        &(tree->risk), wt, treatment, ct.max_y, split_alpha, train_to_est_ratio);
     }
+    //what about this for policy? tbd
+    int tmp1 =0;
+    if (split_Rule == 11){
+      tree->complexity_multi = tree->risk_multi;
+      for(tmp1=0;tmp1<ntreats;tmp1++)
+      ct.alpha_multi[tmp1] = ct.complexity * tree->risk_multi[tmp1];  
+    }
+    else{
     tree->complexity = tree->risk;
     ct.alpha = ct.complexity * tree->risk;
-
+    }
     /*
      * Do the basic tree
      */
@@ -356,11 +377,13 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     CpTable cptable = (CpTable) ALLOC(1, sizeof(cpTable));
 
     cptable->cp = tree->complexity;
-    cptable->risk = tree->risk;
+    cptable->risk_ = tree->risk;
+    cptable->risk_multi = tree->risk_multi;
     cptable->nsplit = 0;
     cptable->forward = 0;
     cptable->xrisk = 0;
     cptable->xstd = 0;
+    //also set the multi values to 0
     ct.num_unique_cp = 1;
     
     if (tree->rightson) {

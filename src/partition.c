@@ -33,6 +33,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
     int n;
     int min_node_size = minsize;
     FILE* fptr;
+    double tempcp_multi[20];
     
     me = splitnode;
     n = n2 - n1;                /* total number of observations */
@@ -105,9 +106,12 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
 	        (*ct_eval) (n, ct.ytemp, me->response_est, me->controlMean, me->treatMean, 
           &(me->risk), ct.wtemp, ct.trtemp, ct.max_y, alpha, train_to_est_ratio);
 	    }else if (split_Rule == 11) {
+	      // change the call to policy only, make a different function table
+	      //is this needed? probably, since we do not wanted to change function signs for other options
+	      // also look at pNode (me) vars below
 	      // policy (temporarily set as CTD)
-	      (*ct_eval) (n, ct.ytemp, me->response_est, me->controlMean, me->treatMean, 
-        &(me->risk), ct.wtemp, ct.trtemp, ct.max_y, alpha, train_to_est_ratio);
+	      (*ct_eval_multi) (n, ct.ytemp, me->response_est, me->controlMean, me->treatMean, 
+        &(me->risk_multi), ct.wtemp, ct.trtemp, ct.max_y, alpha, train_to_est_ratio);
 	    }else if (split_Rule == 12) {
 	      // policyD (temporarily set as CTD)
 	      (*ct_eval) (n, ct.ytemp, me->response_est, me->controlMean, me->treatMean, 
@@ -117,11 +121,29 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
 	    me->num_obs = n;
 	    me->sum_wt = twt;
         me->sum_tr = ttr;
-	    tempcp = me->risk;
+        if(split_Rule==11)
+          tempcp_multi = me->risk_multi;
+        else
+	         tempcp = me->risk;
+        //how do we compare now for vector complexity_multi? run a loop here
+        if(split_Rule==11)
+        {
+          int tmp1 = 0;
+          for(tmp1=0;tmp1<ct.ntreats;tmp1++)
+            if(tempcp_multi[tmp1]>me->complexity_multi[tmp1])
+              tempcp_multi[tmp1]=me->complexity_multi[tmp1];
+        }
+      else{
 	    if (tempcp > me->complexity)
 	      tempcp = me->complexity;
+        }
     } else
+    {
+	    if(split_Rule==11)
+	   tempcp_multi = me->risk_multi;
+	    else
 	    tempcp = me->risk; 
+    }
 
     /*
      * Can I quit now ?

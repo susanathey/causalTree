@@ -36,14 +36,19 @@ typedef struct node {
     double controlMean[20];
     double xtreatMean[20];
     double xcontrolMean[20];
+    double risk_multi[20];
+    double complexity_multi[20];
 } Node, *pNode;
 
 
 typedef struct cptable {
     double cp;
     double risk;
+    double risk_multi[20];//for policy, may need to do this for xrisk etc. too
     double xrisk;
+    double xrisk_multi[20];
     double xstd;
+    double xstd_multi[20];
     int nsplit;
     struct cptable *forward, *back; //
 } cpTable, *CpTable;

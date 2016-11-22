@@ -40,32 +40,82 @@ policyss(int n, double *y[], double *value,  double *con_mean, double *tr_mean,
 		double *risk, double *wt, double *treatment, double max_y,
 		double alpha, double train_to_est_ratio)
 {
-	int i;
-	double temp0 = 0., temp1 = 0., twt = 0.; /* sum of the weights */ 
-	double ttreat = 0.;
-	double effect;
-	double tr_var, con_var;
-	double con_sqr_sum = 0., tr_sqr_sum = 0.;
+	int i,j;
+	//double temp0 = 0., temp1 = 0., twt = 0.; /* sum of the weights */ 
+	//double ttreat = 0.;
+	//double effect;
+	//double tr_var, con_var;
+	//double con_sqr_sum = 0., tr_sqr_sum = 0.;
+	
+	double *temp0, *temp1, *twt; /* sum of the weights */ 
+  double *ttreat;
+  double *effect;
+  double *tr_var, *con_var;
+  double *con_sqr_sum, *tr_sqr_sum;
+  double ntreats = ct.ntreats;
 
+	//alloc space: some matrices?
+	 temp0 = (double *) ALLOC(ntreats, sizeof(double));
+	 temp1 = (double *) ALLOC(ntreats, sizeof(double));
+	 twt = (double *) ALLOC(ntreats, sizeof(double));
+	 ttreat = (double *) ALLOC(ntreats, sizeof(double));
+	 tr_sqr_sum = (double *) ALLOC(ntreats, sizeof(double));
+	 con_sqr_sum = (double *) ALLOC(ntreats, sizeof(double));
+	 effect = (double *) ALLOC(ntreats, sizeof(double));
+	 tr_var = (double *) ALLOC(ntreats, sizeof(double));
+	 con_var = (double *) ALLOC(ntreats, sizeof(double));
+	
+	for (j = 0; j < ntreats; j++) {
 	for (i = 0; i < n; i++) {
-		temp1 += *y[i] * wt[i] * treatment[i];
-		temp0 += *y[i] * wt[i] * (1 - treatment[i]);
-		twt += wt[i];
-		ttreat += wt[i] * treatment[i];
-		tr_sqr_sum += (*y[i]) * (*y[i]) * wt[i] * treatment[i];
-		con_sqr_sum += (*y[i]) * (*y[i]) * wt[i] * (1- treatment[i]);
+		//temp1 += *y[i] * wt[i] * treatment[i];
+		//temp0 += *y[i] * wt[i] * (1 - treatment[i]);
+		//twt += wt[i];
+		//ttreat += wt[i] * treatment[i];
+		//tr_sqr_sum += (*y[i]) * (*y[i]) * wt[i] * treatment[i];
+		//con_sqr_sum += (*y[i]) * (*y[i]) * wt[i] * (1- treatment[i]);
+
+		//all vars. below need to be vectors of length ntreats, and run a loop (1:ntreats) over this
+		temp1[j] += *y[i] * wt[i] * (treatment[i]==j);
+		temp0[j] += *y[i] * wt[i] * (1 - (treatment[i]==j));
+		twt[j] += wt[i];
+		ttreat[j] += wt[i] * (treatment[i]==j);
+		tr_sqr_sum[j] += (*y[i]) * (*y[i]) * wt[i] * (treatment[i]==j);
+		con_sqr_sum[j] += (*y[i]) * (*y[i]) * wt[i] * (1- (treatment[i]==j));
+		
+		
+			}
 	}
+	//need a set of sums and effects here, one for each treatment (treatment, wt, y external vars.)
 
-	effect = temp1 / ttreat - temp0 / (twt - ttreat);
-	tr_var = tr_sqr_sum / ttreat - temp1 * temp1 / (ttreat * ttreat);
-	con_var = con_sqr_sum / (twt - ttreat) - temp0 * temp0 / ((twt - ttreat) * (twt - ttreat));
+	//effect = temp1 / ttreat - temp0 / (twt - ttreat);
+	//tr_var = tr_sqr_sum / ttreat - temp1 * temp1 / (ttreat * ttreat);
+	//con_var = con_sqr_sum / (twt - ttreat) - temp0 * temp0 / ((twt - ttreat) * (twt - ttreat));
+  
+  for (j = 0; j < ntreats; j++) {
+  effect[j] = temp1[j] / ttreat[j] - temp0[j] / (twt[j] - ttreat[j]);
+  tr_var[j] = tr_sqr_sum[j] / ttreat[j] - temp1[j] * temp1[j] / (ttreat[j] * ttreat[j]);
+  con_var[j] = con_sqr_sum[j] / (twt[j] - ttreat[j]) - temp0[j] * temp0[j] / ((twt[j] - ttreat[j]) * (twt[j] - ttreat[j]));
+  }
+  
+	//returned values: tr_mean, con_mean, value, risk: need to be vectorized
+	//also, handle top level calling functions to use vectors:
+	//how to do this without affecting other options?
+	//*tr_mean = temp1 / ttreat;
+	//*con_mean = temp0 / (twt - ttreat);
+	//*value = effect;
+	//*risk = 4 * twt * max_y * max_y - alpha * twt * effect * effect + 
+	//	(1 - alpha) * (1 + train_to_est_ratio) * twt * (tr_var /ttreat  + con_var / (twt - ttreat));
 
-	*tr_mean = temp1 / ttreat;
-	*con_mean = temp0 / (twt - ttreat);
-	*value = effect;
-	*risk = 4 * twt * max_y * max_y - alpha * twt * effect * effect + 
-		(1 - alpha) * (1 + train_to_est_ratio) * twt * (tr_var /ttreat  + con_var / (twt - ttreat));
-}
+	for (j = 0; j < ntreats; j++)
+	  {
+	tr_mean[j] = temp1[j] / ttreat[j];
+	con_mean[j] = temp0[j] / (twt[j] - ttreat[j]);
+	value[j] = effect[j];
+	//risk is risk_multi for the ct object
+	risk[j] = 4 * twt[j] * max_y * max_y - alpha * twt[j] * effect[j] * effect[j] + 
+	(1 - alpha) * (1 + train_to_est_ratio) * twt[j] * (tr_var[j] /ttreat[j]  + con_var[j] / (twt[j] - ttreat[j]));
+	  }
+	}
 
 
 void policy(int n, double *y[], double *x, int nclass, int edge, double *improve, double *split, 
