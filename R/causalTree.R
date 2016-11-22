@@ -7,7 +7,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
 					   na.action = na.causalTree, 
 					   split.Rule, split.Honest, HonestSampleSize, split.Bucket, bucketNum = 5,
 					   bucketMax = 100, cv.option, cv.Honest, minsize = 2L, 
-					   x = FALSE, y = TRUE, propensity, control, split.alpha = 0.5, cv.alpha = 0.5,cv.gamma=0.5,split.gamma=0.5,
+					   x = FALSE, y = TRUE, propensity, control, split.alpha = 0.5, cv.alpha = 0.5,cv.gamma=0.5,split.gamma=0.5,ntreats=2,
 					   cost, ...){ 
 
 	Call <- match.call()
@@ -42,8 +42,8 @@ causalTree <- function(formula, data, weights, treatment, subset,
 			 1 represent treated and 0 represent controlled.")   
 	}
 	if (sum(treatment %in% c(0,1)) != nobs) {
-		stop("The treatment status should be 1 or 0 only: 1 represent treated and 0 represent controlled.")
-	}
+		# stop("The treatment status should be 1 or 0 only: 1 represent treated and 0 represent controlled.")
+	}#removed this check toallow for multi treats for optimal policy only: tbd
 
 	if (sum(treatment) == 0 || sum(treatment) == nobs) {
 		stop("The data only contains treated cases or controlled cases, please check 'treatment' again.") 
@@ -332,7 +332,8 @@ causalTree <- function(formula, data, weights, treatment, subset,
 					   as.double(split.alpha),
 					   as.double(cv.alpha),
 					   as.integer(HonestSampleSize),
-					   as.double(cv.gamma)
+					   as.double(cv.gamma),
+					   as.double(ntreats)
 					   )
 
 		nsplit <- nrow(ctfit$isplit) # total number of splits, primary and surrogate
