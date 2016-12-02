@@ -65,6 +65,7 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     int i, j, k, n;
     int maxcat;
     double temp, temp2;
+    double temp_multi[20];
     int *savesort = NULL /* -Wall */ ;
     double *dptr;               /* temp */
     int *iptr;
@@ -281,6 +282,11 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
         temp2 += treatment[i];
     }
     
+      
+    //initialize temp_multi too correctly: tbd
+    for (i = 0; i < ntreats; i++)
+    temp_multi[i] =temp;
+    
     ct.ntreats = ntreats;    
     train_to_est_ratio = 100;
     if((split_Rule == 11))
@@ -371,7 +377,7 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
      * Do the basic tree
      */
     
-    partition(1, tree, &temp, 0, n, minsize, split_Rule, split_alpha, bucketnum, bucketMax,
+    partition(1, tree, &temp, &temp_multi, 0, n, minsize, split_Rule, split_alpha, bucketnum, bucketMax,
               train_to_est_ratio); // temp store sumrisk
   
     CpTable cptable = (CpTable) ALLOC(1, sizeof(cpTable));

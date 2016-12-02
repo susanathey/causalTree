@@ -123,23 +123,74 @@ void policy(int n, double *y[], double *x, int nclass, int edge, double *improve
 		double train_to_est_ratio)
 {
 	int i, j;
-	double temp;
-	double left_sum, right_sum;
-	double left_tr_sum, right_tr_sum;
-	double left_tr, right_tr;
-	double left_wt, right_wt;
-	int left_n, right_n;
-	double best;
-	int direction = LEFT;
-	int where = 0;
-	double node_effect, left_effect, right_effect;
-	double left_temp, right_temp;
+	double *temp;
+	double *left_sum, *right_sum;
+	double *left_tr_sum, *right_tr_sum;
+	double *left_tr, *right_tr;
+	double *left_wt, *right_wt;
+	int *left_n, *right_n;
+	double *best;
+	int *direction; // = LEFT;
+	int *where; // = 0;
+	double *node_effect, *left_effect, *right_effect;
+	double *left_temp, *right_temp;
 	int min_node_size = minsize;
 
-	double tr_var, con_var;
-	double right_sqr_sum, right_tr_sqr_sum, left_sqr_sum, left_tr_sqr_sum;
-	double left_tr_var, left_con_var, right_tr_var, right_con_var;
-
+	double *tr_var, *con_var;
+	double *right_sqr_sum, *right_tr_sqr_sum, *left_sqr_sum, *left_tr_sqr_sum;
+	double *left_tr_var, *left_con_var, *right_tr_var, *right_con_var;
+  
+  //alloc the above vectors
+  temp = (double *) ALLOC(ntreats, sizeof(double));
+  
+  right_wt = (double *) ALLOC(ntreats, sizeof(double));
+  right_tr = (double *) ALLOC(ntreats, sizeof(double));
+  right_sum = (double *) ALLOC(ntreats, sizeof(double));
+  right_tr_sum = (double *) ALLOC(ntreats, sizeof(double));
+  right_tr_sqr_sum = (double *) ALLOC(ntreats, sizeof(double));
+  right_tr_var = (double *) ALLOC(ntreats, sizeof(double));
+  right_effect = (double *) ALLOC(ntreats, sizeof(double));
+  right_n = (double *) ALLOC(ntreats, sizeof(double));
+  right_con_var = (double *) ALLOC(ntreats, sizeof(double));
+  
+  left_wt = (double *) ALLOC(ntreats, sizeof(double));
+  left_tr = (double *) ALLOC(ntreats, sizeof(double));
+  left_sum = (double *) ALLOC(ntreats, sizeof(double));
+  left_tr_sum = (double *) ALLOC(ntreats, sizeof(double));
+  left_tr_sqr_sum = (double *) ALLOC(ntreats, sizeof(double));
+  left_tr_var = (double *) ALLOC(ntreats, sizeof(double));
+  left_effect = (double *) ALLOC(ntreats, sizeof(double));
+  left_n = (double *) ALLOC(ntreats, sizeof(double));
+  left_con_var = (double *) ALLOC(ntreats, sizeof(double));
+  
+  best = (double *) ALLOC(ntreats, sizeof(double));
+  right_effect = (double *) ALLOC(ntreats, sizeof(double));
+  left_effect = (double *) ALLOC(ntreats, sizeof(double));
+  node_effect = (double *) ALLOC(ntreats, sizeof(double));
+  direction = (double *) ALLOC(ntreats, sizeof(double));
+  where = (double *) ALLOC(ntreats, sizeof(double));
+  
+  right_temp = (double *) ALLOC(ntreats, sizeof(double));
+  left_temp = (double *) ALLOC(ntreats, sizeof(double));
+  
+  tr_var = (double *) ALLOC(ntreats, sizeof(double));
+  con_var = (double *) ALLOC(ntreats, sizeof(double));
+  
+  double ntreats = ct.ntreats;
+  
+  //memsets, set direction to LEFT, rest to 0
+  memset(right_wt, 0, ntreats);
+  memset(right_tr, 0, ntreats);
+  memset(right_sum, 0, ntreats);
+  memset(right_tr_sum, 0, ntreats);
+  memset(right_sqr_sum, 0, ntreats);
+  memset(right_tr_sqr_sum, 0, ntreats);
+  memset(right_n, n, ntreats);
+  
+  memset(direction, LEFT, ntreats);
+  memset(where, 0, ntreats);
+  
+    /*
 	right_wt = 0.;
 	right_tr = 0.;
 	right_sum = 0.;
@@ -147,25 +198,35 @@ void policy(int n, double *y[], double *x, int nclass, int edge, double *improve
 	right_sqr_sum = 0.;
 	right_tr_sqr_sum = 0.;
 	right_n = n;
-	for (i = 0; i < n; i++) {
-		right_wt += wt[i];
-		right_tr += wt[i] * treatment[i];
-		right_sum += *y[i] * wt[i];
-		right_tr_sum += *y[i] * wt[i] * treatment[i];
-		right_sqr_sum += (*y[i]) * (*y[i]) * wt[i];
-		right_tr_sqr_sum += (*y[i]) * (*y[i]) * wt[i] * treatment[i];
+  */
+  //run loop instead to set the above to 0: memset(tree, 0, nodesize);
+  
+  
+	
+	for (j = 0; j < ntreats; j++){
+		for (i = 0; i < n; i++) {
+		right_wt[j] += wt[i];
+		right_tr[j] += wt[i] * (treatment[i]==j);
+		right_sum[j] += *y[i] * wt[i];
+		right_tr_sum[j] += *y[i] * wt[i] * (treatment[i]==j);
+		right_sqr_sum[j] += (*y[i]) * (*y[i]) * wt[i];
+		right_tr_sqr_sum[j] += (*y[i]) * (*y[i]) * wt[i] * (treatment[i]==j);
 	}
+	
 
-	temp = right_tr_sum / right_tr - (right_sum - right_tr_sum) / (right_wt - right_tr);
-	tr_var = right_tr_sqr_sum / right_tr - right_tr_sum * right_tr_sum / (right_tr * right_tr);
-	con_var = (right_sqr_sum - right_tr_sqr_sum) / (right_wt - right_tr)
-		- (right_sum - right_tr_sum) * (right_sum - right_tr_sum) 
-		/ ((right_wt - right_tr) * (right_wt - right_tr));
-	node_effect = alpha * temp * temp * right_wt - (1 - alpha) * (1 + train_to_est_ratio) 
-		* right_wt * (tr_var / right_tr  + con_var / (right_wt - right_tr));
-
+	temp[j] = right_tr_sum[j] / right_tr[j] - (right_sum[j] - right_tr_sum[j]) / (right_wt[j] - right_tr[j]);
+	tr_var[j] = right_tr_sqr_sum[j] / right_tr[j] - right_tr_sum[j] * right_tr_sum[j] / (right_tr[j] * right_tr[j]);
+	con_var[j] = (right_sqr_sum[j] - right_tr_sqr_sum[j]) / (right_wt[j] - right_tr[j])
+		- (right_sum[j] - right_tr_sum[j]) * (right_sum[j] - right_tr_sum[j]) 
+		/ ((right_wt[j] - right_tr[j]) * (right_wt[j] - right_tr[j]));
+	node_effect[j] = alpha * temp[j] * temp[j] * right_wt[j] - (1 - alpha) * (1 + train_to_est_ratio) 
+		* right_wt[j] * (tr_var[j] / right_tr[j]  + con_var[j] / (right_wt[j] - right_tr[j]));
+	}
+	for (j = 0; j < ntreats; j++)
+ {
 	if (nclass == 0) {
 		/* continuous predictor */
+		/*
 		left_wt = 0;
 		left_tr = 0;
 		left_n = 0;
@@ -174,71 +235,85 @@ void policy(int n, double *y[], double *x, int nclass, int edge, double *improve
 		left_sqr_sum = 0;
 		left_tr_sqr_sum = 0;
 		best = 0;
-
+    */
+	
+		//run loop instead to set the above to zero: memset to 0
+	  
+	  memset(left_wt, 0, ntreats);
+	  memset(left_tr, 0, ntreats);
+	  memset(left_sum, 0, ntreats);
+	  memset(left_tr_sum, 0, ntreats);
+	  memset(left_sqr_sum, 0, ntreats);
+	  memset(left_tr_sqr_sum, 0, ntreats);
+	  memset(left_n, 0, ntreats);
+	  memset(best, 0, ntreats);
+	  	
 		for (i = 0; right_n > edge; i++) {
-			left_wt += wt[i];
-			right_wt -= wt[i];
-			left_tr += wt[i] * treatment[i];
-			right_tr -= wt[i] * treatment[i];
-			left_n++;
-			right_n--;
-			temp = *y[i] * wt[i] * treatment[i];
-			left_tr_sum += temp;
-			right_tr_sum -= temp;
-			left_sum += *y[i] * wt[i];
-			right_sum -= *y[i] * wt[i];
-			temp = (*y[i]) *  (*y[i]) * wt[i];
-			left_sqr_sum += temp;
-			right_sqr_sum -= temp;
-			temp = (*y[i]) * (*y[i]) * wt[i] * treatment[i];
-			left_tr_sqr_sum += temp;
-			right_tr_sqr_sum -= temp;
+			left_wt[j] += wt[i];
+			right_wt[j] -= wt[i];
+			left_tr[j] += wt[i] * (treatment[i]==j);
+			right_tr[j] -= wt[i] * (treatment[i]==j);
+			left_n[j]++;
+			right_n[j]--;
+			temp[j] = *y[i] * wt[i] * (treatment[i]==j);
+			left_tr_sum[j] += temp;
+			right_tr_sum[j] -= temp;
+			left_sum[j] += *y[i] * wt[i];
+			right_sum[j] -= *y[i] * wt[i];
+			temp[j] = (*y[i]) *  (*y[i]) * wt[i];
+			left_sqr_sum[j] += temp[j];
+			right_sqr_sum[j] -= temp[j];
+			temp[j] = (*y[i]) * (*y[i]) * wt[i] * (treatment[i]==j);
+			left_tr_sqr_sum[j] += temp[j];
+			right_tr_sqr_sum[j] -= temp[j];
 
 
-			if (x[i + 1] != x[i] && left_n >= edge &&
-					(int) left_tr >= min_node_size &&
-					(int) left_wt - (int) left_tr >= min_node_size &&
-					(int) right_tr >= min_node_size &&
-					(int) right_wt - (int) right_tr >= min_node_size) {
+			if (x[i + 1] != x[i] && left_n[j] >= edge &&
+					(int) left_tr[j] >= min_node_size &&
+					(int) left_wt[j] - (int) left_tr[j] >= min_node_size &&
+					(int) right_tr[j] >= min_node_size &&
+					(int) right_wt[j] - (int) right_tr[j] >= min_node_size) {
 
-				left_temp = left_tr_sum / left_tr - 
-					(left_sum - left_tr_sum) / (left_wt - left_tr);
-				left_tr_var = left_tr_sqr_sum / left_tr - 
-					left_tr_sum  * left_tr_sum / (left_tr * left_tr);
-				left_con_var = (left_sqr_sum - left_tr_sqr_sum) / (left_wt - left_tr)  
-					- (left_sum - left_tr_sum) * (left_sum - left_tr_sum)
-					/ ((left_wt - left_tr) * (left_wt - left_tr));        
-				left_effect = alpha * left_temp * left_temp * left_wt
-					- (1 - alpha) * (1 + train_to_est_ratio) * left_wt 
-					* (left_tr_var / left_tr + left_con_var / (left_wt - left_tr));
+				left_temp[j] = left_tr_sum[j] / left_tr[j] - 
+					(left_sum[j] - left_tr_sum[j]) / (left_wt[j] - left_tr[j]);
+				left_tr_var[j] = left_tr_sqr_sum[j] / left_tr[j] - 
+					left_tr_sum[j]  * left_tr_sum[j] / (left_tr[j] * left_tr[j]);
+				left_con_var[j] = (left_sqr_sum[j] - left_tr_sqr_sum[j]) / (left_wt[j] - left_tr[j])  
+					- (left_sum[j] - left_tr_sum[j]) * (left_sum[j] - left_tr_sum[j])
+					/ ((left_wt[j] - left_tr[j]) * (left_wt[j] - left_tr[j]));        
+				left_effect[j] = alpha * left_temp[j] * left_temp[j] * left_wt[j]
+					- (1 - alpha) * (1 + train_to_est_ratio) * left_wt[j] 
+					* (left_tr_var[j] / left_tr[j] + left_con_var[j] / (left_wt[j] - left_tr[j]));
 
-				right_temp = right_tr_sum / right_tr -
-					(right_sum - right_tr_sum) / (right_wt - right_tr);
-				right_tr_var = right_tr_sqr_sum / right_tr -
-					right_tr_sum * right_tr_sum / (right_tr * right_tr);
-				right_con_var = (right_sqr_sum - right_tr_sqr_sum) / (right_wt - right_tr)
-					- (right_sum - right_tr_sum) * (right_sum - right_tr_sum) 
-					/ ((right_wt - right_tr) * (right_wt - right_tr));
-				right_effect = alpha * right_temp * right_temp * right_wt
-					- (1 - alpha) * (1 + train_to_est_ratio) * right_wt * 
-					(right_tr_var / right_tr + right_con_var / (right_wt - right_tr));
+				right_temp[j] = right_tr_sum[j] / right_tr[j] -
+					(right_sum[j] - right_tr_sum[j]) / (right_wt[j] - right_tr[j]);
+				right_tr_var[j] = right_tr_sqr_sum[j] / right_tr[j] -
+					right_tr_sum[j] * right_tr_sum[j] / (right_tr[j] * right_tr[j]);
+				right_con_var[j] = (right_sqr_sum[j] - right_tr_sqr_sum[j]) / (right_wt[j] - right_tr[j])
+					- (right_sum[j] - right_tr_sum[j]) * (right_sum[j] - right_tr_sum[j]) 
+					/ ((right_wt[j] - right_tr[j]) * (right_wt[j] - right_tr[j]));
+				right_effect[j] = alpha * right_temp[j] * right_temp[j] * right_wt[j]
+					- (1 - alpha) * (1 + train_to_est_ratio) * right_wt[j] * 
+					(right_tr_var[j] / right_tr[j] + right_con_var[j] / (right_wt[j] - right_tr[j]));
 
-				temp = left_effect + right_effect - node_effect;
-				if (temp > best) {
-					best = temp;
-					where = i;               
-					if (left_temp < right_temp)
-						direction = LEFT;
+				temp[j] = left_effect[j] + right_effect[j] - node_effect[j];
+				if (temp[j] > best[j]) {
+					best[j] = temp[j];
+					where[j] = i;               
+					if (left_temp[j] < right_temp[j])
+						direction[j] = LEFT;
 					else
-						direction = RIGHT;
+						direction[j] = RIGHT;
 				}             
 			}
 		}
 
-		*improve = best;
-		if (best > 0) {         /* found something */
-			csplit[0] = direction;
-			*split = (x[where] + x[where + 1]) / 2; 
+		//*improve = best;
+	  improve[j] = best;
+		if (best[j] > 0) {         /* found something */
+			csplit[0][j] = direction[j];
+			//*split = (x[where] + x[where + 1]) / 2; 
+			split[j] = (x[where[j]] + x[where[j] + 1]) / 2; 
 		}
 	}
 
@@ -359,6 +434,7 @@ void policy(int n, double *y[], double *x, int nclass, int edge, double *improve
 		}
 		*improve = best;
 	}
+}
 }
 
 

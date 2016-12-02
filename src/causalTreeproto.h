@@ -33,7 +33,7 @@ void mysort(int start, int stop, double *x, int *cvec);
 
 void nodesplit(pNode me, int nodenum, int n1, int n2, int *nleft, int *nright);
 
-int partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2, 
+int partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, int n1, int n2, 
               int minsize, int split_Rule, double alpha, int bucketnum, int bucketMax, 
               double train_to_est_ratio);
 

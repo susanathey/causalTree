@@ -82,6 +82,9 @@ EXTERN struct {
     int NumXval;                /* number of cross validation data sets */
     double ntreats;             /* no. of unique treat values, to be used with optimal policy option for now */
     double alpha_multi[20];
+    double iscale_multi[20];
+    double vcost_multi[20];
+    int csplit_multi[20];
 } ct;
 
 EXTERN struct cptable *cptable_tail;

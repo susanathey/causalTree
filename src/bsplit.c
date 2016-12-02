@@ -21,6 +21,15 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
     int nc;
     double improve;
     double split = 0.0;
+    double *improve_multi;
+    double *split_multi;
+    
+    //malloc and memset
+    improve_multi = (double *) ALLOC(ct.ntreats, sizeof(double));
+    split_multi = (double *) ALLOC(ct.ntreats, sizeof(double));
+    memset(improve_split, 0, ct.ntreats);
+    memset(split_multi, 0, ct.ntreats);
+    
     pSplit tsplit;
     int *index;
     double *xtemp;              /* these 3 because I got tired of typeing
@@ -106,8 +115,9 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
              bucketnum, bucketMax, train_to_est_ratio);
         }else if (split_Rule == 11) {
           // policy
-          (*ct_choose_multi) (k, ytemp, xtemp, nc, ct.min_node, &improve, 
-           &split, ct.csplit, me->risk, wtemp, trtemp, minsize, alpha, train_to_est_ratio);
+          //modify policy() function in policy.c
+          (*ct_choose_multi) (k, ytemp, xtemp, nc, ct.min_node, &improve_multi, 
+           &split_multi, ct.csplit_multi, me->risk, wtemp, trtemp, minsize, alpha, train_to_est_ratio);
         }else if (split_Rule == 12) {
           // policyD
           (*ct_choose) (k, ytemp, xtemp, nc, ct.min_node, &improve, 
@@ -120,6 +130,37 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
          * error will sometimes create a non zero that should be 0.  Yet we
          * want to retain invariance to the scale of "improve".
          */
+        
+        
+    if(split_Rule==11)
+    { int j1;
+      // need a vector for improve for split_rule==11
+      //need ct.iscale_multi to be vector, ct.vcost_multi to be a vector, 
+      //check if we need to change insert_split function and tsplit variable
+      for(j1=0;j1<ct.ntreats;j1++)
+      {
+      if (improve_multi[j1] > ct.iscale_multi[j1])
+        ct.iscale_multi[j1] = improve_multi[j1];  /* largest seen so far */
+        if (improve_multi[j1] > (ct.iscale_multi[j1] * 1e-10)) {
+          improve_multi[j1] /= ct.vcost[i] //_multi[i];     /* scale the improvement */
+        tsplit = insert_split(&(me->primary), nc, improve, ct.maxpri);
+        if (tsplit) {
+          tsplit->improve = improve;
+          tsplit->var_num = i;
+          tsplit->spoint = split;
+          tsplit->count = k;
+          if (nc == 0) {// this is for continuous case, so far, only this is being implemented
+            tsplit->spoint = split;
+            tsplit->csplit[0] = ct.csplit[0];
+          } else //should not reach here, pass only continuous vars for multi-treat policy option
+            for (k = 0; k < nc; k++)
+              tsplit->csplit[k] = ct.csplit[k];
+        }
+        }
+      
+    }
+    }
+    else{
         if (improve > ct.iscale)
             ct.iscale = improve;  /* largest seen so far */
         if (improve > (ct.iscale * 1e-10)) {
@@ -138,5 +179,7 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
                         tsplit->csplit[k] = ct.csplit[k];
             }
         }
+      }
+        
     }
 }

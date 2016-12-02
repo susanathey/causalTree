@@ -18,7 +18,7 @@
 
 
 int
-partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
+partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, int n1, int n2,
           int minsize, int split_Rule, double alpha, int bucketnum, int bucketMax,
           double train_to_est_ratio)
 {
@@ -149,10 +149,40 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
      * Can I quit now ?
      */
   
+  if(split_Rule==11)
+  {
+    
+    //check on vector
+    //make multi sum for tempcp_multi
+    int tsum_var =0, sumc = 0 ;
+    for(tsum_var=0;tsum_var<ct.ntreats;tsum_var++)
+    {
+      if(tempcp_multi[tsum_var]<=ct.alpha) //ct.alpha_multi[tsum_var]) //check this (do we need alpha_multi?): tbd
+        sumc++;
+    }
+    if(me->num_obs < ct.min_split || sumc >= ntreats || nodenum > ct.maxnode)
+    {
+      //multi version
+      me->complexity = ct.alpha;
+      *sumrisk = me->risk;
+      for(tsum_var=0;tsum_var<ct.ntreats;tsum_var++)
+      {
+      me->complexity_multi[tsum_var] = ct.alpha; //ct.alpha_multi[tsum_var];
+      sumrisk_multi[tsum_var] = me->risk_multi;//need to fix this up in causaltree.c ('temp' vector version)
+      }
+      me->leftson = (pNode)  NULL;
+      me->rightson = (pNode) NULL;
+      me->primary = (pSplit) NULL;
+      me->surrogate = (pSplit) NULL;
+      return 0;
+      
+    }
+  }
+  else{
     if (me->num_obs < ct.min_split || tempcp <= ct.alpha || nodenum > ct.maxnode) {
         me->complexity = ct.alpha;
   	    *sumrisk = me->risk;
-
+    
 	/*
 	 * make sure the split doesn't have random pointers to somewhere
 	 * i.e., don't trust that whoever allocated memory set it to zero
@@ -163,6 +193,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
 	    me->surrogate = (pSplit) NULL;
 	    return 0;
     }
+  }
     /*
      * Guess I have to do the split
      */
