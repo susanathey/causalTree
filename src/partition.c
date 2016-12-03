@@ -199,7 +199,8 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
      */
     
     bsplit(me, n1, n2, min_node_size, split_Rule, alpha, bucketnum, bucketMax, train_to_est_ratio);
-    
+    if(split_Rule!=11)
+    {
     if (!me->primary) {
 	/*
 	 * This is rather rare -- but I couldn't find a split worth doing
@@ -212,6 +213,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
 	    *sumrisk = me->risk;
 	    return 0;
     }
+    }
 #ifdef DEBUG
     print_tree(me, 4);
 #endif
@@ -220,6 +222,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
     else
 	me->surrogate = (pSplit) NULL;
     
+    if(split_Rule!=11)
     nodesplit(me, nodenum, n1, n2, &nleft, &nright);
 
     /*
@@ -235,6 +238,90 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
     /*
      * Update my estimate of cp, and split the right son.
      */
+    
+    //for vectors/split_rule 11
+ if(split_Rule==11)
+ {
+  int j11;
+   for(j11=0;j11<ct.ntreats;j11++)
+   {
+  tempcp = (me->risk - left_risk) / (left_split + 1);
+   tempcp2 = (me->risk - (me->leftson)->risk);
+   if (tempcp < tempcp2)
+     tempcp = tempcp2;
+   if (tempcp > me->complexity)
+     tempcp = me->complexity;
+   
+   me->rightson = (pNode) CALLOC(1, nodesize);
+   (me->rightson)->parent = me;
+   (me->rightson)->complexity = tempcp - ct.alpha;
+   right_split = partition(1 + 2 * nodenum, me->rightson, &right_risk,
+                           n1 + nleft, n1 + nleft + nright, min_node_size, split_Rule, alpha,
+                           bucketnum, bucketMax, train_to_est_ratio);
+   
+   
+   /*
+   * Now calculate my actual C.P., which depends on children nodes, and
+   *  on grandchildren who do not collapse before the children.
+   * The calculation is done assuming that I am the top node of the
+   *  whole tree, an assumption to be fixed up later.
+   */
+   tempcp = (me->risk - (left_risk + right_risk)) /
+   (left_split + right_split + 1);
+   /* Who goes first -- minimum of tempcp, leftson, and rightson */
+   if ((me->rightson)->complexity > (me->leftson)->complexity) {
+     if (tempcp > (me->leftson)->complexity) {
+       /* leftson collapses first */
+       left_risk = (me->leftson)->risk;
+       left_split = 0;
+       
+       tempcp = (me->risk - (left_risk + right_risk)) /
+       (left_split + right_split + 1);
+       if (tempcp > (me->rightson)->complexity) {
+         /* right one goes too */
+         right_risk = (me->rightson)->risk;
+         right_split = 0;
+       }
+     }
+   } else if (tempcp > (me->rightson)->complexity) {
+     /* right hand child goes first */
+     right_split = 0;
+     right_risk = (me->rightson)->risk;
+     
+     tempcp = (me->risk - (left_risk + right_risk)) /
+     (left_split + right_split + 1);
+     if (tempcp > (me->leftson)->complexity) {
+       /* left one goes too */
+       left_risk = (me->leftson)->risk;
+       left_split = 0;
+     }
+   }
+   
+   me->complexity = (me->risk - (left_risk + right_risk)) /
+   (left_split + right_split + 1);
+   
+   
+   if (me->complexity <= ct.alpha) {
+     /*
+     * All was in vain!  This node doesn't split after all.
+     */
+     free_tree(me, 0);
+     *sumrisk = me->risk;
+     for (i = n1; i < n2; i++) {
+       j = ct.sorts[0][i];
+       if (j < 0)
+         j = -(1 + j);
+       ct.which[j] = nodenum;      /* revert to the old nodenumber */
+     }
+     return 0;               /* return # of splits */
+   } else {
+     *sumrisk = left_risk + right_risk;
+     return left_split + right_split + 1;
+   }
+  }
+ }
+ else
+ {
     tempcp = (me->risk - left_risk) / (left_split + 1);
     tempcp2 = (me->risk - (me->leftson)->risk);
     if (tempcp < tempcp2)
@@ -308,4 +395,5 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
 	*sumrisk = left_risk + right_risk;
 	return left_split + right_split + 1;
     }
+ }
 }

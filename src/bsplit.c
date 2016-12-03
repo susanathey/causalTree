@@ -134,6 +134,7 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
         
     if(split_Rule==11)
     { int j1;
+      pSplit tsplit_multi[ct.ntreats];
       // need a vector for improve for split_rule==11
       //need ct.iscale_multi to be vector, ct.vcost_multi to be a vector, 
       //check if we need to change insert_split function and tsplit variable
@@ -143,7 +144,11 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
         ct.iscale_multi[j1] = improve_multi[j1];  /* largest seen so far */
         if (improve_multi[j1] > (ct.iscale_multi[j1] * 1e-10)) {
           improve_multi[j1] /= ct.vcost[i] //_multi[i];     /* scale the improvement */
-        tsplit = insert_split(&(me->primary), nc, improve, ct.maxpri);
+          //call existing insert_split but pass each improve_multi[j1]?
+          // this may not work since the me>primary is being modified with each call
+          //we need me->primary_multi etc: added
+        tsplit = insert_split(&(me->primary_multi[j1]), nc, improve_multi[j1], ct.maxpri);
+        //have to gather tsplit into a vector
         if (tsplit) {
           tsplit->improve = improve;
           tsplit->var_num = i;
@@ -157,7 +162,8 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
               tsplit->csplit[k] = ct.csplit[k];
         }
         }
-      
+      //tsplit_vector
+      tsplit_multi[j1] <-tsplit
     }
     }
     else{

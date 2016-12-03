@@ -24,7 +24,7 @@ typedef struct node {
     double complexity;          /* complexity at which it will collapse */
     double sum_wt;              /* sum of the weights for the node  */
     double sum_tr;   
-    pSplit primary, surrogate;
+    pSplit primary, surrogate, primary_multi[20];
     struct node *rightson;
     struct node *leftson;
     struct node *parent;

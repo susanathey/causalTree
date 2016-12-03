@@ -25,6 +25,8 @@ int graycode(void);
 
 pSplit insert_split(pSplit *listhead, int ncat, double improve, int max);
 
+pSplit insert_split_multi(pSplit *listhead, int ncat, double *improve, int max);
+
 void make_cp_list(pNode me, double parent, CpTable cptable_head);
 
 CpTable make_cp_table(pNode me, double parent, int nsplit);
