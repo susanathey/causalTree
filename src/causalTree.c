@@ -367,7 +367,11 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     if (split_Rule == 11){
       tree->complexity_multi = tree->risk_multi;
       for(tmp1=0;tmp1<ntreats;tmp1++)
-      ct.alpha_multi[tmp1] = ct.complexity * tree->risk_multi[tmp1];  
+      ct.alpha_multi[tmp1] = ct.complexity * tree->risk_multi[tmp1]; 
+      
+      tree->complexity=tree->complexity_multi[0];
+      ct.alpha=ct.alpha_multi[0];
+      
     }
     else{
     tree->complexity = tree->risk;

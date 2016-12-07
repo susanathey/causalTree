@@ -122,11 +122,17 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
 	    me->sum_wt = twt;
         me->sum_tr = ttr;
         if(split_Rule==11)
+        {
           tempcp_multi = me->risk_multi;
+          tempcp = me->risk_multi[0];
+        }
         else
+        {
 	         tempcp = me->risk;
+        }
         //how do we compare now for vector complexity_multi? run a loop here
-        if(split_Rule==11)
+        //if(split_Rule==11)
+        if(0)
         {
           int tmp1 = 0;
           for(tmp1=0;tmp1<ct.ntreats;tmp1++)
@@ -140,16 +146,22 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
     } else
     {
 	    if(split_Rule==11)
-	   tempcp_multi = me->risk_multi;
+	    {
+	     tempcp_multi = me->risk_multi;
+	     tempcp = me->risk_multi[0]; 
+	    }
 	    else
+	    {
 	    tempcp = me->risk; 
+	    }
     }
 
     /*
      * Can I quit now ?
      */
   
-  if(split_Rule==11)
+  //if(split_Rule==11)
+  if(0)
   {
     
     //check on vector
@@ -180,9 +192,18 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
   }
   else{
     if (me->num_obs < ct.min_split || tempcp <= ct.alpha || nodenum > ct.maxnode) {
+        
+        if(split_Rule==11)
+        {
+          me->complexity = ct.alpha_multi[0];
+          *sumrisk = me->risk_multi[0];  
+        }
+        else
+        {
         me->complexity = ct.alpha;
   	    *sumrisk = me->risk;
-    
+        }
+      
 	/*
 	 * make sure the split doesn't have random pointers to somewhere
 	 * i.e., don't trust that whoever allocated memory set it to zero
@@ -230,8 +251,17 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
      */
     me->leftson = (pNode) CALLOC(1, nodesize);
     (me->leftson)->parent = me;
+    //tbd: tempcp_multi
     (me->leftson)->complexity = tempcp - ct.alpha;
-    left_split = partition(2 * nodenum, me->leftson, &left_risk, n1, n1 + nleft,
+    int j111;
+    if(split_Rule==11)
+    {
+    for(j111=0;j111<ct.ntreats;j111++)
+    {
+      (me->leftson)->complexity_multi[j111] = tempcp_multi[j111] -ct.alpha;
+    }
+    }
+    left_split = partition(2 * nodenum, me->leftson, &left_risk, left_risk_multi,n1, n1 + nleft,
                            min_node_size, split_Rule, alpha, bucketnum, bucketMax,
                            train_to_est_ratio);
 
@@ -239,10 +269,19 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
      * Update my estimate of cp, and split the right son.
      */
     
-    //for vectors/split_rule 11
+    //for vectors/split_rule 11, what about tempcp and tempcp2 multi versions?
  if(split_Rule==11)
  {
   int j11;
+   //if(split_Rule==11)
+   //{
+     for(j111=0;j111<ct.ntreats;j111++)
+     {
+       (me->rightson)->complexity_multi[j111] = tempcp_multi[j111] -ct.alpha;
+     }
+   //}
+   
+   //vector version: tbd
    for(j11=0;j11<ct.ntreats;j11++)
    {
   tempcp = (me->risk - left_risk) / (left_split + 1);
@@ -251,23 +290,33 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
      tempcp = tempcp2;
    if (tempcp > me->complexity)
      tempcp = me->complexity;
-   
+   }
    me->rightson = (pNode) CALLOC(1, nodesize);
    (me->rightson)->parent = me;
-   (me->rightson)->complexity = tempcp - ct.alpha;
-   right_split = partition(1 + 2 * nodenum, me->rightson, &right_risk,
+   //fix this too for the vector version
+   for(j11=0;j11<ct.ntreats;j11++)
+   (me->rightson)->complexity_multi[j11] = tempcp_multi[j11] - ct.alpha;
+   
+   //put the right split call outside the ntreats for loop
+   right_split = partition(1 + 2 * nodenum, me->rightson, &right_risk,right_risk_multi,
                            n1 + nleft, n1 + nleft + nright, min_node_size, split_Rule, alpha,
                            bucketnum, bucketMax, train_to_est_ratio);
    
-   
+   for(j11=0;j11<ct.ntreats;j11++)
+   {
    /*
    * Now calculate my actual C.P., which depends on children nodes, and
    *  on grandchildren who do not collapse before the children.
    * The calculation is done assuming that I am the top node of the
    *  whole tree, an assumption to be fixed up later.
    */
-   tempcp = (me->risk - (left_risk + right_risk)) /
-   (left_split + right_split + 1);
+   //use sums for vector version
+   int j2;
+  for(j2=0;j2<ct.ntreats;j2++)
+  {
+   tempcp+ = (me->risk_multi[j2] - (left_risk[j2] + right_risk[j2])) /
+   (left_split[j2] + right_split[j2] + 1);
+  }
    /* Who goes first -- minimum of tempcp, leftson, and rightson */
    if ((me->rightson)->complexity > (me->leftson)->complexity) {
      if (tempcp > (me->leftson)->complexity) {

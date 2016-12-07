@@ -115,6 +115,18 @@ policyss(int n, double *y[], double *value,  double *con_mean, double *tr_mean,
 	risk[j] = 4 * twt[j] * max_y * max_y - alpha * twt[j] * effect[j] * effect[j] + 
 	(1 - alpha) * (1 + train_to_est_ratio) * twt[j] * (tr_var[j] /ttreat[j]  + con_var[j] / (twt[j] - ttreat[j]));
 	  }
+	//need a combined value for tr_mean,con_mean,value and risk (stored in [0] position?)
+	for (j = 0; j < ntreats; j++)
+	  {
+	    tr_mean[0]+=tr_mean[j];
+	   con_mean[0]+=con_mean[j];
+	   value[0]+=value[j];
+	   risk[0]+=risk[j];
+	  }
+	tr_mean[0]/=ntreats;
+	con_mean[0]/=ntreats;
+	value[0]/=ntreats;
+	risk[0]/=ntreats;
 	}
 
 
