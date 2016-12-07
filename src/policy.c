@@ -116,17 +116,17 @@ policyss(int n, double *y[], double *value,  double *con_mean, double *tr_mean,
 	(1 - alpha) * (1 + train_to_est_ratio) * twt[j] * (tr_var[j] /ttreat[j]  + con_var[j] / (twt[j] - ttreat[j]));
 	  }
 	//need a combined value for tr_mean,con_mean,value and risk (stored in [0] position?)
-	for (j = 0; j < ntreats; j++)
+	for (j = 1; j < ntreats; j++)
 	  {
 	    tr_mean[0]+=tr_mean[j];
 	   con_mean[0]+=con_mean[j];
 	   value[0]+=value[j];
 	   risk[0]+=risk[j];
 	  }
-	tr_mean[0]/=ntreats;
-	con_mean[0]/=ntreats;
-	value[0]/=ntreats;
-	risk[0]/=ntreats;
+	//tr_mean[0]/=ntreats;
+	//con_mean[0]/=ntreats;
+	//value[0]/=ntreats;
+	//risk[0]/=ntreats;
 	}
 
 
@@ -151,6 +151,7 @@ void policy(int n, double *y[], double *x, int nclass, int edge, double *improve
 	double *tr_var, *con_var;
 	double *right_sqr_sum, *right_tr_sqr_sum, *left_sqr_sum, *left_tr_sqr_sum;
 	double *left_tr_var, *left_con_var, *right_tr_var, *right_con_var;
+  double bestj;
   
   //alloc the above vectors
   temp = (double *) ALLOC(ntreats, sizeof(double));
@@ -234,9 +235,13 @@ void policy(int n, double *y[], double *x, int nclass, int edge, double *improve
 	node_effect[j] = alpha * temp[j] * temp[j] * right_wt[j] - (1 - alpha) * (1 + train_to_est_ratio) 
 		* right_wt[j] * (tr_var[j] / right_tr[j]  + con_var[j] / (right_wt[j] - right_tr[j]));
 	}
-	for (j = 0; j < ntreats; j++)
- {
+  double node_effectj=0.0;
+	int jtemp;
+	for(jtemp=0;jtemp<ntreats;jtemp++)
+	  node_effectj+=node_effect[jtemp];
+	
 	if (nclass == 0) {
+	  
 		/* continuous predictor */
 		/*
 		left_wt = 0;
@@ -248,7 +253,7 @@ void policy(int n, double *y[], double *x, int nclass, int edge, double *improve
 		left_tr_sqr_sum = 0;
 		best = 0;
     */
-	
+	  bestj=0.0;
 		//run loop instead to set the above to zero: memset to 0
 	  
 	  memset(left_wt, 0, ntreats);
@@ -259,8 +264,11 @@ void policy(int n, double *y[], double *x, int nclass, int edge, double *improve
 	  memset(left_tr_sqr_sum, 0, ntreats);
 	  memset(left_n, 0, ntreats);
 	  memset(best, 0, ntreats);
+	  
 	  	
 		for (i = 0; right_n > edge; i++) {
+		  for (j = 0; j < ntreats; j++)
+		  {
 			left_wt[j] += wt[i];
 			right_wt[j] -= wt[i];
 			left_tr[j] += wt[i] * (treatment[i]==j);
@@ -307,8 +315,25 @@ void policy(int n, double *y[], double *x, int nclass, int edge, double *improve
 				right_effect[j] = alpha * right_temp[j] * right_temp[j] * right_wt[j]
 					- (1 - alpha) * (1 + train_to_est_ratio) * right_wt[j] * 
 					(right_tr_var[j] / right_tr[j] + right_con_var[j] / (right_wt[j] - right_tr[j]));
-
-				temp[j] = left_effect[j] + right_effect[j] - node_effect[j];
+        
+			}
+		  }// j loop ends
+			
+				//temp[j] = left_effect[j] + right_effect[j] - node_effect[j];
+				
+				double left_effectj=0.0,right_effectj=0.0;
+		    double left_tempj=0.0,right_tempj=0.0;
+		    int jtemp1;
+		    for(jtemp1=0;jtemp1<ntreats;jtemp1++)
+		    {
+		      left_effectj+=left_effect[jtemp1];
+		      right_effectj+=right_effect[jtemp1];
+		      left_tempj+=left_temp[jtemp1];
+		      right_tempj+=right_temp[jtemp1];
+		    }
+				double tempj=0.0;
+		    tempj=left_effectj+right_effectj-node_effectj;
+				/*
 				if (temp[j] > best[j]) {
 					best[j] = temp[j];
 					where[j] = i;               
@@ -316,21 +341,33 @@ void policy(int n, double *y[], double *x, int nclass, int edge, double *improve
 						direction[j] = LEFT;
 					else
 						direction[j] = RIGHT;
-				}             
-			}
+				}    
+				*/
+				//use sums of the above terms instead
+				if (tempj > bestj) {
+				  bestj = tempj;
+				  where[0] = i;               
+				  if (left_tempj < right_tempj)//
+				    direction[0] = LEFT;
+				  else
+				    direction[0] = RIGHT;
+				}  
+				
+			
 		}
 
 		//*improve = best;
-	  improve[j] = best;
-		if (best[j] > 0) {         /* found something */
-			csplit[0][j] = direction[j];
+	  improve[0] = best[0];
+		if (best[0] > 0) {         /* found something */
+			csplit[0][0] = direction[0];
 			//*split = (x[where] + x[where + 1]) / 2; 
-			split[j] = (x[where[j]] + x[where[j] + 1]) / 2; 
+			split[0] = (x[where[0]] + x[where[0] + 1]) / 2; 
 		}
+	
+	  
 	}
-
 	/*
-	 * Categorical predictor
+	 * Categorical predictor: tbd for multi-treats
 	 */
 	else {
 		for (i = 0; i < nclass; i++) {
@@ -445,7 +482,7 @@ void policy(int n, double *y[], double *x, int nclass, int edge, double *improve
 			}
 		}
 		*improve = best;
-	}
+	
 }
 }
 

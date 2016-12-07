@@ -27,7 +27,7 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
     //malloc and memset
     improve_multi = (double *) ALLOC(ct.ntreats, sizeof(double));
     split_multi = (double *) ALLOC(ct.ntreats, sizeof(double));
-    memset(improve_split, 0, ct.ntreats);
+    memset(improve_multi, 0, ct.ntreats);
     memset(split_multi, 0, ct.ntreats);
     
     pSplit tsplit;
