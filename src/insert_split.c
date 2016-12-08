@@ -98,7 +98,7 @@ pSplit
     if (max < 2) {
       /* user asked for only 1 to be retained! */
       s3 = *listhead;
-      if (improve <= s3->improve)
+      if (improve[0] <= s3->improve)
         return NULL;
       if (ncat > 1) {
         Free(s3);
@@ -118,7 +118,7 @@ pSplit
     /* now set up so that the "to be added" is between s1 and s2 */
     s1 = *listhead;
     for (s2 = *listhead; s2; s2 = s2->nextsplit) {
-      if (improve > s2->improve)
+      if (improve[0] > s2->improve)
         break;
       s1 = s2;
     }

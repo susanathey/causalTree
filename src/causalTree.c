@@ -150,10 +150,10 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     
     //for optimal policy, re-assign the split and pred rules
     if (split_Rule == 11){
-    ct_init = split_func_table_multi[0].init_split;
-    ct_choose = split_func_table_multi[0].choose_split;
-    ct_eval = split_func_table_multi[0].eval;
-    ct_xeval = cv_func_table_multi[0].xeval;
+    ct_init = split_func_table_multi[0].init_split_multi;
+    ct_choose = split_func_table_multi[0].choose_split_multi;
+    ct_eval = split_func_table_multi[0].eval_multi;
+    ct_xeval = cv_func_table_multi[0].xeval_multi;
     }
     
     /*
@@ -365,7 +365,7 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     //what about this for policy? tbd
     int tmp1 =0;
     if (split_Rule == 11){
-      tree->complexity_multi = tree->risk_multi;
+      tree->complexity_multi[0] = tree->risk_multi[0];
       for(tmp1=0;tmp1<ntreats;tmp1++)
       ct.alpha_multi[tmp1] = ct.complexity * tree->risk_multi[tmp1]; 
       
@@ -387,8 +387,8 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
     CpTable cptable = (CpTable) ALLOC(1, sizeof(cpTable));
 
     cptable->cp = tree->complexity;
-    cptable->risk_ = tree->risk;
-    cptable->risk_multi = tree->risk_multi;
+    cptable->risk = tree->risk;
+    cptable->risk_multi[0] = tree->risk_multi[0];
     cptable->nsplit = 0;
     cptable->forward = 0;
     cptable->xrisk = 0;

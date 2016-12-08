@@ -133,8 +133,16 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
         
         
     if(split_Rule==11)
+    {
+      improve=improve_multi[0];
+      split=split_multi[0];
+      ct.csplit[0]=ct.csplit_multi[0][0];
+    }
+    
+    //tbd: remove the if(0) if not using it for multi-treats policy
+    if(0)
     { int j1;
-      pSplit tsplit_multi[ct.ntreats];
+      pSplit tsplit_multi[(int)(ct.ntreats)];
       // need a vector for improve for split_rule==11
       //need ct.iscale_multi to be vector, ct.vcost_multi to be a vector, 
       //check if we need to change insert_split function and tsplit variable
@@ -143,7 +151,7 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
       if (improve_multi[j1] > ct.iscale_multi[j1])
         ct.iscale_multi[j1] = improve_multi[j1];  /* largest seen so far */
         if (improve_multi[j1] > (ct.iscale_multi[j1] * 1e-10)) {
-          improve_multi[j1] /= ct.vcost[i] //_multi[i];     /* scale the improvement */
+          improve_multi[j1] /= ct.vcost[i]; //_multi[i];     /* scale the improvement */
           //call existing insert_split but pass each improve_multi[j1]?
           // this may not work since the me>primary is being modified with each call
           //we need me->primary_multi etc: added
@@ -163,7 +171,7 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
         }
         }
       //tsplit_vector
-      tsplit_multi[j1] <-tsplit
+      tsplit_multi[j1] =tsplit;
     }
     }
     else{
