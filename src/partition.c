@@ -125,6 +125,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
         {
           tempcp_multi = me->risk_multi;
           tempcp = me->risk_multi[0];
+          me->risk = me->risk_multi[0];
         }
         else
         {
@@ -149,6 +150,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
 	    {
 	     tempcp_multi = me->risk_multi;
 	     tempcp = me->risk_multi[0]; 
+	     me->risk = me->risk_multi[0];
 	    }
 	    else
 	    {
@@ -193,7 +195,8 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
   else{
     if (me->num_obs < ct.min_split || tempcp <= ct.alpha || nodenum > ct.maxnode) {
         
-        if(split_Rule==11)
+        //if(split_Rule==11)
+        if(0)
         {
           me->complexity = ct.alpha_multi[0];
           *sumrisk = me->risk_multi[0];  
@@ -220,7 +223,8 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
      */
     
     bsplit(me, n1, n2, min_node_size, split_Rule, alpha, bucketnum, bucketMax, train_to_est_ratio);
-    if(split_Rule!=11)
+    //if(split_Rule!=11)
+    if(1)
     {
     if (!me->primary) {
 	/*
@@ -243,7 +247,8 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
     else
 	me->surrogate = (pSplit) NULL;
     
-    if(split_Rule!=11)
+    //if(split_Rule!=11)
+    if(1)
     nodesplit(me, nodenum, n1, n2, &nleft, &nright);
 
     /*
@@ -254,7 +259,9 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
     //tbd: tempcp_multi
     (me->leftson)->complexity = tempcp - ct.alpha;
     int j111;
-    if(split_Rule==11)
+    
+    //if(split_Rule==11)
+    if(0)
     {
     for(j111=0;j111<ct.ntreats;j111++)
     {
@@ -270,7 +277,8 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
      */
     
     //for vectors/split_rule 11, what about tempcp and tempcp2 multi versions?
- if(split_Rule==11)
+ //if(split_Rule==11)
+if(0)
  {
   int j11;
    //if(split_Rule==11)
