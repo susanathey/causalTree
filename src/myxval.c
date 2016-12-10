@@ -19,6 +19,7 @@ myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg,
     pNode xtree;
     CpTable cplist;
     double temp;
+    double temp_multi[20];
     double old_wt, total_wt;
     int neighbor; // nearest neighbor number
     alphasave = ct.alpha;
@@ -102,14 +103,23 @@ myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg,
             cp[j] *= temp / old_wt;
         ct.alpha *= temp / old_wt;
         old_wt = temp;
-
+        
+        int iii=0;
+        for (iii = 0; iii < ct.ntreats; iii++)
+          temp_multi[iii] =temp;
+        
         /*
          * partition the new tree
          */
         xtree = (pNode) CALLOC(1, nodesize);
         xtree->num_obs = k;
        
-        
+       if (split_Rule == 11){
+         ct_init = split_func_table_multi[0].init_split_multi;
+         ct_choose = split_func_table_multi[0].choose_split_multi;
+         ct_eval = split_func_table_multi[0].eval_multi;
+         ct_xeval = cv_func_table_multi[0].xeval_multi;
+       }
         
         (*ct_init) (k, ct.ytemp, maxcat, errmsg, &temp, 2, ct.wtemp, ct.trtemp, 
          bucketnum, bucketMax, &xtrain_to_est_ratio);
@@ -157,18 +167,25 @@ myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg,
              &(xtree->risk), ct.wtemp, ct.trtemp, ct.max_y, split_alpha, xtrain_to_est_ratio);
         }else if (split_Rule == 11) {
           // policy
-          (*ct_eval) (k, ct.ytemp, xtree->response_est, xtree->controlMean, xtree->treatMean,
-           &(xtree->risk), ct.wtemp, ct.trtemp, ct.max_y, split_alpha, xtrain_to_est_ratio);
+          //(*ct_eval) (k, ct.ytemp, xtree->response_est, xtree->controlMean, xtree->treatMean,
+           //&(xtree->risk), ct.wtemp, ct.trtemp, ct.max_y, split_alpha, xtrain_to_est_ratio);
+           (*ct_eval_multi) (n, ct.ytemp, xtree->response_est, xtree->controlMean, xtree->treatMean, 
+            &(xtree->risk_multi), ct.wtemp, ct.trtemp, ct.max_y, split_alpha, xtrain_to_est_ratio);
         }else if (split_Rule == 12) {
           // policyD
           (*ct_eval) (k, ct.ytemp, xtree->response_est, xtree->controlMean, xtree->treatMean,
            &(xtree->risk), ct.wtemp, ct.trtemp, ct.max_y, split_alpha, xtrain_to_est_ratio);
         }
         
+        if (split_Rule == 11){
+          xtree->risk = xtree->risk_multi[0];
+          xtree->complexity = xtree->risk;
+        }
+        else
         xtree->complexity = xtree->risk;
 
 
-        partition(1, xtree, &temp, 0, k, minsize, split_Rule, split_alpha, bucketnum, bucketMax, 
+        partition(1, xtree, &temp, &temp_multi, 0, k, minsize, split_Rule, split_alpha, bucketnum, bucketMax, 
                   xtrain_to_est_ratio);
         
 

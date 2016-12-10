@@ -404,8 +404,17 @@ causalTree(SEXP ncat2, SEXP split_Rule2, SEXP bucketnum2, SEXP bucketMax2, SEXP 
         make_cp_table(tree, tree->complexity, 0);
         
         if (xvals > 1) {
+            if(1)
+            {
             myxval(xvals, cptable, xgrp, maxcat, &errmsg, minsize, savesort, split_Rule,
                    crossmeth, split_alpha, cv_alpha, bucketnum, bucketMax,gamma);
+            }
+            else
+            {
+              myxval(xvals, cptable, xgrp, maxcat, &errmsg, minsize, savesort, split_Rule,
+                     crossmeth, split_alpha, cv_alpha, bucketnum, bucketMax,gamma);
+            }
+            
         }
     }
     /*
