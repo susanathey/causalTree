@@ -22,7 +22,8 @@ policyA_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, i
     int opnumber = 0;
     int j, j2, s;
     int tmp_obs, tmp_id;
-    double tr_mean, con_mean;
+    //double tr_mean, con_mean;
+    double *tr_mean, *con_mean;
     double consums, trsums, cons, trs;
     double *consumsj, *trsumsj, *consj, *trsj;
     
@@ -30,6 +31,8 @@ policyA_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, i
     consj = (double *) ALLOC(ct.ntreats, sizeof(double));
     trsumsj = (double *) ALLOC(ct.ntreats, sizeof(double));
     trsj = (double *) ALLOC(ct.ntreats, sizeof(double));
+    tr_mean = (double *) ALLOC(ct.ntreats, sizeof(double));
+    con_mean = (double *) ALLOC(ct.ntreats, sizeof(double));
     
     /*
      * Now, repeat the following: for the cp of interest, run down the tree
@@ -96,6 +99,8 @@ policyA_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, i
         }
         //change: make multi for tr_mean, con_mean
         //calculate tr_mean and con_mean vectors: xtreatmean and xcontrolmean are already vectors in node.h
+        
+        /*
         if (trs == 0) {
             // want to trace back to tree->parent for tr_mean;
             tr_mean = tree->parent->xtreatMean[0];
@@ -113,8 +118,48 @@ policyA_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, i
         
         double tree_tr_mean = tree->treatMean[0];
         double tree_con_mean = tree->controlMean[0];
+        */
+        for(j2=0;j2<ct.ntreats;j2++)
+        {
+          //revert to parent if not found
+          if(consj[j2]==0)
+          {
+            con_mean[j2] = tree->parent->xcontrolMean[j2];
+          }
+          else
+          {
+            con_mean[j2] = consumsj[j2]/consj[j2];
+            tree->xcontrolMean[j2] =con_mean[j2];
+          }
+          
+          //revert to parent if not found
+          if(trsj[j2]==0)
+          {
+            tr_mean[j2] = tree->parent->xtreatMean[j2];
+          }
+          else
+          {
+            tr_mean[j2] = trsumsj[j2]/trsj[j2];
+            tree->xtreatMean[j2] =tr_mean[j2];
+          }
+          
+        }
+        // convert tree_tr_mean and tree_con_mean to vectors and pass to fn policyA_pred
+      double *tree_tr_mean, *tree_con_mean;
+        tree_tr_mean = (double *) ALLOC(ct.ntreats, sizeof(double));
+        tree_con_mean = (double *) ALLOC(ct.ntreats, sizeof(double));
         
-        xtemp[i] = (*ct_xeval)(ct.ydata[obs2], ct.wt[obs2], ct.treatment[obs2], 
+        for(j2=0;j2<ct.ntreats;j2++)
+        {
+          tree_tr_mean[j2]=tree->treatMean[j2];
+          tree_con_mean[j2]=tree->controlMean[j2];
+        }
+        
+        
+        //xtemp[i] = (*ct_xeval)(ct.ydata[obs2], ct.wt[obs2], ct.treatment[obs2], 
+        //            tr_mean, con_mean, tree_tr_mean, tree_con_mean, alpha, gamma);
+        
+        xtemp[i] = (*ct_xeval_multi)(ct.ydata[obs2], ct.wt[obs2], ct.treatment[obs2], 
                     tr_mean, con_mean, tree_tr_mean, tree_con_mean, alpha, gamma);
     }
     return;
