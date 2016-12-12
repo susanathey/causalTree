@@ -20,11 +20,17 @@ policyA_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, i
     pNode tree_tmp = tree;
     
     int opnumber = 0;
-    int j, s;
+    int j, j2, s;
     int tmp_obs, tmp_id;
     double tr_mean, con_mean;
     double consums, trsums, cons, trs;
-
+    double *consumsj, *trsumsj, *consj, *trsj;
+    
+    consumsj = (double *) ALLOC(ct.ntreats, sizeof(double));
+    consj = (double *) ALLOC(ct.ntreats, sizeof(double));
+    trsumsj = (double *) ALLOC(ct.ntreats, sizeof(double));
+    trsj = (double *) ALLOC(ct.ntreats, sizeof(double));
+    
     /*
      * Now, repeat the following: for the cp of interest, run down the tree
      *   until I find a node with smaller complexity.  The parent node will
@@ -36,6 +42,15 @@ policyA_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, i
         trs = 0.;
         consums = 0.;
         trsums = 0.;
+        
+        //consj =0.0;
+        //trsj=0.0;
+        //consumsj=0.0;
+        //trsumsj=0.0;
+        memset(consj, 0, ct.ntreats);
+        memset(consumsj, 0, ct.ntreats);
+        memset(trsj, 0, ct.ntreats);
+        memset(trsumsj, 0, ct.ntreats);
         
         while (cp[i] < tree->complexity) {
 	        tree = branch(tree, obs);
@@ -58,8 +73,9 @@ policyA_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, i
                 tree_tmp = branch(tree_tmp, tmp_obs);
             }
             tmp_id = tree_tmp->id;
-
-            if (tmp_id == my_leaf_id) {
+          //change the cons, consums, trs, trsums: make multi
+            if (tmp_id == my_leaf_id) 
+            /*{
                 if (ct.treatment[j] == 0) {
                     cons += ct.wt[j];
                     consums += *ct.ydata[j] * ct.wt[j];
@@ -67,22 +83,31 @@ policyA_rundown(pNode tree, int obs, double *cp, double *xpred, double *xtemp, i
                     trs += ct.wt[j];
                     trsums += *ct.ydata[j] * ct.wt[j];
                 }
+            }*/
+            
+            for(j2=0;j2<ct.ntreats;j2++)
+            {
+              
+              consj[j2]+=(ct.treatment[j]!=j2);
+              consumsj[j2]+=*ct.ydata[j]*ct.wt[j]*(ct.treatment[j]!=j2);
+              trsj[j2]+=(ct.treatment[j]==j2);
+              trsumsj[j2]+=*ct.ydata[j]*ct.wt[j]*(ct.treatment[j]==j2);
             }
         }
-        
-        //calculate tr_mean and con_mean
+        //change: make multi for tr_mean, con_mean
+        //calculate tr_mean and con_mean vectors: xtreatmean and xcontrolmean are already vectors in node.h
         if (trs == 0) {
             // want to trace back to tree->parent for tr_mean;
             tr_mean = tree->parent->xtreatMean[0];
         } else {
-            tr_mean = trsums / trs;
+            tr_mean = trsumsj / trsj;
             tree->xtreatMean[0] = tr_mean;
         }
         
         if (cons == 0) {
             con_mean = tree->parent->xcontrolMean[0];
         } else {
-            con_mean = consums / cons;
+            con_mean = consumsj / consj;
             tree->xcontrolMean[0] = con_mean;
         }
         
