@@ -229,6 +229,7 @@ myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg,
               policyH_rundown(xtree, j, cp, xpred, xtemp, k, cv_alpha, xtrain_to_est_ratio, ct.propensity);
             }else if (crossmeth == 10) {
               // user - dishonest (set as CT - dishonest temporarily)
+              //need to pass ** vector for xtemp
               policyA_rundown(xtree, j, cp, xpred, xtemp, k, cv_alpha, gamma);
             }
 

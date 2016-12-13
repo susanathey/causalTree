@@ -161,16 +161,37 @@ double policyH_xpred(double *y, double wt, double treatment, double tr_mean,
 }
 
 // policyA
-double policyA_xpred(double *y, double wt, double treatment, double tr_mean, double con_mean,
-                   double tree_tr_mean, double tree_con_mean, double alpha, double gamma) {
-  double res;
-  double effect_tr = tree_tr_mean - tree_con_mean;
-  double effect_te = tr_mean - con_mean;
+double policyA_xpred(double *y, double wt, double treatment, double *tr_mean, double *con_mean,
+                   double *tree_tr_mean, double *tree_con_mean, double alpha, double gamma) {
+  double res;//will be the sum over ct.ntreats
+  //double effect_tr = tree_tr_mean - tree_con_mean;
+  //double effect_te = tr_mean - con_mean;
+  
+  //alloc the vectors
+  //difference over a loop
+  double *effect_tr, *effect_te;
+  effect_tr = (double *) ALLOC(ct.ntreats, sizeof(double));
+  effect_te = (double *) ALLOC(ct.ntreats, sizeof(double));
+  
+  int j1;
+  for(j1=0;j1<ct.ntreats;j1++)
+  {
+    effect_tr[j1] = tree_tr_mean[j1]-tree_con_mean[j1];
+    effect_te[j1] = tr_mean[j1]-con_mean[j1];
+  }
+  
   //    res = 2 * ct.max_y * ct.max_y + effect_tr * effect_tr  -  2 *  effect_tr * effect_te;
   //res = 2 * ct.max_y * ct.max_y + abs(effect_te)*(1.0 - sign(effect_tr) * sign(effect_te)) / 2.0;
   //(x > 0) ? 1 : ((x < 0) ? -1 : 0)
   //////  printf("userA pred abs fn\n");
-  res = 2 * ct.max_y * ct.max_y + gamma*(abs(effect_te)*(1.0 - ((effect_tr > 0) ? 1 : ((effect_tr < 0) ? -1 : 0)) * ((effect_te > 0) ? 1 : ((effect_te < 0) ? -1 : 0))) / 2.0) +
-            (1-gamma)*(effect_tr * effect_tr  -  2 *  effect_tr * effect_te);
+  //res = 2 * ct.max_y * ct.max_y + gamma*(abs(effect_te)*(1.0 - ((effect_tr > 0) ? 1 : ((effect_tr < 0) ? -1 : 0)) * ((effect_te > 0) ? 1 : ((effect_te < 0) ? -1 : 0))) / 2.0) +
+    //        (1-gamma)*(effect_tr * effect_tr  -  2 *  effect_tr * effect_te);
+  res=0.0;
+  for(j1=0;j1<ct.ntreats;j1++)
+  {
+  res+ = 2 * ct.max_y * ct.max_y + gamma*(abs(effect_te[j1])*(1.0 - ((effect_tr[j1] > 0) ? 1 : ((effect_tr[j1] < 0) ? -1 : 0)) * ((effect_te[j1] > 0) ? 1 : ((effect_te[j1] < 0) ? -1 : 0))) / 2.0) +
+    (1-gamma)*(effect_tr[j1] * effect_tr[j1]  -  2 *  effect_tr[j1] * effect_te[j1]);
+  }
+  
   return res;
 }

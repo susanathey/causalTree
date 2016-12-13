@@ -171,8 +171,8 @@ extern double userA_xpred(double *y, double wt, double treatment, double tr_mean
 extern double policyH_xpred(double *y, double wt, double treatment, double tr_mean, double con_mean,
                           double trs, double cons, double alpha, double xtrain_to_est_ratio,
                           double propensity);
-extern double policyA_xpred(double *y, double wt, double treatment, double tr_mean, double con_mean,
-                          double tree_tr_mean, double tree_con_mean, double alpha, double gamma);
+extern double policyA_xpred(double *y, double wt, double treatment, double *tr_mean, double *con_mean,
+                          double *tree_tr_mean, double *tree_con_mean, double alpha, double gamma);
 
 
 //extern double totxeval(int *unique_leaf, int **val_leaf_mat, int cp_id, int t, int *sorts, double *wt, 
