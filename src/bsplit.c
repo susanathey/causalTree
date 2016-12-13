@@ -136,7 +136,7 @@ bsplit(pNode me, int n1, int n2, int minsize, int split_Rule, double alpha, int 
     {
       improve=improve_multi[0];
       split=split_multi[0];
-      ct.csplit[0]=ct.csplit_multi[0][0];
+      ct.csplit[0]=ct.csplit_multi[0]; //[0][0];
     }
     
     //tbd: remove the if(0) if not using it for multi-treats policy

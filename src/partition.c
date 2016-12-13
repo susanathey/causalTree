@@ -34,6 +34,10 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
     int min_node_size = minsize;
     FILE* fptr;
     double tempcp_multi[20];
+    double *left_risk_multi, *right_risk_multi;
+    //alloc and memset
+    left_risk_multi = (double *) ALLOC(ct.ntreats, sizeof(double));
+    right_risk_multi = (double *) ALLOC(ct.ntreats, sizeof(double));
     
     me = splitnode;
     n = n2 - n1;                /* total number of observations */
@@ -123,7 +127,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
         me->sum_tr = ttr;
         if(split_Rule==11)
         {
-          tempcp_multi = me->risk_multi;
+          //tempcp_multi = me->risk_multi;
           tempcp = me->risk_multi[0];
           me->risk = me->risk_multi[0];
         }
@@ -148,7 +152,9 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
     {
 	    if(split_Rule==11)
 	    {
-	     tempcp_multi = me->risk_multi;
+	      int j222;
+	      for(j222=0;j222<ct.ntreats;j222++)
+	     tempcp_multi[j222] = me->risk_multi[j222];
 	     tempcp = me->risk_multi[0]; 
 	     me->risk = me->risk_multi[0];
 	    }
@@ -174,7 +180,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
       if(tempcp_multi[tsum_var]<=ct.alpha) //ct.alpha_multi[tsum_var]) //check this (do we need alpha_multi?): tbd
         sumc++;
     }
-    if(me->num_obs < ct.min_split || sumc >= ntreats || nodenum > ct.maxnode)
+    if(me->num_obs < ct.min_split || sumc >= ct.ntreats || nodenum > ct.maxnode)
     {
       //multi version
       me->complexity = ct.alpha;
@@ -182,7 +188,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
       for(tsum_var=0;tsum_var<ct.ntreats;tsum_var++)
       {
       me->complexity_multi[tsum_var] = ct.alpha; //ct.alpha_multi[tsum_var];
-      sumrisk_multi[tsum_var] = me->risk_multi;//need to fix this up in causaltree.c ('temp' vector version)
+      sumrisk_multi[tsum_var] = me->risk_multi[0];//need to fix this up in causaltree.c ('temp' vector version)
       }
       me->leftson = (pNode)  NULL;
       me->rightson = (pNode) NULL;
@@ -268,6 +274,8 @@ partition(int nodenum, pNode splitnode, double *sumrisk, double *sumrisk_multi, 
       (me->leftson)->complexity_multi[j111] = tempcp_multi[j111] -ct.alpha;
     }
     }
+    
+    
     left_split = partition(2 * nodenum, me->leftson, &left_risk, left_risk_multi,n1, n1 + nleft,
                            min_node_size, split_Rule, alpha, bucketnum, bucketMax,
                            train_to_est_ratio);
@@ -322,8 +330,8 @@ if(0)
    int j2;
   for(j2=0;j2<ct.ntreats;j2++)
   {
-   tempcp+ = (me->risk_multi[j2] - (left_risk[j2] + right_risk[j2])) /
-   (left_split[j2] + right_split[j2] + 1);
+   tempcp += (me->risk_multi[j2] - (left_risk_multi[j2] + right_risk_multi[j2])) /
+   (left_split + right_split + 1);//no j2 for splits?
   }
    /* Who goes first -- minimum of tempcp, leftson, and rightson */
    if ((me->rightson)->complexity > (me->leftson)->complexity) {
@@ -389,7 +397,7 @@ if(0)
     me->rightson = (pNode) CALLOC(1, nodesize);
     (me->rightson)->parent = me;
     (me->rightson)->complexity = tempcp - ct.alpha;
-    right_split = partition(1 + 2 * nodenum, me->rightson, &right_risk,
+    right_split = partition(1 + 2 * nodenum, me->rightson, &right_risk,right_risk_multi,
   		    n1 + nleft, n1 + nleft + nright, min_node_size, split_Rule, alpha,
   		    bucketnum, bucketMax, train_to_est_ratio);
 

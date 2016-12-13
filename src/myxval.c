@@ -2,7 +2,7 @@
 #include "causalTree.h"
 #include "node.h"
 #include "causalTreeproto.h"
-
+#include "func_table.h"
 
 void
 myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg, 
@@ -169,7 +169,7 @@ myxval(int n_xval, CpTable cptable_head, int *x_grp, int maxcat, char **errmsg,
           // policy
           //(*ct_eval) (k, ct.ytemp, xtree->response_est, xtree->controlMean, xtree->treatMean,
            //&(xtree->risk), ct.wtemp, ct.trtemp, ct.max_y, split_alpha, xtrain_to_est_ratio);
-           (*ct_eval_multi) (n, ct.ytemp, xtree->response_est, xtree->controlMean, xtree->treatMean, 
+           (*ct_eval_multi) (k, ct.ytemp, xtree->response_est, xtree->controlMean, xtree->treatMean, 
             &(xtree->risk_multi), ct.wtemp, ct.trtemp, ct.max_y, split_alpha, xtrain_to_est_ratio);
         }else if (split_Rule == 12) {
           // policyD
