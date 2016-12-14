@@ -5,7 +5,7 @@
   Causal Effect Regression and Estimation Forests (Tree Ensembles)
 }
 \description{
-  Build a random forest by fitting a user selected number of \code{causalTree} models to get an ensemble of \code{rpart} objects.
+  Build a random causal forest by fitting a user selected number of \code{causalTree} models to get an ensemble of \code{rpart} objects.
 }
 \usage{
 causalForest(formula, data, treatment,  
@@ -14,7 +14,7 @@ causalForest(formula, data, treatment,
                          propensity, control, split.alpha, cv.alpha,
                          sample.size.total, sample.size.train.frac,
                          mtry, nodesize, num.trees,
-                         cost, weights)
+                         cost, weights,ncolx,ncov_sample)
 }
 
     
@@ -82,7 +82,11 @@ dataset.  Unit-specific propensity scores are not supported; however, the user m
   \item{nodesize}{Minimum number of observations for treated and control cases in one leaf node}
   
   \item{num.trees}{Number of trees to be built in the causal forest}
-    
+  
+  \item{ncolx}{Total number of covariates}
+  
+  \item{ncov_sample}{Number of covariates randomly sampled to build each tree in the forest}
+  
   \item{\dots}{arguments to \code{\link{rpart.control}} may also be
     specified in the call to \code{causalForest}.  They are checked against the
     list of valid arguments.
@@ -92,7 +96,8 @@ dataset.  Unit-specific propensity scores are not supported; however, the user m
 
 \details{
 CausalForest builds an ensemble of CausalTrees (See Athey and Imbens, \emph{Recursive Partitioning for Heterogeneous Causal
-Effects} (2016)), by repeated random sampling of the data with replacement. A causal forest object is a list of trees. To predict, call R's predict function with new test data and the causalForest object (estimated on the training data) obtained after calling the causalForest function. During the prediction phase, the average value over all tree predictions is returned as the final prediction.
+Effects} (2016)), by repeated random sampling of the data with replacement. Further, each tree is built using a randomly sampled subset of all available covariates. A causal forest object is a list of trees. To predict, call R's predict function with new test data and the causalForest object (estimated on the training data) obtained after calling the causalForest function. During the prediction phase, the average value over all tree predictions is returned as the final prediction by default.
+To return the predictions of each tree in the forest for each test observation, set the flag \code{predict.all=TRUE}
  CausalTree differs from \code{rpart} function from \pkg{rpart} package in splitting rules and cross validation methods. Please check Athey and Imbens, \emph{Recursive Partitioning for Heterogeneous Causal
 Effects} (2016) and Stefan Wager and Susan Athey, \emph{Estimation and Inference of Heterogeneous Treatment Effects using Random Forests
 } for more details.
@@ -126,7 +131,7 @@ cf <- causalForest(as.formula(paste("y~",f)), data=dataTrain, treatment=dataTrai
                          bucketMax = 100, cv.option="CT", cv.Honest=T, minsize = 2L, 
                         split.alpha = 0.5, cv.alpha = 0.5,
                          sample.size.total = floor(nrow(dataTrain) / 2), sample.size.train.frac = .5,
-                         mtry = ceiling(ncol(dataTrain)/3), nodesize = 3, num.trees= 5) 
+                         mtry = ceiling(ncol(dataTrain)/3), nodesize = 3, num.trees= 5,ncolx=ncolx,ncov_sample=ncov_sample) 
 
 cfpredtest <- predict(cf, newdata=dataTest, type="vector")
 plot(dataTest$tau_true,cfpredtest)

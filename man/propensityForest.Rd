@@ -6,7 +6,7 @@
 }
 \description{
   Fit and evaluate a user selected number of \code{causalTree} models to get an ensemble of \code{rpart} objects
-  Trees are split using covariates and treatment vector instead of outcome variable, and evaluated using the complete datacovariates
+  Trees are split using covariates and the treatment vector instead of the outcome variable, and evaluated using the complete data covariates and the actual outcome variable.
 }
 \usage{
 propensityForest(formula, data, treatment,  
@@ -16,7 +16,7 @@ propensityForest(formula, data, treatment,
                          propensity, control, split.alpha, cv.alpha,  
                          
                          sample.size.total, sample.size.train.frac = 1,
-                         mtry, nodesize, num.trees)
+                         mtry, nodesize, num.trees,ncolx,ncov_sample)
 }
 
     
@@ -87,6 +87,10 @@ dataset.  Unit-specific propensity scores are not supported; however, the user m
   \item{nodesize}{Minimum number of observations for treated and control cases in one leaf node}
   
   \item{num.trees}{Number of trees to be built in the causal forest}
+  
+  \item{ncolx}{Total number of covariates}
+  
+  \item{ncov_sample}{Number of covariates randomly sampled to build each tree in the forest}
     
   \item{\dots}{arguments to \code{\link{rpart.control}} may also be
     specified in the call to \code{causalForest}.  They are checked against the
@@ -96,11 +100,12 @@ dataset.  Unit-specific propensity scores are not supported; however, the user m
 }
 
 \details{
-Propensity forest is similar to a causal forest.
-CausalForest builds an ensemble of CausalTrees, by repeated random sampling of the data with replacement. For prediction, the average value over all tree predictions is used.
+Propensity forest is similar to a causal forest, with some important differences as discussed below.
+The causalForest builds an ensemble of CausalTrees, by repeated random sampling of the data with replacement. For prediction, the average value over all tree predictions is used.
 Propensity forest differs from a causal forest in the following way:
 The tree building phase is done by using the covariates and treatment vector as the dummy output/outcomes variable (instead of the actual outcomes variable)
-During the tree evaluation phase, the reestimation error is calculated on the actual outcomes variable to evaluate the tree performance
+During the tree evaluation phase, the reestimation error is calculated on the actual outcomes variable to evaluate the tree performance.
+Note that the propensity forest will always build an adaptive (non honest) ensemble of trees.
 
  CausalTree differs from \code{rpart} function from \pkg{rpart} package in splitting rules and cross validation methods. Please check Athey and Imbens, \emph{Recursive Partitioning for Heterogeneous Causal
 Effects} (2016) and Stefan Wager and Susan Athey, \emph{Estimation and Inference of Heterogeneous Treatment Effects using Random Forests
@@ -132,7 +137,7 @@ Wager,S and Athey, S (2015) \emph{Estimation and Inference of Heterogeneous Trea
 pf <- propensityForest(as.formula(paste("y~",f)), data=dataTrain, treatment=dataTrain$w, 
                    split.Bucket=F, 
                    sample.size.total = floor(nrow(dataTrain) / 2), 
-                   mtry = ceiling(ncol(dataTrain)/3), nodesize = 25, num.trees=num.trees.temp) 
+                   mtry = ceiling(ncol(dataTrain)/3), nodesize = 25, num.trees=num.trees.temp,ncolx=ncolx,ncov_sample=ncov_sample) 
 
 pfpredtest <- predict(pf, newdata=dataTest, type="vector")
 plot(dataTest$tau_true,pfpredtest)
