@@ -19,7 +19,9 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 	temp <- Call[c(1L, indx)]      
 	temp$na.action <- na.action  
 	temp[[1L]] <- quote(stats::model.frame) 
+	names(treatment) <- rownames(data)
 	m <- eval.parent(temp)
+	treatment <- treatment[(rownames(m))]
 
 
 	Terms <- attr(m, "terms")
@@ -62,7 +64,9 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 	temp2$na.action <- na.action
 	names(temp2) <- gsub("est_", "", names(temp2))
 	temp2[[1L]] <- quote(stats::model.frame)
+	names(est_treatment) = rownames(est_data)
 	m2 <- eval.parent(temp2)
+	est_treatment <- est_treatment[(rownames(m2))]
 	# honest data set used for later:
 	est_Y <- model.response(m2)
 	est_wts <- model.weights(m2)
