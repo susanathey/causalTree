@@ -12,8 +12,16 @@ init.causalForest <- function(formula, data, treatment, weights=F, cost=F, num.t
 } 
 
 predict.causalForest <- function(forest, newdata, predict.all = FALSE, type="vector") {
-  if (!inherits(forest, "causalForest")) stop("Not a legitimate \"causalForest\" object")  
+  if (!inherits(forest, "causalForest")) stop("Not a legitimate \"causalForest\" object")
 
+  vars <- all.vars(forest$formula)
+  y <- vars[[1]]
+  x <- sort(vars[2:length(vars)])
+  newdata <- newdata[, c(x,y)]
+  x.names <- c()
+  for (i in 1:length(x)) {x.names <- c(x.names, paste0('x',i))}
+  colnames(newdata) <- c(sort(x.names), 'y')
+  
   individual <- sapply(forest$trees, function(tree.fit) {
     predict(tree.fit, newdata=newdata, type="vector")
   })
@@ -40,15 +48,19 @@ causalForest <- function(formula, data, treatment,
   
   # do not implement subset option of causalTree, that is inherited from rpart but have not implemented it here yet
 
+  vars <- all.vars(formula)
+  y <- vars[[1]]
+  x <- sort(vars[2:length(vars)])
+  treatmentdf <- data.frame(treatment)
+  data <- data[, c(x, y)]
+  data <- cbind(data, treatmentdf)
+  
   num.obs <-nrow(data)
   causalForest.hon <- init.causalForest(formula=formula, data=data, treatment=treatment, weights=weights, cost=cost, num.trees=num.trees,ncov_sample=ncov_sample)
   sample.size <- min(sample.size.total, num.obs)
   train.size <- round(sample.size.train.frac*sample.size)
   est.size <- sample.size - train.size
-  
 
-  treatmentdf <- data.frame(treatment)
-  
   print("Building trees ...")
   
   for (tree.index in 1:num.trees) {
@@ -62,6 +74,7 @@ causalForest <- function(formula, data, treatment,
     #randomize over the covariates for splitting (both train and reestimation)
     cov_sample<-sample.int(ncolx)
     cov_sample<-cov_sample[1:ncov_sample]
+    
     #modify the y=f(x) equation accordingly for this tree
   fsample<-""
   nextx<-""
@@ -76,15 +89,15 @@ causalForest <- function(formula, data, treatment,
   } else if (ncov_sample==1) {
   fsample <- paste("x",cov_sample[1], sep="")
   }
+  
   #modify the colnames
-    
-    nameall_sample<-c()
+  nameall_sample<-c()
   for (ii in 1:ncov_sample) {
   nextx <- paste("x",cov_sample[ii], sep="")
   if (ii==1) {name <- nextx}
   if (ii>1) {name <- c(name, nextx)}
   }
-  nameall_sample <- c( name,  "y", "w") #, "tau_true")
+  nameall_sample <- c( name,"y", "w") #, "tau_true")
 
     
     #store this var subset for each tree (need it during testing/predict stage)
@@ -96,17 +109,14 @@ causalForest <- function(formula, data, treatment,
     dataTree <- data.frame(data[train.idx,])
     dataEstim <- data.frame(data[reestimation.idx,])
     
-
     #pick relevant covariates for tree
     dataTree <- dataTree[,c(cov_sample,(ncolx+1):ncol(dataTree))]
     dataEstim <- dataEstim[,c(cov_sample,(ncolx+1):ncol(dataEstim))]
     
+    
     #change colnames to reflect the sampled cols
     names(dataTree)=nameall_sample
     names(dataEstim)=nameall_sample
-    
-    
-    
     
     #save rdata for debug here, if needed
     formula<-paste("y~",fsample,sep="")
@@ -149,12 +159,17 @@ propensityForest <- function(formula, data, treatment,
   
   num.obs <-nrow(data)
   
-
+  vars <- all.vars(formula)
+  y <- vars[[1]]
+  x <- sort(vars[2:length(vars)])
+  treatmentdf <- data.frame(treatment)
+  data <- data[, c(x, y)]
+  data <- cbind(data, treatmentdf)
+  
   causalForest.hon <- init.causalForest(formula=formula, data=data, treatment=treatment, num.trees=num.trees, weights=F, cost=F,ncov_sample=ncov_sample)
   sample.size <- min(sample.size.total, num.obs)
   train.size <- round(sample.size.train.frac*sample.size)
   
-  treatmentdf <- data.frame(treatment)
   outcomename = as.character(formula[2])
   
   print("Building trees ...")
@@ -168,6 +183,7 @@ propensityForest <- function(formula, data, treatment,
     
     cov_sample<-sample.int(ncolx)
     cov_sample<-cov_sample[1:ncov_sample]
+    
     #modify the y=f(x) equation accordingly for this tree
     fsample<-""
     nextx<-""
@@ -182,8 +198,8 @@ propensityForest <- function(formula, data, treatment,
     } else if (ncov_sample==1) {
       fsample <- "x1"
     }
-    #modify the colnames
     
+    #modify the colnames
     nameall_sample<-c()
     for (ii in 1:ncov_sample) {
       nextx <- paste("x",cov_sample[ii], sep="")

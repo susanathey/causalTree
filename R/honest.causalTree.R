@@ -10,6 +10,7 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 							  x = FALSE, y = TRUE, propensity, control, split.alpha = 0.5, 
 							  cv.alpha = 0.5,cv.gamma=0.5,split.gamma=0.5, cost, ...)  { 
 
+  set.seed(2)
 	Call <- match.call()
 
 	indx <- match(c("formula", "data", "weights", "subset"),
@@ -59,7 +60,7 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 	
 	indx2 <- match(c("formula", "est_data", "est_weights", "est_subset"),
 				   names(Call), nomatch = 0L)
-
+	
 	temp2 <- Call[c(1L, indx2)]
 	temp2$na.action <- na.action
 	names(temp2) <- gsub("est_", "", names(temp2))
@@ -78,7 +79,7 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 	est_nvar <- ncol(est_X)
 	
 	if (missing(est_treatment)) {
-	    stop("Not give the treatment status of honest estimation data set!\n ")
+	    stop("Note give the treatment status of honest estimation data set!\n ")
 	}
 	if (sum(est_treatment %in% c(0,1)) != est_nobs) {
 	    stop("The treatment status should be 1 or 0 only: 1 represent treated and 0 represent controlled.")
