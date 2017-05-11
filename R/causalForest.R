@@ -65,6 +65,7 @@ causalForest <- function(formula, data, treatment,
   
   for (tree.index in 1:num.trees) {
     
+    rm(.Random.seed, envir=globalenv())
     print(paste("Tree", as.character(tree.index)))
     
     full.idx <- sample.int(num.obs, sample.size, replace = FALSE)

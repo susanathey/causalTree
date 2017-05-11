@@ -10,7 +10,6 @@ causalTree <- function(formula, data, weights, treatment, subset,
 					   x = FALSE, y = TRUE, propensity, control, split.alpha = 0.5, cv.alpha = 0.5,cv.gamma=0.5,split.gamma=0.5,
 					   cost, ...){ 
 
-  set.seed(2)
 	Call <- match.call()
 
 	indx <- match(c("formula", "data", "weights", "subset"),
@@ -20,8 +19,10 @@ causalTree <- function(formula, data, weights, treatment, subset,
 	temp <- Call[c(1L, indx)]      
 	temp$na.action <- na.action  
 	temp[[1L]] <- quote(stats::model.frame) 
+	names(treatment) <- rownames(data)
 	m <- eval.parent(temp)
-  #print(m)
+	treatment <- treatment[(rownames(m))]
+	
 	Terms <- attr(m, "terms")
 	if (any(attr(Terms, "order") > 1L))
 		stop("Trees cannot handle interaction terms")

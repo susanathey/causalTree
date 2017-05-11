@@ -10,7 +10,6 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 							  x = FALSE, y = TRUE, propensity, control, split.alpha = 0.5, 
 							  cv.alpha = 0.5,cv.gamma=0.5,split.gamma=0.5, cost, ...)  { 
 
-  set.seed(2)
 	Call <- match.call()
 
 	indx <- match(c("formula", "data", "weights", "subset"),
