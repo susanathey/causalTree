@@ -160,7 +160,7 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2,
 	    return 0;
     }
 #ifdef DEBUG
-    print_tree(me, 4);
+ /*   print_tree(me, 4); */
 #endif
     if (ct.maxsur > 0)
 	surrogate(me, n1, n2);
