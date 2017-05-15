@@ -13,7 +13,7 @@ init.causalForest <- function(formula, data, treatment, weights=F, cost=F, num.t
 
 predict.causalForest <- function(forest, newdata, predict.all = FALSE, type="vector") {
   if (!inherits(forest, "causalForest")) stop("Not a legitimate \"causalForest\" object")
-
+  
   vars <- all.vars(forest$formula)
   y <- vars[[1]]
   x <- sort(vars[2:length(vars)])
@@ -38,16 +38,15 @@ predict.causalForest <- function(forest, newdata, predict.all = FALSE, type="vec
 
 causalForest <- function(formula, data, treatment,  
                          na.action = na.causalTree, 
-                         split.Rule="CT", split.Honest=T, split.Bucket=F, bucketNum = 5,
+                         split.Rule="CT", double.Sample =T, split.Honest=T, split.Bucket=F, bucketNum = 5,
                          bucketMax = 100, cv.option="CT", cv.Honest=T, minsize = 2L, 
                          propensity, control, split.alpha = 0.5, cv.alpha = 0.5,
-                         
                          sample.size.total = floor(nrow(data) / 10), sample.size.train.frac = .5,
                          mtry = ceiling(ncol(data)/3), nodesize = 1, num.trees=nrow(data),
                          cost=F, weights=F,ncolx,ncov_sample) {
   
   # do not implement subset option of causalTree, that is inherited from rpart but have not implemented it here yet
-
+  
   vars <- all.vars(formula)
   y <- vars[[1]]
   x <- sort(vars[2:length(vars)])
@@ -56,11 +55,15 @@ causalForest <- function(formula, data, treatment,
   data <- cbind(data, treatmentdf)
   
   num.obs <-nrow(data)
-  causalForest.hon <- init.causalForest(formula=formula, data=data, treatment=treatment, weights=weights, cost=cost, num.trees=num.trees,ncov_sample=ncov_sample)
+  
+  causalForest.obj <- init.causalForest(formula=formula, data=data, treatment=treatment, weights=weights, cost=cost, num.trees=num.trees,ncov_sample=ncov_sample)
+  
   sample.size <- min(sample.size.total, num.obs)
-  train.size <- round(sample.size.train.frac*sample.size)
-  est.size <- sample.size - train.size
-
+  if (double.Sample) {
+    train.size <- round(sample.size.train.frac*sample.size)
+    est.size <- sample.size - train.size 
+  }
+  
   print("Building trees ...")
   
   for (tree.index in 1:num.trees) {
@@ -69,86 +72,108 @@ causalForest <- function(formula, data, treatment,
     print(paste("Tree", as.character(tree.index)))
     
     full.idx <- sample.int(num.obs, sample.size, replace = FALSE)
-    train.idx <- full.idx[1:train.size]
-    reestimation.idx <- full.idx[(train.size+1):sample.size]
+    
+    if(double.Sample) {
+      train.idx <- full.idx[1:train.size]
+      reestimation.idx <- full.idx[(train.size+1):sample.size]
+    }
     
     #randomize over the covariates for splitting (both train and reestimation)
     cov_sample<-sample.int(ncolx)
     cov_sample<-cov_sample[1:ncov_sample]
     
     #modify the y=f(x) equation accordingly for this tree
-  fsample<-""
-  nextx<-""
-  if (ncov_sample>1) {
-  for (ii in 1:(ncov_sample-1)) {
-  nextx <- paste("x",cov_sample[ii], sep="")
-  if (ii==1) {name <- nextx}
-  if (ii>1) {name <- c(name, nextx)}
-  fsample <- paste(fsample, nextx, "+", sep="")
-  }
-  fsample <- paste(fsample, "x", cov_sample[ii+1], sep="")
-  } else if (ncov_sample==1) {
-  fsample <- paste("x",cov_sample[1], sep="")
-  }
-  
-  #modify the colnames
-  nameall_sample<-c()
-  for (ii in 1:ncov_sample) {
-  nextx <- paste("x",cov_sample[ii], sep="")
-  if (ii==1) {name <- nextx}
-  if (ii>1) {name <- c(name, nextx)}
-  }
-  nameall_sample <- c( name,"y", "w") #, "tau_true")
-
+    fsample<-""
+    nextx<-""
+    if (ncov_sample>1) {
+      for (ii in 1:(ncov_sample-1)) {
+        nextx <- paste("x",cov_sample[ii], sep="")
+        if (ii==1) {name <- nextx}
+        if (ii>1) {name <- c(name, nextx)}
+        fsample <- paste(fsample, nextx, "+", sep="")
+      }
+      fsample <- paste(fsample, "x", cov_sample[ii+1], sep="")
+    } else if (ncov_sample==1) {
+      fsample <- paste("x",cov_sample[1], sep="")
+    }
+    
+    #modify the colnames
+    nameall_sample<-c()
+    for (ii in 1:ncov_sample) {
+      nextx <- paste("x",cov_sample[ii], sep="")
+      if (ii==1) {name <- nextx}
+      if (ii>1) {name <- c(name, nextx)}
+    }
+    nameall_sample <- c( name,"y", "w") #, "tau_true")
     
     #store this var subset for each tree (need it during testing/predict stage)
-    causalForest.hon$cov_sample[tree.index,]<-cov_sample
+    causalForest.obj$cov_sample[tree.index,]<-cov_sample
     #also store the formula & colnames of X for each tree (need it during testing/predict stage)
-    causalForest.hon$nameall_sample[tree.index,]<-nameall_sample
-    causalForest.hon$fsample[[tree.index]]<-fsample
+    causalForest.obj$nameall_sample[tree.index,]<-nameall_sample
+    causalForest.obj$fsample[[tree.index]]<-fsample
     
-    dataTree <- data.frame(data[train.idx,])
-    dataEstim <- data.frame(data[reestimation.idx,])
+    if (double.Sample) {
+      dataTree <- data.frame(data[train.idx,])
+      dataEstim <- data.frame(data[reestimation.idx,])
+    }
+    
+    else {
+      dataTree <- data.frame(data[full.idx,])
+    }
     
     #pick relevant covariates for tree
     dataTree <- dataTree[,c(cov_sample,(ncolx+1):ncol(dataTree))]
-    dataEstim <- dataEstim[,c(cov_sample,(ncolx+1):ncol(dataEstim))]
-    
+    if (double.Sample) {
+      dataEstim <- dataEstim[,c(cov_sample,(ncolx+1):ncol(dataEstim))]
+    }
     
     #change colnames to reflect the sampled cols
     names(dataTree)=nameall_sample
-    names(dataEstim)=nameall_sample
+    if(double.Sample) {
+      names(dataEstim)=nameall_sample
+    }
     
     #save rdata for debug here, if needed
     formula<-paste("y~",fsample,sep="")
-    tree.honest <- honest.causalTree(formula, data = dataTree, 
-                                     treatment = treatmentdf[train.idx,], 
-                                     est_data=dataEstim, est_treatment=treatmentdf[reestimation.idx,],
-                                     split.Rule="CT", split.Honest=T, split.Bucket=split.Bucket, 
-                                     bucketNum = bucketNum, 
-                                     bucketMax = bucketMax, cv.option="CT", cv.Honest=T, 
-                                     minsize = nodesize, 
-                                     split.alpha = 0.5, cv.alpha = 0.5, xval=0, 
-                                     HonestSampleSize=est.size, cp=0)
-
-
-    causalForest.hon$trees[[tree.index]] <- tree.honest
-    causalForest.hon$inbag[full.idx, tree.index] <- 1
-    causalForest.hon$inbag.Est[reestimation.idx, tree.index] <- 1
+    
+    if (double.Sample) {
+      tree.obj <- honest.causalTree(formula, data = dataTree, 
+                                    treatment = treatmentdf[train.idx,], 
+                                    est_data=dataEstim, est_treatment=treatmentdf[reestimation.idx,],
+                                    split.Rule=split.Rule, split.Honest= split.Honest, split.Bucket=split.Bucket, 
+                                    bucketNum = bucketNum, 
+                                    bucketMax = bucketMax, cv.option="CT", cv.Honest=T, 
+                                    minsize = nodesize, 
+                                    split.alpha = 0.5, cv.alpha = 0.5, xval=0, 
+                                    HonestSampleSize=est.size, cp=0)
+    }
+    else {
+      tree.obj <- causalTree(formula, data = dataTree, treatment = treatmentdf[full.idx,], 
+                             na.action = na.causalTree, 
+                             split.Rule=split.Rule, split.Honest= split.Honest, split.Bucket=split.Bucket, 
+                             bucketNum = bucketNum,
+                             bucketMax = bucketMax, cv.option="CT", cv.Honest=T,
+                             x = FALSE, y = TRUE,
+                             split.alpha = 0.5, cv.alpha = 0.5,cv.gamma=0.5,split.gamma=0.5)
+      
+    }
+    
+    causalForest.obj$trees[[tree.index]] <- tree.obj
+    causalForest.obj$inbag[full.idx, tree.index] <- 1
+    if (double.Sample) {causalForest.obj$inbag.Est[reestimation.idx, tree.index] <- 1}
   }
-  
-  return(causalForest.hon)
+  return (causalForest.obj)
 }
 
 
 propensityForest <- function(formula, data, treatment,  
-                         na.action = na.causalTree, 
-                         split.Rule="CT", split.Honest=T, split.Bucket=F, bucketNum = 5,
-                         bucketMax = 100, cv.option="CT", cv.Honest=T, minsize = 2L, 
-                         propensity=mean(treatment), control, split.alpha = 0.5, cv.alpha = 0.5,  
-                         
-                         sample.size.total = floor(nrow(data) / 10), sample.size.train.frac = 1,
-                         mtry = ceiling(ncol(data)/3), nodesize = 1, num.trees=nrow(data),ncolx=ncolx,ncov_sample=ncov_sample) {
+                             na.action = na.causalTree, 
+                             split.Rule="CT", split.Honest=T, split.Bucket=F, bucketNum = 5,
+                             bucketMax = 100, cv.option="CT", cv.Honest=T, minsize = 2L, 
+                             propensity=mean(treatment), control, split.alpha = 0.5, cv.alpha = 0.5,  
+                             
+                             sample.size.total = floor(nrow(data) / 10), sample.size.train.frac = 1,
+                             mtry = ceiling(ncol(data)/3), nodesize = 1, num.trees=nrow(data),ncolx=ncolx,ncov_sample=ncov_sample) {
   
   # do not implement subset option of causalTree, inherited from rpart
   # do not implement weights and costs yet
@@ -208,15 +233,16 @@ propensityForest <- function(formula, data, treatment,
       if (ii>1) {name <- c(name, nextx)}
     }
     
-    nameall_sample <- c( name,"temptemp","y", "tau_true","treattreat")
-    nameall_sample_save <- c( name,  "y", "w", "tau_true")
+    ##nameall_sample <- c( name,"temptemp","y", "tau_true","treattreat")
+    nameall_sample <- c( name,"temptemp","y", "treattreat")
+    nameall_sample_save <- c( name,  "y", "w") #, "tau_true")
     
-     #store this var subset for each tree (need it during testing/predict stage)
+    #store this var subset for each tree (need it during testing/predict stage)
     causalForest.hon$cov_sample[tree.index,]<-cov_sample
     #also store the formula & colnames of X for each tree (need it during testing/predict stage)
     causalForest.hon$nameall_sample[tree.index,]<-nameall_sample_save
     causalForest.hon$fsample[[tree.index]]<-fsample
-      
+    
     # rename variables as a way to trick rpart into building the tree with all the object attributes considering the outcome variable as named
     # by the input formula, even though the tree itself is trained on w.  Note that we aren't saving out this propensity tree anyway, but if
     # we decided later to try to save out the propensity trees and do something directly with the propensity scores, we would need to do something
@@ -225,9 +251,7 @@ propensityForest <- function(formula, data, treatment,
     dataTree <- data.frame(data[train.idx,])
     dataTree$treattreat <- treatmentdf[train.idx,]
     names(dataTree)[names(dataTree)==outcomename] <- "temptemp"
-
     names(dataTree)[names(dataTree)=="treattreat"] <- outcomename
-    
     
     
     #sample covariates
