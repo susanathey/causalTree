@@ -158,7 +158,6 @@ causalTree <- function(formula, data, weights, treatment, subset,
 		    stop("Invalid input for split.gamma. split.gamma should between 0 and 1.")
 		  }
 		}
-		
 	}
 
 
