@@ -4,7 +4,7 @@ init.causalForest <- function(formula, data, treatment, weights=F, cost=F, num.t
   inbag <- matrix(0, num.obs, num.trees) 
   cov_sample <- matrix(0,num.trees,ncov_sample)
   inbag.Est <- matrix(0, num.obs, num.trees)
-  nameall_sample <- matrix(0,num.trees,ncov_sample+2)#2 end cols for y,w,no tau_true
+  nameall_sample <- matrix(0,num.trees,ncov_sample+2) #2 end cols for y,w,no tau_true
   fsample<-vector("list",num.trees)
   causalForestobj <- list(trees = trees, formula=formula, data=data, treatment=treatment, weights=weights, cost=cost, ntree = num.trees, inbag = inbag,cov_sample=cov_sample, fsample=fsample,nameall_sample=nameall_sample,inbag.Est=inbag.Est) 
   class(causalForestobj) <- "causalForest" 
@@ -171,7 +171,6 @@ propensityForest <- function(formula, data, treatment,
                              split.Rule="CT", split.Honest=T, split.Bucket=F, bucketNum = 5,
                              bucketMax = 100, cv.option="CT", cv.Honest=T, minsize = 2L, 
                              propensity=mean(treatment), control, split.alpha = 0.5, cv.alpha = 0.5,  
-                             
                              sample.size.total = floor(nrow(data) / 10), sample.size.train.frac = 1,
                              mtry = ceiling(ncol(data)/3), nodesize = 1, num.trees=nrow(data),ncolx=ncolx,ncov_sample=ncov_sample) {
   
@@ -233,7 +232,7 @@ propensityForest <- function(formula, data, treatment,
       if (ii>1) {name <- c(name, nextx)}
     }
     
-    ##nameall_sample <- c( name,"temptemp","y", "tau_true","treattreat")
+    #nameall_sample <- c( name,"temptemp","y", "tau_true","treattreat")
     nameall_sample <- c( name,"temptemp","y", "treattreat")
     nameall_sample_save <- c( name,  "y", "w") #, "tau_true")
     
@@ -274,8 +273,8 @@ propensityForest <- function(formula, data, treatment,
     tree.propensity$functions$print <- NULL
     
     # switch the names back in the data frame so that when we estimate treatment effects, will have the right outcome variables
-    names(dataTree)[names(dataTree)==outcomename] <- "treattreat"
-    names(dataTree)[names(dataTree)=="temptemp"] <- outcomename
+    names(dataTree)[names(dataTree)=="y"] <- "treattreat"
+    names(dataTree)[names(dataTree)=="temptemp"] <- "y"
     tree.treatment <- estimate.causalTree(object=tree.propensity,data=dataTree, treatment=dataTree$treattreat)
     
     causalForest.hon$trees[[tree.index]] <- tree.treatment
