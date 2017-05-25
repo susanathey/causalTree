@@ -20,7 +20,7 @@ predict.causalForest <- function(forest, newdata, predict.all = FALSE, type="vec
   newdata <- newdata[, c(x,y)]
   x.names <- c()
   for (i in 1:length(x)) {x.names <- c(x.names, paste0('x',i))}
-  colnames(newdata) <- c(sort(x.names), 'y')
+  colnames(newdata) <- c(x.names, 'y')
   
   individual <- sapply(forest$trees, function(tree.fit) {
     predict(tree.fit, newdata=newdata, type="vector")
@@ -62,13 +62,13 @@ causalForest <- function(formula, data, treatment,
   if (double.Sample) {
     train.size <- round(sample.size.train.frac*sample.size)
     est.size <- sample.size - train.size 
+    
   }
   
   print("Building trees ...")
   
   for (tree.index in 1:num.trees) {
     
-    rm(.Random.seed, envir=globalenv())
     print(paste("Tree", as.character(tree.index)))
     
     full.idx <- sample.int(num.obs, sample.size, replace = FALSE)
