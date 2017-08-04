@@ -16,11 +16,11 @@ predict.causalForest <- function(forest, newdata, predict.all = FALSE, type="vec
   
   vars <- all.vars(forest$formula)
   y <- vars[[1]]
-  x <- sort(vars[2:length(vars)])
+  x <- vars[2:length(vars)]
   newdata <- newdata[, c(x,y)]
   x.names <- c()
-  for (i in 1:length(x)) {x.names <- c(x.names, paste0('x',i))}
-  colnames(newdata) <- c(x.names, 'y')
+  for (i in 1:length(x)) {x.names <- c(x.names,x[[i]])}
+  colnames(newdata) <- c(x.names, y)
   
   individual <- sapply(forest$trees, function(tree.fit) {
     predict(tree.fit, newdata=newdata, type="vector")
@@ -49,7 +49,7 @@ causalForest <- function(formula, data, treatment,
   
   vars <- all.vars(formula)
   y <- vars[[1]]
-  x <- sort(vars[2:length(vars)])
+  x <- vars[2:length(vars)]
   treatmentdf <- data.frame(treatment)
   data <- data[, c(x, y)]
   data <- cbind(data, treatmentdf)
@@ -87,24 +87,24 @@ causalForest <- function(formula, data, treatment,
     nextx<-""
     if (ncov_sample>1) {
       for (ii in 1:(ncov_sample-1)) {
-        nextx <- paste("x",cov_sample[ii], sep="")
+        nextx <- x[[ii]]
         if (ii==1) {name <- nextx}
         if (ii>1) {name <- c(name, nextx)}
-        fsample <- paste(fsample, nextx, "+", sep="")
+        fsample <- paste0(fsample, nextx, "+")
       }
-      fsample <- paste(fsample, "x", cov_sample[ii+1], sep="")
+      fsample <- paste0(fsample, x[[ii+1]])
     } else if (ncov_sample==1) {
-      fsample <- paste("x",cov_sample[1], sep="")
+      fsample <- x[[1]]
     }
     
     #modify the colnames
     nameall_sample<-c()
     for (ii in 1:ncov_sample) {
-      nextx <- paste("x",cov_sample[ii], sep="")
+      nextx <- x[[ii]]
       if (ii==1) {name <- nextx}
       if (ii>1) {name <- c(name, nextx)}
     }
-    nameall_sample <- c( name,"y", "w") #, "tau_true")
+    nameall_sample <- c( name,y, "w") #, "tau_true")
     
     #store this var subset for each tree (need it during testing/predict stage)
     causalForest.obj$cov_sample[tree.index,]<-cov_sample
@@ -214,27 +214,27 @@ propensityForest <- function(formula, data, treatment,
     nextx<-""
     if (ncov_sample>1) {
       for (ii in 1:(ncov_sample-1)) {
-        nextx <- paste("x",cov_sample[ii], sep="")
+        nextx <- x[[ii]]
         if (ii==1) {name <- nextx}
         if (ii>1) {name <- c(name, nextx)}
-        fsample <- paste(fsample, nextx, "+", sep="")
+        fsample <- paste0(fsample, nextx, "+")
       }
-      fsample <- paste(fsample, "x", cov_sample[ii+1], sep="")
+      fsample <- paste0(fsample, x[[ii+1]])
     } else if (ncov_sample==1) {
-      fsample <- "x1"
+      fsample <- x[[1]]
     }
     
     #modify the colnames
     nameall_sample<-c()
     for (ii in 1:ncov_sample) {
-      nextx <- paste("x",cov_sample[ii], sep="")
+      nextx <- x[[ii]]
       if (ii==1) {name <- nextx}
       if (ii>1) {name <- c(name, nextx)}
     }
     
     #nameall_sample <- c( name,"temptemp","y", "tau_true","treattreat")
     nameall_sample <- c( name,"temptemp","y", "treattreat")
-    nameall_sample_save <- c( name,  "y", "w") #, "tau_true")
+    nameall_sample_save <- c( name, y, "w") #, "tau_true")
     
     #store this var subset for each tree (need it during testing/predict stage)
     causalForest.hon$cov_sample[tree.index,]<-cov_sample
