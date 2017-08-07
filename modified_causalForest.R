@@ -268,7 +268,8 @@ propensityForest <- function(formula, data, treatment,
     #change colnames to reflect the sampled cols
     names(dataTree)=nameall_sample
     # names(dataEstim)=nameall_sample
-    formula<-paste("y~",fsample,sep="")
+    firsty<-paste(y,"~",sep="")
+    formula<-paste(firsty,fsample,sep="")
     #one options: estimate the propensity tree with anova so that it will be type "anova" when we re-estimate
     #here: replace elements of the rpart object to make it look like anova tree, so that we'll be able to properly predict with it later, etc.
     tree.propensity <- rpart(formula=formula, data=dataTree, method="class", 
