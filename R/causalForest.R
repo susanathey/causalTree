@@ -14,14 +14,6 @@ init.causalForest <- function(formula, data, treatment, weights=F, cost=F, num.t
 predict.causalForest <- function(forest, newdata, predict.all = FALSE, type="vector") {
   if (!inherits(forest, "causalForest")) stop("Not a legitimate \"causalForest\" object")
   
-  vars <- all.vars(forest$formula)
-  y <- vars[[1]]
-  x <- vars[2:length(vars)]
-  newdata <- newdata[, c(x,y)]
-  x.names <- c()
-  for (i in 1:length(x)){x.names <- c(x.names, x[[i]])}
-  colnames(newdata) <- c(x.names,y)
-  
   individual <- sapply(forest$trees, function(tree.fit) {
     predict(tree.fit, newdata=newdata, type="vector")
   })
@@ -46,11 +38,9 @@ causalForest <- function(formula, data, treatment,
                          cost=F, weights=F,ncolx,ncov_sample) {
   
   # do not implement subset option of causalTree, that is inherited from rpart but have not implemented it here yet
-  
   vars <- all.vars(formula)
-  y <- vars[[1]]
+  y <- vars[1]
   x <- vars[2:length(vars)]
-  #x <- sort(vars[2:length(vars)])
   treatmentdf <- data.frame(treatment)
   data <- data[, c(x, y)]
   data <- cbind(data, treatmentdf)
@@ -84,31 +74,21 @@ causalForest <- function(formula, data, treatment,
     cov_sample<-cov_sample[1:ncov_sample]
     
     #modify the y=f(x) equation accordingly for this tree
+    #and modify the colnames
     fsample<-""
     nextx<-""
-    if (ncov_sample>1){
-      for (ii in 1:(ncov_sample-1)){
-        nextxindex <- cov_sample[ii]
-        nextx <- x[[nextxindex]]
-        if (ii==1) {name <-nextx}
-        if (ii>1) {name <- c(name,nextx)}
-        fsample <-paste0(fsample,nextx,"+")
-      }
-      xindex <- cov_sample[ii+1]
-      fsample <- paste0(fsample,x[xindex])
-    } else if (ncov_sample==1){
-      firstxindex <- cov_sample[[1]]
-      fsample <- x[[firstxindex]]
-    }
-    
-    #modify the colnames
     nameall_sample<-c()
-    for (ii in 1:ncov_sample) {
-      nextxindex <- cov_sample[[ii]]
+    for (ii in 1:(ncov_sample)){
+      nextxindex <- cov_sample[ii]
       nextx <- x[[nextxindex]]
-      #nextx <- paste("x",cov_sample[ii], sep="")
-      if (ii==1) {name <- nextx}
-      if (ii>1) {name <- c(name, nextx)}
+      if (ii==1) {
+        fsample <-nextx
+        name<- nextx
+        }
+      if (ii>1) {
+        fsample <- paste0(fsample,"+",nextx)
+        name <- c(name, nextx)
+        }
     }
     nameall_sample <- c( name,y, "w") #, "tau_true")
     
@@ -140,7 +120,7 @@ causalForest <- function(formula, data, treatment,
     }
     
     #save rdata for debug here, if needed
-    formula<-paste(y,"~",fsample,sep="")
+    formula<-paste0(y,"~",fsample)
     
     if (double.Sample) {
       tree.obj <- honest.causalTree(formula, data = dataTree, 
@@ -154,11 +134,11 @@ causalForest <- function(formula, data, treatment,
                                     HonestSampleSize=est.size, cp=0)
     }
     else {
-      tree.obj <- causalTree(formula, data = dataTree, treatment = treatmentdf[full.idx,],  
+      tree.obj <- causalTree(formula, data = dataTree, treatment = treatmentdf[full.idx,], 
                              na.action = na.causalTree, 
                              split.Rule=split.Rule, split.Honest= split.Honest, split.Bucket=split.Bucket, 
-                             bucketNum = bucketNum, 
-                             bucketMax = bucketMax,  cv.option="CT", cv.Honest=T,
+                             bucketNum = bucketNum,
+                             bucketMax = bucketMax, cv.option="CT", cv.Honest=T,
                              x = FALSE, y = TRUE,
                              split.alpha = 0.5, cv.alpha = 0.5,cv.gamma=0.5,split.gamma=0.5)
       
@@ -193,7 +173,7 @@ propensityForest <- function(formula, data, treatment,
   
   vars <- all.vars(formula)
   y <- vars[[1]]
-  x <- vars[2:length(vars)]
+  x <- sort(vars[2:length(vars)])
   treatmentdf <- data.frame(treatment)
   data <- data[, c(x, y)]
   data <- cbind(data, treatmentdf)
@@ -219,33 +199,29 @@ propensityForest <- function(formula, data, treatment,
     #modify the y=f(x) equation accordingly for this tree
     fsample<-""
     nextx<-""
-    if (ncov_sample>1){
-      for (ii in 1:(ncov_sample-1)){
-        nextxindex <- cov_sample[ii]
-        nextx <- x[[nextxindex]]
-        if (ii==1) {name <-nextx}
-        if (ii>1) {name <- c(name,nextx)}
-        fsample <-paste0(fsample,nextx,"+")
+    if (ncov_sample>1) {
+      for (ii in 1:(ncov_sample-1)) {
+        nextx <- paste("x",cov_sample[ii], sep="")
+        if (ii==1) {name <- nextx}
+        if (ii>1) {name <- c(name, nextx)}
+        fsample <- paste(fsample, nextx, "+", sep="")
       }
-      xindex <- cov_sample[ii+1]
-      fsample <- paste0(fsample,x[xindex])
-    } else if (ncov_sample==1){
-      firstxindex <- cov_sample[[1]]
-      fsample <- x[[firstxindex]]
+      fsample <- paste(fsample, "x", cov_sample[ii+1], sep="")
+    } else if (ncov_sample==1) {
+      fsample <- "x1"
     }
     
     #modify the colnames
     nameall_sample<-c()
     for (ii in 1:ncov_sample) {
-      nextxindex <- cov_sample[[ii]]
-      nextx <- x[[nextxindex]]
+      nextx <- paste("x",cov_sample[ii], sep="")
       if (ii==1) {name <- nextx}
       if (ii>1) {name <- c(name, nextx)}
     }
     
     #nameall_sample <- c( name,"temptemp","y", "tau_true","treattreat")
     nameall_sample <- c( name,"temptemp","y", "treattreat")
-    nameall_sample_save <- c( name, y, "w") #, "tau_true")
+    nameall_sample_save <- c( name,  "y", "w") #, "tau_true")
     
     #store this var subset for each tree (need it during testing/predict stage)
     causalForest.hon$cov_sample[tree.index,]<-cov_sample
@@ -272,10 +248,7 @@ propensityForest <- function(formula, data, treatment,
     #change colnames to reflect the sampled cols
     names(dataTree)=nameall_sample
     # names(dataEstim)=nameall_sample
-    #firsty<-paste(y,"~",sep="")
     formula<-paste("y~",fsample,sep="")
-    #newformula<-paste(y,"~",fsample,sep="")
-    
     #one options: estimate the propensity tree with anova so that it will be type "anova" when we re-estimate
     #here: replace elements of the rpart object to make it look like anova tree, so that we'll be able to properly predict with it later, etc.
     tree.propensity <- rpart(formula=formula, data=dataTree, method="class", 
