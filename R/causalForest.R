@@ -42,8 +42,15 @@ causalForest <- function(formula, data, treatment,
   y <- vars[1]
   x <- vars[2:length(vars)]
   treatmentdf <- data.frame(treatment)
-  data <- data[, c(x, y)]
-  data <- cbind(data, treatmentdf)
+  if(class(data)[1]=="data.table"){
+    treatmentdt <- data.table(treatment)
+    datax<-data[,..x]
+    datay<-data[,y,with=FALSE]
+    data <- cbind(datax,datay, treatmentdt)
+  }else if(class(data)=="data.frame"){
+    data <- data[, c(x, y)]
+    data <- cbind(data, treatmentdf)
+  }
   
   num.obs <-nrow(data)
   
@@ -52,8 +59,7 @@ causalForest <- function(formula, data, treatment,
   sample.size <- min(sample.size.total, num.obs)
   if (double.Sample) {
     train.size <- round(sample.size.train.frac*sample.size)
-    est.size <- sample.size - train.size 
-    
+    est.size <- sample.size - train.size   
   }
   
   print("Building trees ...")
@@ -84,11 +90,11 @@ causalForest <- function(formula, data, treatment,
       if (ii==1) {
         fsample <-nextx
         name<- nextx
-        }
+      }
       if (ii>1) {
         fsample <- paste0(fsample,"+",nextx)
         name <- c(name, nextx)
-        }
+      }
     }
     nameall_sample <- c( name,y, "w") #, "tau_true")
     
@@ -98,20 +104,34 @@ causalForest <- function(formula, data, treatment,
     causalForest.obj$nameall_sample[tree.index,]<-nameall_sample
     causalForest.obj$fsample[[tree.index]]<-fsample
     
-    if (double.Sample) {
-      dataTree <- data.frame(data[train.idx,])
-      dataEstim <- data.frame(data[reestimation.idx,])
+    if(class(data)[1]=="data.table"){
+      if (double.Sample) {
+        dataTree <- data.table(data[train.idx,])
+        dataEstim <- data.table(data[reestimation.idx,])
+      }else{
+        dataTree <- data.table(data[full.idx,])
+      }
+      #pick relevant covariates for tree
+      treeRange<-c(cov_sample,(ncolx+1):ncol(dataTree))
+      estimRange<-c(cov_sample,(ncolx+1):ncol(dataEstim))
+      dataTree <- dataTree[,..treeRange]
+      if (double.Sample) {
+        dataEstim <- dataEstim[,..estimRange]
+      }
+    }else if(class(data)=="data.frame"){
+      if (double.Sample) {
+          dataTree <- data.frame(data[train.idx,])
+          dataEstim <- data.frame(data[reestimation.idx,])
+        }else{
+          dataTree <- data.frame(data[full.idx,])
+        }
+        #pick relevant covariates for tree
+        dataTree <- dataTree[,c(cov_sample,(ncolx+1):ncol(dataTree))]
+        if (double.Sample) {
+          dataEstim <- dataEstim[,c(cov_sample,(ncolx+1):ncol(dataEstim))]
+        }
     }
     
-    else {
-      dataTree <- data.frame(data[full.idx,])
-    }
-    
-    #pick relevant covariates for tree
-    dataTree <- dataTree[,c(cov_sample,(ncolx+1):ncol(dataTree))]
-    if (double.Sample) {
-      dataEstim <- dataEstim[,c(cov_sample,(ncolx+1):ncol(dataEstim))]
-    }
     
     #change colnames to reflect the sampled cols
     names(dataTree)=nameall_sample
@@ -132,8 +152,7 @@ causalForest <- function(formula, data, treatment,
                                     minsize = nodesize, 
                                     split.alpha = 0.5, cv.alpha = 0.5, xval=0, 
                                     HonestSampleSize=est.size, cp=0)
-    }
-    else {
+    }else {
       tree.obj <- causalTree(formula, data = dataTree, treatment = treatmentdf[full.idx,], 
                              na.action = na.causalTree, 
                              split.Rule=split.Rule, split.Honest= split.Honest, split.Bucket=split.Bucket, 
@@ -270,3 +289,4 @@ propensityForest <- function(formula, data, treatment,
   
   return(causalForest.hon)
 }
+
