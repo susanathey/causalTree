@@ -13,7 +13,6 @@ init.causalForest <- function(formula, data, treatment, weights=F, cost=F, num.t
 
 predict.causalForest <- function(forest, newdata, predict.all = FALSE, type="vector") {
   if (!inherits(forest, "causalForest")) stop("Not a legitimate \"causalForest\" object")
-
   individual <- sapply(forest$trees, function(tree.fit) {
     predict(tree.fit, newdata=newdata, type="vector")
   })
@@ -59,8 +58,7 @@ causalForest <- function(formula, data, treatment,
   sample.size <- min(sample.size.total, num.obs)
   if (double.Sample) {
     train.size <- round(sample.size.train.frac*sample.size)
-    est.size <- sample.size - train.size 
-    
+    est.size <- sample.size - train.size  
   }
   
   print("Building trees ...")
