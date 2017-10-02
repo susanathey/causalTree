@@ -10,7 +10,7 @@
 \usage{
 causalForest(formula, data, treatment,  
                          na.action, 
-                         split.Rule, split.Honest, split.Bucket, bucketNum, bucketMax, cv.option, cv.Honest, minsize, 
+                         split.Rule, double.Sample, split.Honest, split.Bucket, bucketNum, bucketMax, cv.option, cv.Honest, minsize, 
                          propensity, control, split.alpha, cv.alpha,
                          sample.size.total, sample.size.train.frac,
                          mtry, nodesize, num.trees,
@@ -39,8 +39,10 @@ causalForest(formula, data, treatment,
     \item{split.Rule}{causalTree splitting options, one of \code{"TOT"}, \code{"CT"}, \code{"fit"}, \code{"tstats"}, four splitting rules in \pkg{causalTree}.  Note that the \code{"tstats"} alternative does not have an associated cross-validation method \code{cv.option}; see Athey and Imbens (2016)
 for a discussion.  Note further that \code{split.Rule} and \code{cv.option} can mix and match.} 
     
+    \item{double.Sample}{boolean option, \code{TRUE} or \code{FALSE}, if set to True, causalForest will build honest trees. 
+}
         
-    \item{split.Honest}{boolean option, \code{TRUE} or \code{FALSE}, note that the forest code always calls the honest version of causal tree irrespective of the value of this flag.
+    \item{split.Honest}{boolean option, \code{TRUE} or \code{FALSE}, used to decide the splitting rule of the trees
 }
 
     \item{split.Bucket}{boolean option, \code{TRUE} or \code{FALSE}, used to specify whether to apply the discrete method in splitting the tree. If set as \code{TRUE}, in splitting a node, the observations in a leaf will be be partitioned into buckets, with each bucket containing \code{bucketNum} treated and \code{bucketNum} control units, and where observations are ordered prior to partitioning. Splitting will take place by bucket.  }

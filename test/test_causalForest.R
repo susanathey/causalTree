@@ -134,7 +134,7 @@ ncov_sample<-floor(p/3) #number of covariates (randomly sampled) to use to build
 ncolx<-p #total number of covariates
 # now estimate a causalForest
 cf <- causalForest(as.formula(paste("y~",f)), data=dataTrain, treatment=dataTrain$w, 
-                         split.Rule="CT", split.Honest=T,  split.Bucket=F, bucketNum = 5,
+                         split.Rule="CT", double.Sample = T, split.Honest=T,  split.Bucket=F, bucketNum = 5,
                          bucketMax = 100, cv.option="CT", cv.Honest=T, minsize = 2L, 
                         split.alpha = 0.5, cv.alpha = 0.5,
                          sample.size.total = floor(nrow(dataTrain) / 2), sample.size.train.frac = .5,
