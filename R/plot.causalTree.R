@@ -14,7 +14,7 @@ node.pvals <- function(x, labs, digits, varlen) {
 # Uses the model and response (x and y) values from a rpart object to construct
 # a data frame from which p-values between control and treatment within a 
 # leaf node is calculated. TODO: multiple testing corrections?
-addPvalues <- function(tree) {
+add.pvals <- function(tree) {
   dat <- cbind(treatment=tree$x[,1], outcome=tree$y, node=tree$where)
   dat <- aggregate(outcome ~ treatment + node, data=dat, FUN=c)
   merged <- merge(dat[dat$treatment == 0,], dat[dat$treatment == 1,], by="node",
@@ -29,9 +29,11 @@ addPvalues <- function(tree) {
 
 # Takes the optimally pruned causal tree and adds pvalues.  Then plots.
 plot.causalTree <- function(tree) {
+  if (is.null(tree$x) || is.null(tree$y))
+    stop("Must build causalTree with x=TRUE, y=TRUE")
   opCp <- tree$cptable[,1][which.min(tree$cptable[,4])]
   opFit <- prune(tree, opCp)
-  opFit <- addPvalues(opFit) 
+  opFit <- add.pvals(opFit) 
   prp(opFit, type=2, extra=1, under=FALSE, fallen.leaves=TRUE, digits=4,
       varlen=0, faclen=0, cex=NULL, tweak=1, snip=FALSE, shadow.col=0,
       box.palette="auto", branch.type=0, node.fun=node.pvals)
