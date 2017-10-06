@@ -28,13 +28,11 @@ add.pvals <- function(tree) {
 }
 
 # Takes the optimally pruned causal tree and adds pvalues.  Then plots.
-plot.causalTree <- function(tree) {
+plot.causalTree <- function(tree, ...) {
   if (is.null(tree$x) || is.null(tree$y))
     stop("Must build causalTree with x=TRUE, y=TRUE")
   opCp <- tree$cptable[,1][which.min(tree$cptable[,4])]
   opFit <- prune(tree, opCp)
   opFit <- add.pvals(opFit) 
-  prp(opFit, type=2, extra=1, under=FALSE, fallen.leaves=TRUE, digits=4,
-      varlen=0, faclen=0, cex=NULL, tweak=1, snip=FALSE, shadow.col=0,
-      box.palette="auto", branch.type=0, node.fun=node.pvals)
+  rpart.plot(opFit, node.fun=node.pvals, ...)
 }
