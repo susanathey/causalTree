@@ -9,8 +9,11 @@ causalTree.matrix <- function(frame)
         else if (!is.numeric(frame[[i]])) frame[[i]] <- as.numeric(frame[[i]])
     }
 
-    X <- model.matrix(attr(frame, "terms"), frame)[, -1L, drop = FALSE]
-
+    # If the original formula contained an intercept, it is dropped here
+    X <- model.matrix(attr(frame, "terms"), frame)
+    if ("(Intercept)" %in% colnames(X))
+      X <- X[,-which(colnames(X) == "(Intercept)"), drop=FALSE]
+    
     colnames(X) <- sub("^`(.*)`", "\\1", colnames(X))
     class(X) <- c("causalTree.matrix", class(X)) 
     X
