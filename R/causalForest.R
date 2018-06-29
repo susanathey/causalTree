@@ -34,8 +34,11 @@ causalForest <- function(formula, data, treatment,
                          propensity, control, split.alpha = 0.5, cv.alpha = 0.5,
                          sample.size.total = floor(nrow(data) / 10), sample.size.train.frac = .5,
                          mtry = ceiling(ncol(data)/3), nodesize = 1, num.trees=nrow(data),
-                         cost=F, weights=F,ncolx,ncov_sample) {
-  
+                         cost=F, weights=F,ncolx,ncov_sample,warningsOff=F) {
+  # add a warning to the function
+  if(warningsOff){
+    print("warning: the authors recommend that in most cases, you should use our new package, grf, available on CRAN. It is on github at swager/grf. The paper, “Generalized Random Forest,” available on arxiv.org, details a number of conceptual improvements, such as residualizing the outcome and the treatment variable in advance of running the algorithm. The grf package is also substantially faster. The causalForest routine in grf splits on treatment effect heterogeneity, but by default it residualizes the outcome and the treatment, thus incorporating heterogeneity in the propensity score. The grf package does not currently incorporate the variance-corrected honest splitting rules described in Athey and Imbens (2016), but it does incorporate honest (double sample) estimation, where one sample is used to build the tree, and a second is used to estimate the tree.")
+  }
   # do not implement subset option of causalTree, that is inherited from rpart but have not implemented it here yet
   vars <- all.vars(formula)
   y <- vars[1]
@@ -58,7 +61,8 @@ causalForest <- function(formula, data, treatment,
   sample.size <- min(sample.size.total, num.obs)
   if (double.Sample) {
     train.size <- round(sample.size.train.frac*sample.size)
-    est.size <- sample.size - train.size  
+    est.size <- sample.size - train.size 
+    
   }
   
   print("Building trees ...")
@@ -130,8 +134,7 @@ causalForest <- function(formula, data, treatment,
           dataEstim <- dataEstim[,c(cov_sample,(ncolx+1):ncol(dataEstim))]
         }
     }
-    
-    
+       
     #change colnames to reflect the sampled cols
     names(dataTree)=nameall_sample
     if(double.Sample) {
@@ -176,8 +179,12 @@ propensityForest <- function(formula, data, treatment,
                              bucketMax = 100, cv.option="CT", cv.Honest=T, minsize = 2L, 
                              propensity=mean(treatment), control, split.alpha = 0.5, cv.alpha = 0.5,  
                              sample.size.total = floor(nrow(data) / 10), sample.size.train.frac = 1,
-                             mtry = ceiling(ncol(data)/3), nodesize = 1, num.trees=nrow(data),ncolx=ncolx,ncov_sample=ncov_sample) {
-  
+                             mtry = ceiling(ncol(data)/3), nodesize = 1, num.trees=nrow(data),
+                             ncolx=ncolx,ncov_sample=ncov_sample,warningsOff=F) {
+  # add a warning
+  if(warningsOff){
+    print("warning: the authors recommend that in most cases, you should use our new package, grf, available on CRAN. It is on github at swager/grf. The paper, “Generalized Random Forest,” available on arxiv.org, details a number of conceptual improvements, such as residualizing the outcome and the treatment variable in advance of running the algorithm. The grf package is also substantially faster. The causalForest routine in grf splits on treatment effect heterogeneity, but it residualizes the outcome and the treatment, thus incorporating heterogeneity in the propensity score. If you have other reasons for using the propensity forest function, we suggest that you residualize the outcomes using a prediction model of your choice (random forest or LASSO) prior to using propensity forest.")
+  }
   # do not implement subset option of causalTree, inherited from rpart
   # do not implement weights and costs yet
   
