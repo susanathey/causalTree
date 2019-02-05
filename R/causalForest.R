@@ -176,7 +176,7 @@ propensityForest <- function(formula, data, treatment,
                              bucketMax = 100, cv.option="CT", cv.Honest=T, minsize = 2L, 
                              propensity=mean(treatment), control, split.alpha = 0.5, cv.alpha = 0.5,  
                              sample.size.total = floor(nrow(data) / 10), sample.size.train.frac = 1,
-                             mtry = ceiling(ncol(data)/3), nodesize = 1, num.trees=nrow(data)
+                             mtry = ceiling(ncol(data)/3), nodesize = 1, num.trees=nrow(data),
                              ncolx, ncov_sample) {
   
   # do not implement subset option of causalTree, inherited from rpart
