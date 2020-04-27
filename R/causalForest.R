@@ -18,7 +18,7 @@ predict.causalForest <- function(forest, newdata, predict.all = FALSE, type="vec
   })
   
   #replace sapply with a loop if needed
-  print(dim(individual))
+  #print(dim(individual))
   aggregate <- rowMeans(individual)
   if (predict.all) {
     list(aggregate = aggregate, individual = individual)

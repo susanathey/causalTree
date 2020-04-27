@@ -134,8 +134,8 @@ honest.causalTree <- function(formula, data, weights, treatment, subset,
 	split.Rule.int <- pmatch(split.Rule, c("TOT", "CT", "fit", "tstats", "TOTD", "CTD", "fitD", "tstatsD", "user", "userD","policy","policyD"))
 	if (is.na(split.Rule.int)) stop("Invalid splitting rule.")
 	split.Rule <- c("TOT", "CT", "fit", "tstats", "TOTD", "CTD", "fitD", "tstatsD", "user", "userD","policy","policyD")[split.Rule.int]
-   print(split.Rule.int)
-   print(split.Rule)
+   #print(split.Rule.int)
+   #print(split.Rule)
 	## check the Split.Honest, for convenience
 	if (split.Rule.int %in% c(1, 5)) {
 		if (!missing(split.Honest)) {
