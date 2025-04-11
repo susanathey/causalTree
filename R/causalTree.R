@@ -168,7 +168,7 @@ causalTree <- function(formula, data, weights, treatment, subset,
 		}
 	}
 
-	xvar <- apply(X, 2, var)
+	xvar <- apply(X, 2, stats::var)
 	method <- "anova"
 	method.int <- 1
 
